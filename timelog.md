@@ -34,3 +34,19 @@
 * *1 hour* : Read Week 1 & 2 Deep Learning material from DL MSc course
 * *2 hour* : Finish pytorch blitz tutorial (Week 1 lab DL Msc)
 * *0.5 hour* : Create Github Repo and setup repo from template
+
+## 04 Oct 2022
+
+* *2.5 hour* : Supervisor Meeting - noted minutes
+
+## Week 2 
+
+## 06 Oct 2022
+
+* *1 hour* : Open-Slide python tutorial - Learn basics of tiling whole slide images
+* *2 hours* : Read and annotate "Predicting survival from colorectal cancer histology slides using deep learning: A retrospective multicenter study"
+
+## 07 Oct 2022
+
+* *1 hour* : Read and annotate "Predicting survival from colorectal cancer histology slides using deep learning: A retrospective multicenter study"
+* *2 hours* : create pipeline with open-slide for tiling slides at native resolution
