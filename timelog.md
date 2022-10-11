@@ -50,3 +50,13 @@
 
 * *1 hour* : Read and annotate "Predicting survival from colorectal cancer histology slides using deep learning: A retrospective multicenter study"
 * *2 hours* : create pipeline with open-slide for tiling slides at native resolution
+
+## 09 Oct 2022
+
+* *1 hour* : Research ways to filter background tiles from tissue tiles
+* *1 hour* : Read documentation for wsi-tile-cleanup python library to use for optimizing tile creation and remove empty tiles
+
+## 10 Oct 2022
+
+* *0.5 hour* : research ways to deal with WSI storage issue - possibly store on university Network Drive
+* *0.5 hour* : plan working methodolgy steps - training -> tissue decomposition -> tumour grading -> survival time
