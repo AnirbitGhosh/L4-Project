@@ -60,3 +60,26 @@
 
 * *0.5 hour* : research ways to deal with WSI storage issue - possibly store on university Network Drive
 * *0.5 hour* : plan working methodolgy steps - training -> tissue decomposition -> tumour grading -> survival time
+
+## 11 Oct 2022
+
+* *1 hour* : https://www.youtube.com/c/DigitalSreeni/videos - videos on WSI H&E filtering and normalization
+* *1 hour* : Perform pixel level analysis to detect blank, partial and goot WSI tiles
+* *1 hour* : Modify existing tiling pipeline to accept command line arguments and include pixel data to filter useless tiles
+* * 2 hours* : Supervisor meeting - noted minutes
+
+
+## Week 3
+
+## 14 Oct 2022
+
+* *0.5 hour* : Watch histology and segmentation video on Camelyon17 challenge : https://www.youtube.com/watch?v=8h6oSqPrjzc 
+* *1 hour* : Watch video on brain cancer detection using TensorFlow MobileNet pretrained transfer learning :  https://www.youtube.com/watch?v=7MceDfpnP8k&list=PLoOXIgpPlgrg3bWuK9rRDj29nlx7Mt6KG&index=2&t=4104s  
+* *0.5 hour* : Understand existing literature of Camelyon challenge solution on Breast cancer metastasis detection: https://github.com/alexmagsam/metastasis-detection 
+
+## 16 Oct 2022
+* *1 hour* : Read Camelyon16 challenge documentation and study PCAM data : https://github.com/basveeling/pcam, https://camelyon16.grand-challenge.org/ 
+* *1 hour* : Download PCAM dataset and write data loader code to convert HDF5 format to image format : extract-data.py
+* *1 hour* : Read article on "Histopathological Cancer Detection with Deep Neural Networks" using PCAM dataset : https://humanunsupervised.github.io/humanunsupervised.com/pcam/pcam-cancer-detection.html
+* *1 hour* : Watch a Kaggle histopathology challenge code review on cancer tissue segmentation : https://www.youtube.com/watch?v=qxtDv7_U0hY&list=PLoOXIgpPlgrg3bWuK9rRDj29nlx7Mt6KG&index=7&t=339s
+* *1 hour* : Read differences between CNN using TorchVision or TensorFlow (Keras), start initial coding of CNN to process acquried data.
