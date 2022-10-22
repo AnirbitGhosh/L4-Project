@@ -83,3 +83,18 @@
 * *1 hour* : Read article on "Histopathological Cancer Detection with Deep Neural Networks" using PCAM dataset : https://humanunsupervised.github.io/humanunsupervised.com/pcam/pcam-cancer-detection.html
 * *1 hour* : Watch a Kaggle histopathology challenge code review on cancer tissue segmentation : https://www.youtube.com/watch?v=qxtDv7_U0hY&list=PLoOXIgpPlgrg3bWuK9rRDj29nlx7Mt6KG&index=7&t=339s
 * *1 hour* : Read differences between CNN using TorchVision or TensorFlow (Keras), start initial coding of CNN to process acquried data.
+
+## 18 Oct 2022
+* *1 hour* : Create custom dataset class inheriting torch.data.Dataset to hold images + labels in one datastructure
+* *1 hour* : use VSCode interactive mode to visualize images inline, instead of using online notebook
+* *0.5 hour* : Load training data into custom data model, visualize random images in grids and highlight malignant areas in tumour annotated images
+* *2 hours* : Supervisor Meeting (noted in minutes)
+
+## Week 4 
+
+## 21 Oct 2022
+* *1 hour* : Read Pytorch transfer learning documentation - https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html
+* *0.5 hour* : Read up on different pre trained networks, Resnet, mobilenet, VGG16/19
+
+## 22 Oct 2022
+* *4 hours* : Create custom CNN model, train on PCAM data and validate on PCAM data - accuracy 73% achieved. 

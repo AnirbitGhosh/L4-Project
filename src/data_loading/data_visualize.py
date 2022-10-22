@@ -1,4 +1,11 @@
+#%%
+import sys
+import os
+sys.path.insert(0, os.path.abspath("C:\\Users\Anirbit\\L4 Project\\L4-Project\\src"))
+print(sys.path)
+
 # %%
+#import modules
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,8 +15,7 @@ import os
 import torchvision.transforms as transforms
 from torchvision import utils
 import torch
-from dataset import breastCancerDataset
-from dataset import show
+from data_loading.dataset import breastCancerDataset, show
 
 #%% 
 # load data and set paths
@@ -62,7 +68,6 @@ for i, id_ in enumerate(malignant_ids[:nrows*ncols]):
     
 # %%
 # load our custom dataset object
-from dataset import breastCancerDataset
 
 data_transformer = transforms.Compose([transforms.ToTensor()])
 img_dataset = breastCancerDataset(data_base_path, data_transformer, "train")
@@ -89,3 +94,5 @@ print(x_grid_train.shape)
 # %%
 plt.rcParams['figure.figsize'] = (10.0, 5)
 show(x_grid_train, y_grid_train, True)
+
+# %%
