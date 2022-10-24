@@ -64,7 +64,7 @@ if __name__ == '__main__':
     #################################
 
     # Generate object for tiles using the DeepZoomGenerator
-    tiles = DeepZoomGenerator(slide, tile_size=244, overlap=0, limit_bounds=False)
+    tiles = DeepZoomGenerator(slide, tile_size=int(sys.argv[3]), overlap=0, limit_bounds=False)
     #Here, we have divided our SVS file into tiles of size 244x244 with no overlap
 
     #The tiles object also contains data at many levels. 
@@ -82,8 +82,8 @@ if __name__ == '__main__':
     
 
     #### Saving each tile to local directory
-    cols, rows = tiles.level_tiles[level_num] # for whole slide's tiles
-    #cols, rows = 75, 120
+    #cols, rows = tiles.level_tiles[level_num] # for whole slide's tiles
+    cols, rows = 100, 100
 
     tile_dir = sys.argv[2]
     sub_dir = os.path.basename(sys.argv[1])

@@ -98,3 +98,6 @@
 
 ## 22 Oct 2022
 * *4 hours* : Create custom CNN model, train on PCAM data and validate on PCAM data - accuracy 73% achieved. 
+
+## 24 Oct 2022
+* *2 hours* : Create a predictor program to load the PCAM data trained model weights to predict malignancy of TCGA WSI image tiles - plot images with color coded to indicate malignancy (red) and benign (gray).
