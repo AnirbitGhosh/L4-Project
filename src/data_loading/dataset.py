@@ -1,3 +1,4 @@
+from genericpath import isdir
 import torch
 from torch.utils.data import Dataset
 import pandas as pd
@@ -18,6 +19,11 @@ class breastCancerDataset(Dataset):
         fnames = os.listdir(data_path)
         
         # get full path to images
+        # self.full_fnames = []
+        # for f in fnames:
+        #     path = os.path.join(data_path, f)
+        #     if not os.path.isdir(path): 
+        #         self.full_fnames.append(os.path)
         self.full_fnames = [os.path.join(data_path, f) for f in fnames]
         
         # labels are in a csv file names train_labels.csv
@@ -36,10 +42,21 @@ class breastCancerDataset(Dataset):
         return len(self.full_fnames)
     
     def __getitem__(self, index):
-        # open image, apply transform and return with label
-        image = Image.open(self.full_fnames[index])
-        image = self.transform(image)
-        return image, self.labels[index]
+        if isinstance(index, slice):
+            start = 0 if index.start == None else index.start
+            stop = -1 if index.stop == None else index.stop
+            step = 1 if index.step == None else index.step
+            images = []
+            for idx in range(start, stop, step):
+                img = Image.open(self.full_fnames[idx])
+                img = self.transform(img)
+                images.append(img)
+            return images, self.labels[start:stop:step]
+        else:
+            # open image, apply transform and return with label
+            image = Image.open(self.full_fnames[index])
+            image = self.transform(image)
+            return image, self.labels[index]
     
 
 def show(img, y, color=False):

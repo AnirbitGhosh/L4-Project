@@ -82,28 +82,28 @@ if __name__ == '__main__':
     
 
     #### Saving each tile to local directory
-    #cols, rows = tiles.level_tiles[level_num] # for whole slide's tiles
-    cols, rows = 100, 100
+    # cols, rows = tiles.level_tiles[level_num] # for whole slide's tiles
+    # # cols, rows = 100, 100
 
-    tile_dir = sys.argv[2]
-    sub_dir = os.path.basename(sys.argv[1])
-    sub_dir_path = os.path.join(tile_dir, sub_dir)
-    sub_dir_path = os.path.splitext(sub_dir_path)[0]
-    os.mkdir(sub_dir_path)
+    # tile_dir = sys.argv[2]
+    # sub_dir = os.path.basename(sys.argv[1])
+    # sub_dir_path = os.path.join(tile_dir, sub_dir)
+    # sub_dir_path = os.path.splitext(sub_dir_path)[0]
+    # os.mkdir(sub_dir_path)
 
-    for row in range(rows):
-        for col in range(cols):
-            tile_name = str(col) + "_" + str(row)
-            #print("Now getting tile with title: ", tile_name)
-            temp_tile = tiles.get_tile(level_num, (col, row))
-            temp_tile_RGB = temp_tile.convert('RGB')
-            temp_tile_RGB_np = np.array(temp_tile_RGB)
+    # for row in range(rows):
+    #     for col in range(cols):
+    #         tile_name = str(col) + "_" + str(row)
+    #         #print("Now getting tile with title: ", tile_name)
+    #         temp_tile = tiles.get_tile(level_num, (col, row))
+    #         temp_tile_RGB = temp_tile.convert('RGB')
+    #         temp_tile_RGB_np = np.array(temp_tile_RGB)
 
-            # only save tiles with >50% tissue samples
-            # remove blank and partial tiles            
-            if temp_tile_RGB_np.std() > 15 and temp_tile_RGB_np.mean() < 230: 
-                print("saving tile number:", tile_name)
-                tiff.imsave(sub_dir_path + "/" +tile_name + ".tif", temp_tile_RGB_np)
+    #         # only save tiles with >50% tissue samples
+    #         # remove blank and partial tiles            
+    #         if temp_tile_RGB_np.std() > 15 and temp_tile_RGB_np.mean() < 230: 
+    #             print("saving tile number:", tile_name)
+    #             tiff.imsave(sub_dir_path + "/" +tile_name + ".tif", temp_tile_RGB_np)
     
 
 

@@ -36,7 +36,7 @@ val_transformer = validation_transfomer()
 # len_train = int(0.8*len_ds)
 # len_val = len_ds - len_train
 
-train_ds = breastCancerDataset(base_dir_path, val_transformer, "train")
+train_ds = breastCancerDataset(base_dir_path, train_transformer, "train")
 val_ds = breastCancerDataset(base_dir_path, val_transformer, "validation")
 
 # %%

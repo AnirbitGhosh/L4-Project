@@ -53,23 +53,24 @@ def extract_data(basedir):
     
     print("Extracting training images...")
     
-    #extract training images as .jpeg files
-    with h5py.File(train_dir+"/camelyonpatch_level_2_split_train_x.h5", 'r') as h5f:
-        for i in range(h5f['x'].shape[0])[:1000]:
-            print("Saving image: " + str(i))
-            img_arr = h5f['x'][i]
-            plt.imsave(train_dir + "/tiles/" + str(i) + ".jpeg", img_arr)
+    # #extract training images as .jpeg files
+    # with h5py.File(train_dir+"/camelyonpatch_level_2_split_train_x.h5", 'r') as h5f:
+    #     for i in range(h5f['x'].shape[0])[:10000]:
+    #         print("Saving image: " + str(i))
+    #         img_arr = h5f['x'][i]
+    #         plt.imsave(train_dir + "/tiles/" + str(i) + ".jpeg", img_arr)
 
     #extract test images as .jpeg files
-    with h5py.File(test_dir+"/camelyonpatch_level_2_split_test_x.h5", 'r') as h5f:
-        for i in range(h5f['x'].shape[0])[:100]:
-            print("Saving image: " + str(i))
-            img_arr = h5f['x'][i]
-            plt.imsave(test_dir + "/tiles/" + str(i) + ".jpeg", img_arr)
+    # with h5py.File(test_dir+"/camelyonpatch_level_2_split_test_x.h5", 'r') as h5f:
+    #     for i in range(h5f['x'].shape[0])[:20000]:
+    #         print("Saving image: " + str(i))
+    #         img_arr = h5f['x'][i]
+    #         plt.imsave(test_dir + "/tiles/" + str(i) + ".jpeg", img_arr)
      
+    print("Extracting Validation images...")
     #extract validation images as .jpeg files       
     with h5py.File(valid_dir+"/camelyonpatch_level_2_split_valid_x.h5", 'r') as h5f:
-        for i in range(h5f['x'].shape[0])[:100]:
+        for i in range(h5f['x'].shape[0])[:5000]:
             print("Saving image: " + str(i))
             img_arr = h5f['x'][i]
             plt.imsave(valid_dir + "/tiles/"+ str(i) + ".jpeg", img_arr)

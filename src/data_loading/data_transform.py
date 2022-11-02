@@ -16,6 +16,21 @@ def validation_transfomer():
     val_transformer = transforms.Compose([transforms.ToTensor()])
     return val_transformer
 
+def pretrained_transformer():
+    transformer = {
+        'train' : transforms.Compose([
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomVerticalFlip(p=0.5),
+            transforms.RandomRotation(45),
+            transforms.ToTensor()
+        ]),
+        'validation' : transforms.Compose([
+            transforms.ToTensor()
+        ])
+    }
+    
+    return transformer
+
 def accuracy(labels, out):
     return np.sum(out==labels)/float(len(labels))
     

@@ -58,25 +58,25 @@ for file in os.listdir(image_dir):
 #     print("The tile is malignant:", False)
     
 #%%
-images= [plt.imread(image_dir + "/" + img) for img in os.listdir(image_dir)[:36]]
+images= [plt.imread(image_dir + "/" + img) for img in os.listdir(image_dir)[2200:2300]]
 print(len(images))
 
-plt.rcParams['figure.figsize'] = (36,36)
+plt.rcParams['figure.figsize'] = (10,10)
 plt.subplots_adjust(wspace=0.2, hspace=0.2)
-nrows, ncols = 6, 6
+nrows, ncols = 10, 10
 
 idx = 0
-for img, prediction in zip(images[:36], predictions[:36]):
+for img, prediction in zip(images[:100], predictions[:100]):
     
     plt.subplot(nrows, ncols, idx+1)
     plt.axis('off')
     if prediction == 1:
-        disp = img[:,:,0]
-        plt.imshow(disp, cmap='Reds')
-        plt.title("MALIGNANT : TRUE")
+        disp = img
+        plt.imshow(disp)
+        # plt.title("MALIGNANT : TRUE")
     else:
         plt.imshow(img[:,:, 1], cmap='gray')
-        plt.title("MALIGNANT : FALSE")
+        # plt.title("MALIGNANT : FALSE")
     idx+=1
 
 # %%
