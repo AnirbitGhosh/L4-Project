@@ -172,7 +172,7 @@ params_train={
     "val_dl": val_dl,
     "sanity_check": True,
     "lr_scheduler": lr_scheduler,
-    "path2weights": "D:/PCAM DATA/trained_models/weights_01.pt",
+    "path2weights": "D:/PCAM DATA/trained_models/weights_01_10k.pt",
 }
 
 # %%
@@ -215,7 +215,7 @@ params_train={
  "val_dl": val_dl,
  "sanity_check": False,
  "lr_scheduler": lr_scheduler,
- "path2weights": "D:/PCAM DATA/trained_models/weights_01.pt",
+ "path2weights": "D:/PCAM DATA/trained_models/weights_01_10k.pt",
 }
 
 # train and validate the model
@@ -242,3 +242,4 @@ plt.ylabel("Accuracy")
 plt.xlabel("Training Epochs")
 plt.legend()
 plt.show()
+# %%

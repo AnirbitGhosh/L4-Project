@@ -13,6 +13,7 @@ from PIL import Image
 import pandas as pd
 from pathlib import Path
 import numpy as np
+import pandas as pd
 
 # %%
 params_model = {
@@ -24,7 +25,7 @@ params_model = {
 }
 
 model = Net(params_model)
-checkpoint = torch.load('D:/PCAM DATA/trained_models/weights_01.pt')
+checkpoint = torch.load('D:/PCAM DATA/trained_models/weights_01_10k.pt')
 model.load_state_dict(checkpoint)
 
 # %%
@@ -32,8 +33,8 @@ model.load_state_dict(checkpoint)
 transform  = validation_transfomer()
 
 predictions = []
-image_dir = "C:/Users/Anirbit/L4 Project/src - practice/WSI-processing/WSI-data/Tiles/TCGA-slide-01"
-for file in os.listdir(image_dir):
+image_dir = "D:\PCAM DATA\WSI\Tiles\TCGA-Slide-01"
+for file in os.listdir(image_dir)[:5000]:
     image = Image.open(image_dir + "/" + file)
     print("Predicting class for image {} ...".format(file))
     input = transform(image)
@@ -42,6 +43,12 @@ for file in os.listdir(image_dir):
     prediction = int(torch.max(output.data, 1)[1].numpy())
     print("Prediction success - saving output!")
     predictions.append(prediction)
+
+
+#%%
+df = pd.DataFrame({"image": os.listdir(image_dir)[:5000], "predictions":predictions})
+df.head()
+df.to_csv("D:/PCAM DATA/WSI/Tiles/TCGA-01-predictions.csv")
 
 # %%
 # pass input image to model and print prediction
@@ -58,7 +65,7 @@ for file in os.listdir(image_dir):
 #     print("The tile is malignant:", False)
     
 #%%
-images= [plt.imread(image_dir + "/" + img) for img in os.listdir(image_dir)[2200:2300]]
+images= [plt.imread(image_dir + "/" + img) for img in os.listdir(image_dir)[:5000]]
 print(len(images))
 
 plt.rcParams['figure.figsize'] = (10,10)
@@ -66,16 +73,16 @@ plt.subplots_adjust(wspace=0.2, hspace=0.2)
 nrows, ncols = 10, 10
 
 idx = 0
-for img, prediction in zip(images[:100], predictions[:100]):
+for img, prediction in zip(images[4500:4600], predictions[4500:4600]):
     
     plt.subplot(nrows, ncols, idx+1)
     plt.axis('off')
     if prediction == 1:
-        disp = img
-        plt.imshow(disp)
+        disp = img[:,:,0]
+        plt.imshow(disp, cmap='Reds')
         # plt.title("MALIGNANT : TRUE")
     else:
-        plt.imshow(img[:,:, 1], cmap='gray')
+        plt.imshow(img)
         # plt.title("MALIGNANT : FALSE")
     idx+=1
 

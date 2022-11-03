@@ -20,7 +20,7 @@ if __name__ == '__main__':
 
     print("Vendor is:", slide_props["openslide.vendor"])
     print("Pixel size of X in um is:", slide_props["openslide.mpp-x"])
-    print("Pixel size of X in um is:", slide_props['openslide.mpp-y'])
+    print("Pixel size of Y in um is:", slide_props['openslide.mpp-y'])
 
     # Objective used to capture the image
     objective = float(slide.properties[openslide.PROPERTY_NAME_OBJECTIVE_POWER])

@@ -101,3 +101,29 @@
 
 ## 24 Oct 2022
 * *2 hours* : Create a predictor program to load the PCAM data trained model weights to predict malignancy of TCGA WSI image tiles - plot images with color coded to indicate malignancy (red) and benign (gray).
+
+## 25 Oct 2022
+* *2.5 hours* : Supervisor meeting - noted in minutes
+
+## 27 Oct 2022
+* *2 hours* : Create a Resnet18 model using Pytorch docs, use all intermediate layers and FC layers at first. Split image dataset into malignant and benign directories for pytorch ImageLoaders to work and extract classes automatically inside the network
+* *1 hour* : Try debug why Resnet18 wont train/training is extremely slow : use smaller dataset, which smaller batch number - not change. use less epochs to train, still very slow. 
+
+## Week 5
+
+## 30 Oct 2022
+* *2 hours* : Refine Resnet18 model by freezing layers to increase speed. Train my own model with more data and random transforms to increase robustness - 10k data used and highest validation acc obtained of 76%. Save model weights and use for prediction on TCGA slide
+* *0.5 hour* : Tile an entire TCGA whole slide image into tiles, discarding background. 
+* *1 hour* : Create a prediction pipeline to automatically iterate through every tile given a directory, load our model, pass each tile as input and generate a prediciton. Save binary prediction in a CSV file against the file name. 
+* *1 hour* : use generated predictions to conditionally apply a mask to tiles. Visualize malignant tiles vs benign tiles, notice a lot more malignant compared to benign, very noise when used on out of sample data. Try ways of combining tiles back into a full image to see the overall areas of malignancy and quantify noise generated. 
+
+## 02 Nov 2022
+* *2.5 hours* : Supervisor Meeting - noted in minutes
+
+## 03 Nov 2022
+* *4 hours* : Investigate multiple ways of generating overall visualization of tiles : 
+    * Concatenate each tile as a numpy array into another array and try visualize that. Shaped were not compatible and collapsing additional dimensions generated arrays too big to store in memory as we have a lot of tiles
+    * Try draw rectangles of size 96x96 on regions where our tiles were extracted from our whole slide. However, drawing rectangles requires the coordinate of the center pixel and tile coordinates are not coordinates of their central pixel, they are the number of the tile itself in a row-col grid laid over the whole image. This approach failed. 
+    * Use Matplotlib grids to replicate similar grid on top of whole slide image preview and colour code each grid square corresponding to tile coordinate based on predicted values stored in CSV - Problem is displaying the whole slide image in native resolution is not possible and as soon as we downsample it distorts the tile coordinates and they no longer apply
+    * SOLUTION : Scale whole slide image down by x96 to represent each tile as a pixel on the image. Now we can modify each pixel's colour based on the corresponding tile's predictions. This worked to generate a cummulative visualization of our predictions
+  
