@@ -28,6 +28,10 @@ print(os.listdir(image_dir))
 slide = open_slide(image_dir + "/" + os.listdir(image_dir)[0])
 slide_props = slide.properties
 
+thumb = slide.get_thumbnail((600,600))
+plt.figure(figsize=(10,10))
+plt.imshow(thumb)
+plt.axis("off")
 # %%
 print(f"The dimensions of the WSI in pixels is: {slide.dimensions}")
 

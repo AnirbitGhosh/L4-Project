@@ -70,8 +70,12 @@ def generate_pixel_map(thumb, predictions):
     return np_thumb
                 
 def plot_images(image_list):
-    row = 1
-    col = 1
+    row = len(image_list)//2
+    col = len(image_list)//2
+    
+    if row == 0:
+        row = 1
+        col = 1
     
     for num, img in enumerate(image_list):
         plt.subplot(row, col, num+1)
@@ -79,8 +83,8 @@ def plot_images(image_list):
         plt.imshow(img)
         plt.show()
 
-def save_masked_image(img_arr, image):
-    fname = os.path.join(img_dir, image[:-4]+"-masked.png")
+def save_masked_image(img_arr, image, output_dir):
+    fname = os.path.join(output_dir, image[:-4]+"-masked.png")
     plt.imsave(fname, img_arr, format="png")
 
 #%%
@@ -110,7 +114,7 @@ if __name__ == "__main__":
         np_img_arr = generate_pixel_map(thumbnail, prediction_dict)
         image_list.append(np_img_arr)
         
-        save_masked_image(np_img_arr, file)
+        save_masked_image(img_arr=np_img_arr, image=file, output_dir=label_dir)
         
     plot_images(image_list)
     
