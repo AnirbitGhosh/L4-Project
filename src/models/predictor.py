@@ -34,7 +34,7 @@ transform  = validation_transfomer()
 
 predictions = []
 image_dir = "D:\PCAM DATA\WSI\Tiles\TCGA-Slide-01"
-for file in os.listdir(image_dir)[:5000]:
+for file in os.listdir(image_dir):
     image = Image.open(image_dir + "/" + file)
     print("Predicting class for image {} ...".format(file))
     input = transform(image)
@@ -46,9 +46,9 @@ for file in os.listdir(image_dir)[:5000]:
 
 
 #%%
-df = pd.DataFrame({"image": os.listdir(image_dir)[:5000], "predictions":predictions})
+df = pd.DataFrame({"image": os.listdir(image_dir), "predictions":predictions})
 df.head()
-df.to_csv("D:/PCAM DATA/WSI/Tiles/TCGA-01-predictions.csv")
+df.to_csv("D:/PCAM DATA/WSI/Tiles/TCGA-Slide-01-predictions.csv")
 
 # %%
 # pass input image to model and print prediction

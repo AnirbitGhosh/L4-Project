@@ -1,10 +1,10 @@
 import copy
 from mimetypes import init
-from utils import findConv2dOutShape
+from models.utils import findConv2dOutShape
 import torch.nn.functional as F
 import torch
 import torch.nn as nn
-from utils import loss_batch, get_lr
+from models.utils import loss_batch, get_lr
 
 device = torch.device("cuda")
 

@@ -126,4 +126,6 @@
     * Try draw rectangles of size 96x96 on regions where our tiles were extracted from our whole slide. However, drawing rectangles requires the coordinate of the center pixel and tile coordinates are not coordinates of their central pixel, they are the number of the tile itself in a row-col grid laid over the whole image. This approach failed. 
     * Use Matplotlib grids to replicate similar grid on top of whole slide image preview and colour code each grid square corresponding to tile coordinate based on predicted values stored in CSV - Problem is displaying the whole slide image in native resolution is not possible and as soon as we downsample it distorts the tile coordinates and they no longer apply
     * SOLUTION : Scale whole slide image down by x96 to represent each tile as a pixel on the image. Now we can modify each pixel's colour based on the corresponding tile's predictions. This worked to generate a cummulative visualization of our predictions
-  
+
+## 04 Nov 2022
+* *2 hours* : Create a tile visualizer script to take tile level predictions and map it to apply a pixel level mask on top of whole slide image thumbnail preview image scaled down by a factor of 96. Save the masked image as a png in image directory. 
