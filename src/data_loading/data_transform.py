@@ -31,6 +31,12 @@ def pretrained_transformer():
     
     return transformer
 
+def pretrained_pred_transformer():
+    return transforms.Compose([
+        # transforms.Resize((96,96)),
+        transforms.ToTensor()
+    ])
+
 def accuracy(labels, out):
     return np.sum(out==labels)/float(len(labels))
     

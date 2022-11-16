@@ -2,10 +2,13 @@
 import sys
 import os
 sys.path.insert(0, os.path.abspath("C:\\Users\Anirbit\\L4 Project\\L4-Project\\src"))
-from data_loading.data_transform import validation_transfomer
+from data_loading.data_transform import validation_transfomer, pretrained_pred_transformer
 from models.custom_network import Net
 import torch
 import matplotlib.pyplot as plt
+from torchvision import models
+import torch
+import torch.nn as nn
 from PIL import Image
 import pandas as pd
 from pathlib import Path
@@ -49,6 +52,19 @@ def read_model(weights):
     
     return model
 
+def read_pretrained(weights):
+    model_pt = models.resnet18(pretrained=True)
+    
+    num_ftrs = model_pt.fc.in_features
+
+    model_pt.fc = nn.Linear(num_ftrs, 2)
+    #model_pt.fc = model_pt.fc.cuda() if torch.cuda.is_available() else model_pt.fc
+    
+    checkpoint = torch.load(weights)
+    model_pt.load_state_dict(checkpoint)
+    
+    return model_pt
+
 def get_predictions(model, tile_dir, image_dir, output_dir):
     transform  = validation_transfomer()
     
@@ -73,7 +89,34 @@ def get_predictions(model, tile_dir, image_dir, output_dir):
 
         df = pd.DataFrame({"image" : os.listdir(tile_path), "predictions" : predictions})
         csv_name = dirname + "-predictions.csv"
-        df.to_csv(os.path.join(output_dir, csv_name))        
+        df.to_csv(os.path.join(output_dir, csv_name))    
+        
+def get_pretrained_predictions(model, tile_dir, image_dir, output_dir):
+    transform  = pretrained_pred_transformer()
+    
+    print("Getting each whole slide image name...")
+    for file in os.listdir(image_dir):
+        dirname = file[:-4]
+        print(f"Processing predictions for image : {dirname}")
+        tile_path = os.path.join(tile_dir, dirname)
+    
+        predictions = []
+        print("Starting prediction generation for tiles...")
+        for image_file in os.listdir(tile_path):
+            image_name = image_file[:-4]
+            image = Image.open(os.path.join(tile_path, image_file))
+            print("Predicting class for image {} ...".format(image_name))
+            input = transform(image)
+            valid_input = torch.unsqueeze(input, 0)
+            
+            output = model(valid_input)
+            prediction = int(torch.max(output.data, 1)[1].numpy())
+            print("Prediction success - saving output!")
+            predictions.append(prediction)
+
+        df = pd.DataFrame({"image" : os.listdir(tile_path), "predictions" : predictions})
+        csv_name = dirname + "-predictions_resnet.csv"
+        df.to_csv(os.path.join(output_dir, csv_name))       
             
         
 #%%
@@ -96,6 +139,8 @@ if __name__ == "__main__" :
     
     print("Generating model with given weights... ")
     model = read_model(net_path)
+    #model = read_pretrained(net_path)
     print("Generating model with given weights... DONE!")
     
     get_predictions(model=model, tile_dir=tile_dir, image_dir=image_dir, output_dir=out_dir)
+    # get_pretrained_predictions(model=model, tile_dir=tile_dir, image_dir=image_dir, output_dir=out_dir)

@@ -50,9 +50,9 @@ def process_image(image_name, image_dir):
     cols, rows = tiles.level_tiles[level_num]
     
     thumb = slide.get_thumbnail((cols, rows))
-    plt.figure(figsize=(10,10))
-    plt.imshow(thumb)
-    plt.axis("off")
+    #plt.figure(figsize=(10,10))
+    #plt.imshow(thumb)
+    #plt.axis("off")
     
     return thumb
 
@@ -84,7 +84,7 @@ def plot_images(image_list):
         plt.show()
 
 def save_masked_image(img_arr, image, output_dir):
-    fname = os.path.join(output_dir, image[:-4]+"-masked.png")
+    fname = os.path.join(output_dir, image[:-4]+"-myCustom.png")
     plt.imsave(fname, img_arr, format="png")
 
 #%%

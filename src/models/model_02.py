@@ -32,7 +32,7 @@ data_transforms = pretrained_transformer()
 # train_ds = breastCancerDataset(data_dir, data_transforms['train'], "train")
 # val_ds = breastCancerDataset(data_dir, data_transforms['validation'], "validation")
 img_ds = {
-    x: datasets.ImageFolder(os.path.join(data_dir, x+"/tiles_alt"), 
+    x: datasets.ImageFolder(os.path.join(data_dir, x+"/grouped_tiles"), 
     data_transforms[x])
     for x in ["train", "validation"]
 }
@@ -75,7 +75,7 @@ def train_pretrained(model, criterion, optimizer, scheduler, num_epochs=25):
 
         
         # Each epoch has a training and validation phase
-        for phase in ['train', 'val']:
+        for phase in ['train', 'validation']:
             print(f"in phase: {phase}...")
             if phase == 'train':
                 model.train()  # Set model to training mode
@@ -129,7 +129,7 @@ def train_pretrained(model, criterion, optimizer, scheduler, num_epochs=25):
             print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
 
             # deep copy the model
-            if phase == 'val' and epoch_acc > best_acc:
+            if phase == 'validation' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
 
@@ -141,6 +141,11 @@ def train_pretrained(model, criterion, optimizer, scheduler, num_epochs=25):
 
     # load best model weights
     model.load_state_dict(best_model_wts)
+    
+    # save best model state dict to path
+    path2model = "D:/PCAM DATA/trained_models/weights_02.pt"
+    torch.save(best_model_wts, path2model)
+    
     return model
 
 # %%
@@ -152,7 +157,7 @@ def visualize_model(model, num_images=6):
     fig = plt.figure()
 
     with torch.no_grad():
-        for i, (inputs, labels) in enumerate(dataloaders['val']):
+        for i, (inputs, labels) in enumerate(dataloaders['validation']):
             inputs = inputs.to(device)
             labels = labels.to(device)
 
@@ -190,5 +195,8 @@ exp_lr_scheduler = lr_scheduler.StepLR(optimizer_pt, step_size=7, gamma=0.1)
 # %%
 model_pt = train_pretrained(model_pt, criterion, optimizer_pt, exp_lr_scheduler,
                            num_epochs=2)
+
+# %%
+visualize_model(model_pt)
 
 # %%
