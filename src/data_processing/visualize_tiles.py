@@ -116,5 +116,5 @@ if __name__ == "__main__":
         
         save_masked_image(img_arr=np_img_arr, image=file, output_dir=label_dir)
         
-    plot_images(image_list)
+    #plot_images(image_list)
     

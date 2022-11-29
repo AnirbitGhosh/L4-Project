@@ -37,16 +37,16 @@ class Net (nn.Module):
         
         
     def forward(self, x):
-        x = F.relu(self.conv1(x))
+        x = F.tanh(self.conv1(x))
         x = F.max_pool2d(x, 2, 2)
-        x = F.relu(self.conv2(x))
+        x = F.tanh(self.conv2(x))
         x = F.max_pool2d(x, 2, 2)
-        x = F.relu(self.conv3(x))
+        x = F.tanh(self.conv3(x))
         x = F.max_pool2d(x, 2, 2)
-        x = F.relu(self.conv4(x))
+        x = F.tanh(self.conv4(x))
         x = F.max_pool2d(x, 2, 2)
         x = x.view(-1, self.num_flatten)
-        x = F.relu(self.fc1(x))
+        x = F.tanh(self.fc1(x))
         x=F.dropout(x, self.dropout_rate, training= self.training)
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
