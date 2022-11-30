@@ -130,3 +130,61 @@
 ## 04 Nov 2022
 * *2 hours* : Create a tile visualizer script to take tile level predictions and map it to apply a pixel level mask on top of whole slide image thumbnail preview image scaled down by a factor of 96. Save the masked image as a png in image directory. 
 * *1 hour* : Create generic prediction generator to produce class outputs for all whole slide image tiles given a model weight .pt file and saves output in -o directory
+
+## Week 6 
+
+## 05 Nov 2022
+* *1 hour* : Complete predicition generator to produce binary output given a directory containing whole slide images, network weight (.pt file) and an output directory. It creates a CSV file, containing tile coordinates against predicted class. Generalize it for eaiser portability across computers.
+* *2 hours* : Run prediction pipeline on all whole slide images and generate all class labels. Run the labels through the tile visualizer to see prediction visualized. RESULTS: Most of the slide is viosualized as positive with edges being negative, unsure about its accuracy and validity since TCGA data is not annotated
+
+## 07 Nov 2022
+* *1 hour* : Study CBioPortal clinical data for survival times. Download KM plot data to get a dataset of all patients for whom surival time and deceased status is available. 
+* *1 hour* : Test validity of prediction network by extracting tissue slide for 1. high survival time patient 2. low survival time patient. Use TCGA Patient ID from downloaded KM plot data,  to access patitent slides on TCGA.
+
+## 08 Nov 2022
+* *1 hour* : Train network on 10k PCAM tiles to improve accuracy od predictions. Decide to use own custom network as ResNet is taking too long to train
+* *1 hour* : Tile newly downloaded WSI for two patients corresponding to low and high survival times. Use tiles to generate predictions from the trained network. 
+* *1 hour* : analyze predictions and visualization produced from predictions. Predictions tend to no longer be biased towards just positive. More negatives produced. Still negatives focussed around edges and interior is all positive. 
+* *0.5 hour* : Calculate average malignancy score by taking the percentage of tiles/pixels that are classified as positive from the total number of tiles. Rationale: Gives a percentage to quantify severity of tumour. calculated score gave 80% positive for higher survival time tissue slide and 60% for lower survival time, which is inverse of what was expected. FACTORS TO CONSIDER: AGE was different - 1. lower survival time sample had a much older patient vs much younger patient for higher survival time. 2. Image size was different, making them have different number of total tiles/pixels, causing percentage to not be a good measure. 
+
+## 09 Nov 2022
+* *2 hours* : Supervisor meeting - noted in minutes
+
+## Week 7
+
+## 12 Nov 2022
+* *2 hours* : Try to train resnet again with less data, turns out to be have many more complications. Current image training data is 96x96 while RESNET requires 244x244. I resized images using tensor transformations to match required dimensions, but artificially increasing dimensions adds to noise. Second complication is that training with less data to try and get quicker computation leads to very low accuracy, almost 70% (<75% for custom network). 
+* *1 hour* : Run prediction pipeline using pretrained network, generate full class labels for all 3 WSI images. Visualize predictions as images. Produces much worse predicitions, with almost entire slide being predicted as positive, with almost less than 5% tiles being predicted negative. Clear bias towards positive class, indicative of underfitting due to insufficient data. Requires much more data to obtain a good model with Resnet.
+
+## 14 Nov 2022
+* *1 hour* : Read https://medium.com/the-researchers-guide/survival-analysis-in-python-km-estimate-cox-ph-and-aft-model-5533843c5d5d
+* *1 hour* : Read https://www.kdnuggets.com/2020/07/guide-survival-analysis-python-part-3.html
+
+## 15 Nov 2022
+* *1 hour* : Investigate ways to extract features from image data to use in cox hazard model to develop survival model. Initially use about 20 WSI images for feature extraction to see if Cox Model actually gives reasonable results before expanding to more data. 
+* *1 hour* :  Read https://www.nature.com/articles/s41598-022-19112-9 - image based survival prediction, but uses a grading system developed with a multi-instance learning model which is out of scope for this project and very different from what we are trying to achieve
+
+## 16 Nov 2022
+* *3 hours* : Supervisor Meeting - noted in minutes
+
+## 18 Nov 2022
+* *1 hour* : Read https://academic.oup.com/bioinformatics/article/38/14/3629/6604265?rss=1 - breast cancer image survival analysis
+  
+## Week 8 
+
+NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
+
+## Week 9
+
+## 28 Nov 2022
+* *1.5 hours* : Extract 100k training and test tiles from PCAM data, creating full final dataset for training network
+* *1 hour* : Train custom neural net with full 100k dataset - Noticed accuracy did not improve too much despite a 10x increase in training data.
+
+## 29 Nov 2022
+* *1 hour* : Fine tune network parameters, plotting accuracy and loss for different parameters to see what works best. Using TanH over ReLU showed highest accuracy although the training process showed a lot of fluctuation with TanH compared to ReLU. With ReLU accuracy remained more stable during training. But TanH gave 90% accuracy vs ReLU gave 75%. Train final network with 100k, full data set and complete training stage of model.
+* *1.5 hour* : Run prediction pipeline on 3 existing WSI images, 1 control image, 1 high survival image, 1 low survival image. Visualize predicted classes as image mask and analyse tumour severity from malignancy score. Control image was mostly negative now, with a small concentration of positive tiles indicating a more realistic tumour. High vs low survival images also showed predictions more resemblant to their survival times. 
+* *1 hour* : Download 20 WSI from TCGA corresponding to Patient IDs from CBioPortal survival time data. A lot of patient images could not be downloaded as the slides are not suitable for this task. They have different dye stains, some have poor quality, with mostly blank, some are multi tissue in a single slide (cant use that, it will ruin consistency if some images have more tiles due to having multiple tissue sections, aim to get all tisues which are a single tissue piece), out of 45 first patients only 20 were usable. Mark unusable ones as 0, mark questionable ones as 2 or 3 and discuss with supervisor
+
+## 30 Nov 2022
+* *2 hours* : Supervisor meeting - noted in minutes
+
