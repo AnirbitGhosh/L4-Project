@@ -58,7 +58,7 @@ def get_predictions(model, tile_dir, image_dir, output_dir):
     transform  = validation_transfomer()
     
     print("Getting each whole slide image name...")
-    for file in os.listdir(image_dir)[:1]:
+    for file in os.listdir(image_dir):
         dirname = file[:-4]
         print(f"Processing predictions for image : {dirname}")
         tile_path = os.path.join(tile_dir, dirname)
@@ -100,7 +100,6 @@ if __name__ == "__main__" :
     
     print("Generating model with given weights... ")
     model = read_model(net_path)
-    model.eval()
     print("Generating model with given weights... DONE!")
     
     get_predictions(model=model, tile_dir=tile_dir, image_dir=image_dir, output_dir=out_dir)
