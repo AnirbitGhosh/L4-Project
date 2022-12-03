@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import tifffile as tiff
 import numpy as np
 import glob
@@ -11,7 +12,7 @@ def find_mean_std_pixel_value(img_list):
     avg_pixel_value =[]
     stddev_pixel_value = []
     for file in img_list:
-        image = tiff.imread(file)
+        image = plt.imread(file)
         avg = image.mean()
         std = image.std()
         avg_pixel_value.append(avg)

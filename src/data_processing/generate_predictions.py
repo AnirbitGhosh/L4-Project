@@ -77,7 +77,7 @@ def get_predictions(model, tile_dir, image_dir, output_dir):
             predictions.append(prediction)
 
         df = pd.DataFrame({"image" : os.listdir(tile_path), "predictions" : predictions})
-        csv_name = dirname + "-predictions.csv"
+        csv_name = dirname + "-predictions-normalized.csv"
         df.to_csv(os.path.join(output_dir, csv_name))     
         
 #%%

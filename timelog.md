@@ -188,3 +188,16 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 ## 30 Nov 2022
 * *2 hours* : Supervisor meeting - noted in minutes
 
+## 1 Dec 2022
+* *1 hour* : Fix issues with tiling code and re run tiling-prediction pipeline on linux machine 
+
+## 2 Dec 2022
+* *1 hour* : Do reserach on BRCA annotated data. Download QUPATH, try to load annotations onto WSI from https://zenodo.org/record/5320076#.Y4olBTPP0UE, unsure how to load CSV annotations (in x and y coord format) into QUPATH. Check CAM17 database to find annotated WSI -  downloading the WSI showed extremeely slow download seeds, a 1gb image taking 30 mins to download - could not proceed with validating PCAM data.
+* *1 hour* : Read macenko normalization paper (https://www.cs.unc.edu/~mn/sites/default/files/macenko2009.pdf), and look into implementing some form of h&e normalization step to pre-process tiles before being used to train network and predict
+* *2 hours* : Implement Macenko normalization, H and E channel extraction code. Train network with Normalized images
+* * 4 hours* : Run predictions using macenko normalized network on 1. Un-normalized WSI tiles and 2. Normalized WSI tiles - Results seem worse when normalized network is used on normalzied WSI tiles. However, using un-normalized network on normalized tiles produced reasonable predictions. Using normalized network on un-normalized tiles produces biased predictions towards +ve tiles. Consider optimizing network to be able to use normalized WSI with non-normalized network? so far predictions without normalization seem more resonable maybe because PCAM data is already normalized? 
+
+## Week 10
+
+## 03 Dec 2022
+- *2 hours* : Found CAMELYON 17 data and annotations. Opened annotated slide on ASAP 2.1. Tumour seems to be a very small region of the whole slide, rest is non-malignant tissue. Test what our network predicts on this CAMELYON 17 slide. 

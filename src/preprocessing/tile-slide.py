@@ -9,6 +9,7 @@ from pixel_analysis import find_mean_std_pixel_value
 from openslide.deepzoom import DeepZoomGenerator
 import tifffile as tiff
 import argparse
+from norm_HnE import norm_HnE
 
 def dir_path(string):
     if os.path.isdir(string):
@@ -32,33 +33,32 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print("Parsing arguments... DONE")
 
-    for f in os.listdir(args.input)[1:2]:
+    for f in os.listdir(args.input):
         file_path = os.path.join(args.input, f)
         slide = open_slide(file_path)
         # Load the slide file (svs) into an object
         slide_props = slide.properties
-        print(slide_props)
 
         print("Pixel size of X in um is:", slide_props["openslide.mpp-x"])
         print("Pixel size of Y in um is:", slide_props['openslide.mpp-y'])
 
-        # Objective used to capture the image
-        objective = float(slide.properties[openslide.PROPERTY_NAME_OBJECTIVE_POWER])
-        print("The objective power is:", objective)
+        # # Objective used to capture the image
+        # objective = float(slide.properties[openslide.PROPERTY_NAME_OBJECTIVE_POWER])
+        # print("The objective power is:", objective)
 
-        # Get slide dimensions for the level 0 - max resolution level
-        slide_dims = slide.dimensions
-        print("Dimensions of the slide at level 0 - max res: ", slide_dims)
+        # # Get slide dimensions for the level 0 - max resolution level
+        # slide_dims = slide.dimensions
+        # print("Dimensions of the slide at level 0 - max res: ", slide_dims)
 
-        # get slide dims at each level. Remeber that a whole slide image stores information as pyramid at various levels
-        dims = slide.level_dimensions
-        num_level = len(dims)
-        print("Number of levels in the iamge are:", num_level)
-        print("Dimensions of various levels in this image are:", dims)
+        # # get slide dims at each level. Remeber that a whole slide image stores information as pyramid at various levels
+        # dims = slide.level_dimensions
+        # num_level = len(dims)
+        # print("Number of levels in the iamge are:", num_level)
+        # print("Dimensions of various levels in this image are:", dims)
 
-        # By how much are levels downsampled from the original image?
-        factors = slide.level_downsamples
-        print("each level is downsampled by an amount of:", factors)
+        # # By how much are levels downsampled from the original image?
+        # factors = slide.level_downsamples
+        # print("each level is downsampled by an amount of:", factors)
 
 
         #################################
@@ -89,6 +89,7 @@ if __name__ == '__main__':
         sub_dir = os.path.basename(file_path)
         sub_dir_path = os.path.join(tile_dir, sub_dir)
         sub_dir_path = os.path.splitext(sub_dir_path)[0]
+        print(file_path)
         os.mkdir(sub_dir_path)
 
         for row in range(rows):
@@ -103,7 +104,14 @@ if __name__ == '__main__':
                 # remove blank and partial tiles            
                 if temp_tile_RGB_np.std() > 15 and temp_tile_RGB_np.mean() < 230 and temp_tile_RGB_np.shape == (96,96,3): 
                     print("saving tile number:", tile_name)
-                    tiff.imsave(sub_dir_path + "/" +tile_name + ".tif", temp_tile_RGB_np)
+                    try:
+                        # choose which normalization to use for tiling each WSI to be used in prediction
+                        Inorm, h_norm = norm_HnE(temp_tile_RGB_np) 
+                        tiff.imsave(sub_dir_path + "/" +tile_name + ".tif", Inorm)
+                    except np.linalg.LinAlgError as LinAlgError:
+                        print(f"Eigenvalue did not converge for {tile_name}, saving non-norm tile")
+                        tiff.imsave(sub_dir_path + "/" +tile_name + ".tif", temp_tile_RGB_np)
+                    
     
 
 

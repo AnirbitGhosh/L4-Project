@@ -25,7 +25,7 @@ parser.add_argument('-l', '--label', type=dir_path, help="Pass directory contain
 
 #%%
 def process_labels(image_name, label_dir):
-    fname = image_name[:-4] + "-predictions.csv"
+    fname = image_name[:-4] + "-predictions-normalized.csv"
     fname = os.path.join(label_dir, fname)
     df = pd.read_csv(fname)
     df['tile_coord'] = df['image'].str[:-4]
@@ -110,9 +110,9 @@ if __name__ == "__main__":
         prediction_dict = process_labels(file, label_dir)
         
         thumbnail = process_image(file, img_dir)
-        
+
         np_img_arr = generate_pixel_map(thumbnail, prediction_dict)
-        image_list.append(np_img_arr)
+        # image_list.append(np_img_arr)
         
         save_masked_image(img_arr=np_img_arr, image=file, output_dir=label_dir)
         
