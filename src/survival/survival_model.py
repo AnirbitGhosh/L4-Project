@@ -92,7 +92,7 @@ cox.plot_partial_effects_on_outcome(covariates='Malignancy Score', values=[
     ], cmap='coolwarm')
 
 # %%
-results = proportional_hazard_test(cox, data, time_transform='rank')
+results = proportional_hazard_test(cox, cox_data, time_transform='rank')
 results.print_summary(decimals=3, model="untransformed variables")
 
 # %%
