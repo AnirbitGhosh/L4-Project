@@ -46,36 +46,36 @@ if __name__ == '__main__':
         # objective = float(slide.properties[openslide.PROPERTY_NAME_OBJECTIVE_POWER])
         # print("The objective power is:", objective)
 
-        # # Get slide dimensions for the level 0 - max resolution level
-        # slide_dims = slide.dimensions
-        # print("Dimensions of the slide at level 0 - max res: ", slide_dims)
+        # Get slide dimensions for the level 0 - max resolution level
+        slide_dims = slide.dimensions
+        print("Dimensions of the slide at level 0 - max res: ", slide_dims)
 
-        # # get slide dims at each level. Remeber that a whole slide image stores information as pyramid at various levels
-        # dims = slide.level_dimensions
-        # num_level = len(dims)
-        # print("Number of levels in the iamge are:", num_level)
-        # print("Dimensions of various levels in this image are:", dims)
+        # get slide dims at each level. Remeber that a whole slide image stores information as pyramid at various levels
+        dims = slide.level_dimensions
+        num_level = len(dims)
+        print("Number of levels in the iamge are:", num_level)
+        print("Dimensions of various levels in this image are:", dims)
 
-        # # By how much are levels downsampled from the original image?
-        # factors = slide.level_downsamples
-        # print("each level is downsampled by an amount of:", factors)
+        # By how much are levels downsampled from the original image?
+        factors = slide.level_downsamples
+        print("each level is downsampled by an amount of:", factors)
 
 
         #################################
 
         # Generate object for tiles using the DeepZoomGenerator
         tiles = DeepZoomGenerator(slide, tile_size=int(args.size), overlap=0, limit_bounds=False)
-        #Here, we have divided our SVS file into tiles of size 244x244 with no overlap
+        #Here, we have divided our SVS file into tiles of size 96x96 with no overlap
 
         #The tiles object also contains data at many levels. 
         #To check the number of levels
         print("The number of levels in the tiles object are: ", tiles.level_count)
-        print("The dimensions of data in each level are: ", tiles.level_dimensions)
+        print("The dimensions of data in each tile level are: ", tiles.level_dimensions)
         #Total number of tiles in the tiles object
         print("Total number of tiles = : ", tiles.tile_count)
         
         # How many tiles at a specific level
-        level_num = tiles.level_count-1
+        level_num = tiles.level_count-2
         print("Tiles shape at level ", level_num, " is: ", tiles.level_tiles[level_num])
         print("This means there are ", tiles.level_tiles[level_num][0]*tiles.level_tiles[level_num][1], " total tiles in this level")
 

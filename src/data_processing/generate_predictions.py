@@ -35,6 +35,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-n', '--net', type=file_path, help='Pass path to file containing model weights with -i or --image flags' )
 parser.add_argument('-t', '--tiles', type=dir_path, help="Pass directory containing tiles to predict lables of using -l or --label flags")
 parser.add_argument('-o', '--output', type=dir_path, help="Pass output directory using -o or --output flags")
+parser.add_argument('-w', '--whole', type=dir_path, help="Pass whole slide input directory using -w or --whole flags")
 
 device = "cuda:0" if torch.cuda.is_available() else 'cpu'
 
@@ -77,7 +78,7 @@ def get_predictions(model, tile_dir, image_dir, output_dir):
             predictions.append(prediction)
 
         df = pd.DataFrame({"image" : os.listdir(tile_path), "predictions" : predictions})
-        csv_name = dirname + "-predictions-normalized.csv"
+        csv_name = dirname + "-predictions.csv"
         df.to_csv(os.path.join(output_dir, csv_name))     
         
 #%%
@@ -95,7 +96,8 @@ if __name__ == "__main__" :
     net_path = args.net
     tile_dir = args.tiles
     out_dir = args.output
-    image_dir = "D:/PCAM DATA/WSI/Whole Slide Images"
+    # image_dir = "D:/PCAM DATA/WSI/Whole Slide Images"
+    image_dir = args.whole
     print("Locating directories... DONE!")
     
     print("Generating model with given weights... ")

@@ -25,7 +25,7 @@ parser.add_argument('-l', '--label', type=dir_path, help="Pass directory contain
 
 #%%
 def process_labels(image_name, label_dir):
-    fname = image_name[:-4] + "-predictions-normalized.csv"
+    fname = image_name[:-4] + "-predictions.csv"
     fname = os.path.join(label_dir, fname)
     df = pd.read_csv(fname)
     df['tile_coord'] = df['image'].str[:-4]
@@ -46,7 +46,7 @@ def process_image(image_name, image_dir):
     slide = open_slide(image_dir + "/" + image_name)
     tiles = DeepZoomGenerator(slide, tile_size=int(96), overlap=0, limit_bounds=False)
     
-    level_num = tiles.level_count-1
+    level_num = tiles.level_count-2
     cols, rows = tiles.level_tiles[level_num]
     
     thumb = slide.get_thumbnail((cols, rows))
