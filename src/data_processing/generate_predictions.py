@@ -55,7 +55,7 @@ def read_model(weights):
     
     return model
 
-def get_predictions(model, tile_dir, image_dir, output_dir):
+def get_class_predictions(model, tile_dir, image_dir, output_dir):
     transform  = validation_transfomer()
     
     print("Getting each whole slide image name...")
@@ -80,7 +80,41 @@ def get_predictions(model, tile_dir, image_dir, output_dir):
         df = pd.DataFrame({"image" : os.listdir(tile_path), "predictions" : predictions})
         csv_name = dirname + "-predictions.csv"
         df.to_csv(os.path.join(output_dir, csv_name))     
-        
+
+#%%
+# model = read_model("D:/PCAM DATA/trained_models/weights_01_100k.pt")
+# transform  = validation_transfomer()
+# img = Image.open("D:/PCAM DATA/WSI/downsampled_tiles/TCGA-B6-A0RH-01A/29_40.tif")
+# input_img = transform(img)
+# output = model(input_img)
+# print(np.exp(output.data[0].numpy())[1])
+
+#%%
+def get_probability_predictions(model, tile_dir, image_dir, output_dir):
+    transform  = validation_transfomer()
+    print("Getting each whole slide image name...")
+    for file in os.listdir(image_dir):
+        dirname = file[:-4]
+        print(f"Processing predictions for image : {dirname}")
+        tile_path = os.path.join(tile_dir, dirname)
+    
+        predictions = []
+        print("Starting prediction generation for tiles...")
+        for image_file in os.listdir(tile_path):
+            image_name = image_file[:-4]
+            image = Image.open(os.path.join(tile_path, image_file))
+            print("Predicting class for image {} ...".format(image_name))
+            input = transform(image)
+            
+            output = model(input)
+            prediction = np.exp(float(output.data[0][1].numpy()))
+            print("Prediction success - saving output!")
+            predictions.append(prediction)
+
+        df = pd.DataFrame({"image" : os.listdir(tile_path), "predictions" : predictions})
+        csv_name = dirname + "-predictions.csv"
+        df.to_csv(os.path.join(output_dir, csv_name))     
+  
 #%%
 if __name__ == "__main__" :
     if len(sys.argv) < 6:
@@ -104,5 +138,5 @@ if __name__ == "__main__" :
     model = read_model(net_path)
     print("Generating model with given weights... DONE!")
     
-    get_predictions(model=model, tile_dir=tile_dir, image_dir=image_dir, output_dir=out_dir)
-    # get_pretrained_predictions(model=model, tile_dir=tile_dir, image_dir=image_dir, output_dir=out_dir)
+    # get_class_predictions(model=model, tile_dir=tile_dir, image_dir=image_dir, output_dir=out_dir)
+    get_probability_predictions(model=model, tile_dir=tile_dir, image_dir=image_dir, output_dir=out_dir)

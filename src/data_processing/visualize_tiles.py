@@ -5,6 +5,7 @@ from openslide import open_slide
 from openslide.deepzoom import DeepZoomGenerator
 import numpy as np
 from matplotlib import pyplot as plt
+from scipy.ndimage import rotate
 import pandas as pd
 import argparse
 from PIL import Image
@@ -68,24 +69,39 @@ def generate_pixel_map(thumb, predictions):
             np_thumb[row_coord][col_coord] = [0, 255, 0]
     
     return np_thumb
-                
-def plot_images(image_list):
-    row = len(image_list)//2
-    col = len(image_list)//2
+
+def generate_heat_map(thumb, predictions):
+    np_thumb = np.array(thumb.convert('L'))
+    np_thumb = np_thumb/255.0
+    np_thumb = np.zeros_like(np_thumb)
     
-    if row == 0:
-        row = 1
-        col = 1
-    
-    for num, img in enumerate(image_list):
-        plt.subplot(row, col, num+1)
-        plt.axis("off")
-        plt.imshow(img)
-        plt.show()
+    for coord, pred in predictions.items():
+        split_coord = coord.split('_')
+        col_coord, row_coord = int(split_coord[0]), int(split_coord[1])
+        np_thumb[row_coord][col_coord] = pred
+
+    return np_thumb
 
 def save_masked_image(img_arr, image, output_dir):
     fname = os.path.join(output_dir, image[:-4]+"-myCustom.png")
     plt.imsave(fname, img_arr, format="png")
+    
+def save_heat_map(img_arr, image, output_dir):
+    fname = os.path.join(output_dir, image[:-4]+"-myCustom.png")
+    # fig, ax = plt.subplots()
+    plt.figure(figsize=(8,20))
+    
+    plt.imshow(np_img_arr, cmap='hot_r')
+    # divider = make_axes_locatable(ax)
+    # cax = divider.append_axes("top", size="5%", pad=0.05)
+    plt.colorbar(plt.imshow(np_img_arr, cmap='hot_r'))
+    plt.axis('off')
+    plt.savefig(fname, format="png", dpi=200)  
+
+#%%
+# img = process_image("TCGA-B6-A0RH-01A.svs", "D:/PCAM DATA/WSI/Whole Slide Images")
+# img = rotate(img, 90)
+# plt.imshow(img)
 
 #%%
 if __name__ == "__main__":
@@ -106,15 +122,15 @@ if __name__ == "__main__":
     print("iterating over images in image directory...")
     
     image_list = []
-    for file in os.listdir(img_dir):
+    for file in os.listdir(img_dir)[1:2]:
         prediction_dict = process_labels(file, label_dir)
         
         thumbnail = process_image(file, img_dir)
 
-        np_img_arr = generate_pixel_map(thumbnail, prediction_dict)
-        # image_list.append(np_img_arr)
+        # np_img_arr = generate_pixel_map(thumbnail, prediction_dict)cd 
         
-        save_masked_image(img_arr=np_img_arr, image=file, output_dir=label_dir)
+        np_img_arr = generate_heat_map(thumbnail, prediction_dict)
+        np_img_arr = rotate(np_img_arr, 90)
         
-    #plot_images(image_list)
-    
+        # save_masked_image(img_arr=np_img_arr, image=file, output_dir=label_dir)
+        save_heat_map(img_arr=np_img_arr, image=file, output_dir=label_dir)
