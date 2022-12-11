@@ -208,3 +208,32 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 - *2 hours* : Refine tumor prediction data by calculating malignancy score - quantified as the % of positively predicted tiles from the whole image. Use Lifelines library to implemnt KM plot on survival data from CBioPortal
 - *2 hours* : Use Lifelines model to implement Cox Hazard model on the tumor data and the survival data from CBioPortal. Use Tumour data of the first 20 WSI predictions, matching it to the corresponding survival data with patient ID. Use OS_MONTHS, OS_STATUS and Malignancy Score as the covariate to model the survival of patients correlated with the tumour severity scores predicted form Deep Learning pipeline. Plot CPH estimate graph for any arbitrary malignancy score and compare to baseline fit model. 
 - *2 hours* : Perform some baseline statistical analysis on CPH model fitted using Malignancy score to see statistical significance. Use proportional_hazard_test() from Lifelines library to generate a p value of the correlation between survival time and malignancy score, giving p=0.7
+
+## 05 Dec 2022
+- *2 hours* : Noticed PCAM data is undersampled to 10x magnification. Modify code to use 4x downsampling level to allow WSI to be sampled at 40/4 = 10x magnification. Re run prediction pipeline on newly downsapled WSI tiles. 
+- *1 hour* : Get more CAM17 data, a normal and a tumour slide. Run it through model and compare predictions to annotations. Reveals very accurate predictions, normal slides being predicted as completely negative and positive slides showing slight overprediction but the positive region is so small it is impossible to get accurate predictions. 
+- *1 hour* : Compare predicition quality using 1. normalized model on downsampled tiles vs 2. un-normalized model on downsampled tiles. This showed using un-normalized model had the better prediction than the normalized on CAM17 data, closer to expected annotation. So it is used as a validation benchmark to use for TCGA WSI slides, with 10x undersampling and macenko normalization on WSI tiles and DCNN trained on non-normalized model. 
+
+## 06 Dec 2022
+- *1 hour* : Prepare code to be run on Linux workstation to process full WSI dataset of 74 WSIs and generate predcitions for all images. 
+- *1 hour* : Transfer all WSI to Linux machine, write a script to automate running all piepline commands, tile-slide, generate-predictions and visualize-tiles
+- *5 hours* : Run full dataset, 74gb of WSI through prediction pipleine to generate output.
+
+## 07 Dec 2022
+- *2 hours* : Supervisor meeting - noted in minutes
+- *4 hours* : Re run full dataset of 74 WSIs through prediction pipeline to generate predictions and visualize predicted tumours - as the pipeline failed after tiling stage due to a line of code not having been changed for the Linux workstation
+
+## 08 Dec 2022
+- *2 hours* : Supervisor meeting (contd). Collect all data generated from prediction pipeline. Try transfer all tiles to HDD but ran out of space. Agree to not transfer tiled WSIs, instead work on Linux workstation by SSH-ing in over the holidays. 
+- *1 hour* : Setup SSH connection for my personal user account on Linux workstation - Create user account, transfer all relevant files to my account, set ownership, create conda environment with all relevant packages. 
+- NO OTHER WORK DONE AS EXAM ON 09-12
+
+## 09 Dec 2022
+- EXAM - NO WORK DONE
+
+## 10 Dec 2022 
+- BREAK
+
+## Week 11
+
+## 11 Dec 2022
