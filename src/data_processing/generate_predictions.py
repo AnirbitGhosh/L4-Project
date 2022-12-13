@@ -1,7 +1,8 @@
 #%%
 import sys
 import os
-sys.path.insert(0, os.path.abspath("C:\\Users\Anirbit\\L4 Project\\L4-Project\\src"))
+# sys.path.insert(0, os.path.abspath("C:\\Users\Anirbit\\L4 Project\\L4-Project\\src"))
+sys.path.insert(0, os.path.abspath("/home/anirbit/Anirbit_Ghosh/L4-Project/src"))
 from data_loading.data_transform import validation_transfomer, pretrained_pred_transformer
 from models.custom_network import Net
 from pretrained_model.pretrained_network import PretrainedNet

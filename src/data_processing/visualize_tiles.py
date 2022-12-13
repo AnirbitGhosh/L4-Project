@@ -89,8 +89,7 @@ def save_masked_image(img_arr, image, output_dir):
 def save_heat_map(img_arr, image, output_dir):
     fname = os.path.join(output_dir, image[:-4]+"-myCustom.png")
     # fig, ax = plt.subplots()
-    plt.figure(figsize=(8,20))
-    
+    plt.figure()
     plt.imshow(np_img_arr, cmap='hot_r')
     # divider = make_axes_locatable(ax)
     # cax = divider.append_axes("top", size="5%", pad=0.05)
@@ -122,15 +121,13 @@ if __name__ == "__main__":
     print("iterating over images in image directory...")
     
     image_list = []
-    for file in os.listdir(img_dir)[1:2]:
+    for file in os.listdir(img_dir):
         prediction_dict = process_labels(file, label_dir)
         
         thumbnail = process_image(file, img_dir)
 
         # np_img_arr = generate_pixel_map(thumbnail, prediction_dict)cd 
-        
         np_img_arr = generate_heat_map(thumbnail, prediction_dict)
-        np_img_arr = rotate(np_img_arr, 90)
-        
+
         # save_masked_image(img_arr=np_img_arr, image=file, output_dir=label_dir)
         save_heat_map(img_arr=np_img_arr, image=file, output_dir=label_dir)
