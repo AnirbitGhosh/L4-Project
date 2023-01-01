@@ -256,3 +256,12 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 
 ## 16 Dec 2022
 - *2 hours* : Based on feedback and my own observations Debug survival model code - Turns out fitting a single CPH model with multiple covariates creates the unusual relationship with subsequent covariates. The first covariate shows the expected result but not any other covariates. So, I trained two separate CPH models each with a single covariate only. One with mean intesnity and one with malignancy score. Now both CPH models produce the expected trends. Only difference being that Mean intensity baseline seems to be centered at 0.5 intensity with levels higher than 0.5 being below the baseline, and levels lower than 0.5 being above the baseline giving a more realistic expectation of survival trends with significantly large variations between levels. With malignancy score, the baseline seems to be centered at 0.0 such that all malignancy scores > 0.0 are under the baseline and with not much variation between levels, all trends of different levels being very close to each other, similar to the binary model thresholded at 0.5. This seems less realistic as the difference between 0.9 and 0.1 malignancy score should be much larger. This is likely because the general range in malignancy scores obtained is quite low, near 0, as the number of tiles with likelihood >=0.7 is quite low. This reduces the number of tiles being considered malignant significantly, and when calculated as a percentage of total tiles, this gives a very small number usually very close to 0. Thus the baseline is centered at 0 and the differences between levels are not significant as the model was fitted with very small values to begin with. 
+
+
+## BREAK till 01 January 2023
+
+## Week 10.2
+
+## 01 Jan 2023
+- *1 hour* : Prepare dissertation template in repository
+- *2 hours* : Read literature and complete the abstract of the dissertation
