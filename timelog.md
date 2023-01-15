@@ -260,8 +260,42 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 
 ## BREAK till 01 January 2023
 
-## Week 10.2
+## Week 12
 
 ## 01 Jan 2023
 - *1 hour* : Prepare dissertation template in repository
 - *2 hours* : Read literature and complete the abstract of the dissertation
+
+## 04 Jan 2023
+- *2 hours* : Prepare citation manager in Mendeley and gather all literature to be used
+- *3 hours* : Read exemplar dissertation from Hall of fame 2018
+
+## TRAVELLING BACK TO GLASGOW ON 06 Jan 2023
+
+## Week 13
+
+## 09 Jan 2023
+- *3 hours* : Read exemplar dissertation from hall of fame 2019
+
+## 11 Jan 2023
+- *1 hour* : Supervisor meeting: 
+  - Discuss dissertation structure - agree to follow template and fit our requirements to the given layout
+  - Refer to dissertation #5 from 2019 hall of fame - Deep learning sample
+  - Agree to finish Intro and background by next week
+  - Intro can have aim, general problem and motivation
+  - background will contain relevant literature used for the project, use all mendeley resources gathered
+  - Briefly talk about survival time prediction results, median times are quite off compared to CBioPortal clinical data
+  - agree that it is not essential to get the exact same prediction as we are not using any clinical data, there is no "wrong" prediction as long as Cox model shows significantly reasonable variations with different levels of the chosen covariate (mean intensity)
+  - Can be explained in evaluation of viability of the whole project as there were lack of data, lack of clinical annotations etc which might all be affecting predictions. 
+- *2 hours* : Refine and rewrite abstract of dissertation to make it more concise and to the point
+
+## Week 14
+## 14 Jan 2023
+- *2 hours* : Write introduction of dissertation - aim, motivation and general problem description
+
+## 15 Jan 2023
+- *8 hours* : Write background of dissertation - read and collect sources, complete section 2.1 of background on Whole Slide Images. 
+- *30 mins* : Plan to complete next background section on Deep Learning application in cancer detection and then Survival prediction from whole slide images.
+
+## 16 Jan 2023
+- ** : 

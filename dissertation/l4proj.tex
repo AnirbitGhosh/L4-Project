@@ -5,6 +5,7 @@
     
 %
 % put any additional packages here
+\usepackage{siunitx}
 %
 
 \begin{document}
@@ -20,7 +21,7 @@
 %==============================================================================
 %% ABSTRACT
 \begin{abstract}
-    Current pathological practice to diagnose malignancy involves the manual identification and annotation of the extent of cancerous tumour cells in a biopsy slide image by a trained pathologist. This process is highly resource intensive and is subject to the interpretation variability between different readers leading to inconsistent outcomes. Therefore a Deep Learning based automated cancer detection system which can accurately and robustly identify the extent of malignancy from the digital whole slide image would be a highly desirable and potentially industry changing advancement. The subsequent step after the initial cancer diagnosis requires vast amounts of the patient's clinical data to be collected and processed in order to deliver a survival time prediction. The clinical data required to produce a survival time model for a patient ranges from general health and quality of life measures to specific characteristics of the malignant areas which must be extracted manually by pathologists. Given the sensitive nature of a cancer diagnosis in the first place it is often of essence to avoid putting patients through extensive diagnostic tests and data collection only to deliver potentially worse news with the survival time prognosis. Biopsy slide images hold a plethora of cellular level and structural information which can very effectively help understand the exact nature of malignancy. However, manually analyzing whole slide images to extract useful features is extremely expensive in terms of time and storage due to the sheer size of these images. Thus, augmenting the Deep Learning based cancer detection system to automatically extract useful features from the digital biopsy images can aid in characterizing cancer severity and giving a survival time estimate without the need of vast amounts of clinical data. The biggest problem in creating this system is the lack of annotated patient biopsy data that is publicly available, which makes effectively training a network to automatically detect malignant tissue extremely challenging. In this project, I proposed training a deep neural network on the Camelyon 16 data, which is a collection of 170 weakly annotated lymph node whole slide images from breast cancer patients. Breast cancer frequently metastasizes to axillary lymph nodes which makes them a good prognostic factor of breast cancer severity. The data contained 70 metastatic and 100 non-metastatic whole slides giving a good balance of positive and negative samples to train the network to accurately segment cancerous cells from a given tissue image. This process was a very unusual approach as there is no existing literature verifying the validity of using a network trained on breast metastasis found in lymph node tissue to detect malignancy in breast tissue. The different tissue composition posed a significant risk of complete network failure. However, the results showed surprisingly accurate and reasonable outcomes indicating that metastasis characterization transfers across multiple tissue types. The survival model was then generated using whole slide images of patients available on TCGA by feeding their biopsies through the trained network and extracting features to characterize malignancy levels. The generated features were used as a heuristic in conjunction with each patient's predicted survival times (from associated clinical data) to generate a Cox Proportional-hazard model which is a regression model that can generates a survival time for a given heuristic level.  
+    Current pathological practice to diagnose malignancy involves the manual identification and annotation of the extent of cancerous tumour cells in a biopsy slide image by a trained pathologist. This process is highly resource intensive and is subject to the interpretation variability between different readers leading to inconsistent outcomes. Therefore a Deep Learning based automated cancer detection system which can accurately and robustly identify the extent of malignancy from the digital whole slide image would be a highly desirable and potentially industry changing advancement. The subsequent step after the initial cancer diagnosis requires vast amounts of the patient's clinical data to be collected and processed in order to deliver a survival time prediction. The clinical data required to produce a survival time model for a patient ranges from general health and quality of life measures to specific characteristics of the malignant areas which must be extracted manually by pathologists. Given the sensitive nature of a cancer diagnosis in the first place it is often of essence to avoid putting patients through extensive diagnostic tests and data collection only to deliver potentially worse news with the survival time prognosis. Biopsy slide images hold a plethora of cellular level and structural information which can very effectively help understand the exact nature of malignancy. However, manually analyzing whole slide images to extract useful features is extremely expensive in terms of time and storage due to the sheer size of these images. Thus, augmenting the Deep Learning based cancer detection system to automatically extract useful features from the digital biopsy images can aid in characterizing cancer severity and giving a survival time estimate without the need of vast amounts of clinical data. The biggest problem in creating this system is the lack of annotated patient biopsy data that is publicly available, which makes effectively training a network to automatically detect malignant tissue extremely challenging. In this project, I proposed training a deep neural network on the Camelyon 16 data, which is a collection of 170 weakly annotated lymph node whole slide images from breast cancer patients. Breast cancer frequently metastasizes to axillary lymph nodes which makes them a good prognostic factor of breast cancer severity. The data contained 70 metastatic and 100 non-metastatic whole slides giving a good balance of positive and negative samples to train the network to accurately segment cancerous cells from a given tissue image. This process was a very unusual approach as there is no existing literature verifying the validity of using a network trained on breast metastasis found in lymph node tissue to detect malignancy in breast tissue. The different tissue composition posed a significant risk of complete network failure. However, the results showed surprisingly accurate and reasonable outcomes indicating that metastasis characterization transfers across multiple tissue types. The survival model was then generated using whole slide images of patients available on TCGA by processing their biopsies through the trained network and extracting features to characterize malignancy levels. The generated features were used as a heuristic in conjunction with each patient's predicted survival times (from associated clinical data) to generate a Cox Proportional-hazard model which is a regression model that can generates a survival time for a given heuristic level.  
     
 \end{abstract}
 
@@ -74,89 +75,68 @@
 % reset page numbering. Don't remove this!
 \pagenumbering{arabic} 
 
+\section{Motivation}
+With a global estimate of 18 million cases [1] of cancer diagnosed each year, as of 2020, female breast cancer has become the most common contributor making up over 12.5\% [2] of all cases of which 684,996 [3] cases were fatal making it the fifth leading cause of death. However, with an average 75\% 10-year survival rate across all stages of breast cancer [4], it shows the best prospects for generally being the most curable form provided an early diagnosis followed by appropriate and timely treatment. This constitutes the rationale for focusing this dissertation on improving the efficiency of breast cancer diagnosis and prognosis prediction. 
 
-Why should the reader care about what are you doing and what are you actually doing?
-\section{Guidance}
+A biopsy is the only definitive way of diagnosing breast cancer. Traditionally a trained pathologist would be required to manually inspect a biopsied tissue sample and identify potential areas  abnormal, malignant cell growth. Subsequently an oncologist would use this pathology report to determine the patient's prognosis in terms of likelihood of recovery and survival chance which guides the course of treatment. Classical prognosis prediction  relies on population-level estimates by comparing a patient's case to previously documented similar cases based on cancer site, tumour grade, cancer stage and certain cellular markers. As every patient's cancer manifests uniquely, this technique is further supplemented by collecting the individual patient's clinical and quality of life information combined with several test results of multiple bio-markers. This complete diagnostic workflow is not only time consuming but also highly subjective and non-reproducible due to vast amount of data required to characterize each patient's condition and the manual effort required to produce and interpret that data.
 
-\textbf{Motivate} first, then state the general problem clearly. 
+If the delay between tissue collection, diagnosis and subsequent prognosis prediction could be minimized, it would allow patients to receive the appropriate treatment much quicker which can increase the likelihood of recovery in particularly time sensitive cases. Furthermore, reducing human involvement in the diagnostic procedure can eliminate interpretation variability making diagnoses more consistent and robust. As severe as it maybe, this will allow patients to be more confident in their first prognosis and eliminate the need to get a second opinion which in most cases serves as an unnecessary delay to starting the much needed treatment which could help increase their survival prospects. 
 
-\section{Writing guidance}
-\subsection{Who is the reader?}
 
-This is the key question for any writing. Your reader:
+\section{General problem and our hypothesis}
+The biopsied sample of breast tissue used in the diagnostic process is an exact characterization of the patient's individual condition. The structural and cellular level information obtained from biopsies is very valuable in understanding the extent and severity of cancer. A digital representation of the biopsied tissue can be obtained in the form a whole slide image (WSI), which is a high resolution, multi-level replication of the stained tissue as observed under a microscope at varying zoom levels. These digital slide images can be used in an automated cancer diagnostic system by treating the detection of malignant cells in the image as a classification problem. 
 
-\begin{itemize}
-    \item
-    is a trained computer scientist: \emph{don't explain basics}.
-    \item
-    has limited time: \emph{keep on topic}.
-    \item
-    has no idea why anyone would want to do this: \emph{motivate clearly}
-    \item
-    might not know \emph{anything} about your project in particular:
-    \emph{explain your project}.
-    \item
-    but might know precise details and check them: \emph{be precise and
-    strive for accuracy.}
-    \item
-    doesn't know or care about you: \emph{personal discussions are
-    irrelevant}.
-\end{itemize}
+The general problem we are attempting to solve is to utilize digital whole slide images of biopsied tissue to automate the diagnosis of breast cancer without requiring manual annotation of tissue slides by pathologists. Furthermore, we are attempting to estimate the patient's prognosis in terms of an overall survival time by utilizing information extracted from the whole slide image, thereby eliminating the dependence on extensive clinical data collection and analysis. 
 
-Remember, you will be marked by your supervisor and one or more members
-of staff. You might also have your project read by a prize-awarding
-committee or possibly a future employer. Bear that in mind.
+This paper proposes a supervised learning model which will be trained with patches of breast cancer whole slide images to learn how to perform slide level classification of malignant and benign tissue. Subsequently, we develop and extract some image-based features from the segmented whole slide images to predict an estimate for the survival time of the given patient. 
 
-\subsection{References and style guides}
-There are many style guides on good English writing. You don't need to
-read these, but they will improve how you write.
+
+
+\section{Aim}
+This project aims to investigate the viability of deep-learning based automated breast cancer diagnosis and corresponding survival time  prediction only using digital slide images of the affected tissue. We are trying to minimize or potentially eliminate the requirement of manual human intervention and vast amounts of clinical data in the diagnostic process. The project will achieve this by performing the following tasks:
 
 \begin{itemize}
     \item
-    \emph{How to write a great research paper} \cite{Pey17} (\textbf{recommended}, even though you aren't writing a research paper)
+    elaborate the idea of automated cancer detection from whole slide images and describe the problem of inferring an estimated disease prognosis from a single slide image. 
+    \item 
+    prepare a training dataset with fixed size patches of whole slide images of breast tissue samples along with patch-level annotations for malignancy or benignity. The dataset must be standardized to eliminate any impact of human variability involved in the preparation of tissue slides collected from various sources.
     \item
-    \emph{How to Write with Style} \cite{Von80}. Short and easy to read. Available online.
+    implement and train a supervised learning based deep convolutional neural network that can learn to distinguish between malignant and benign breast tissue. It will accept patches of a whole slide image and output a fully segmented whole slide image showing areas of malignancy.
     \item
-    \emph{Style: The Basics of Clarity and Grace} \cite{Wil09} A very popular modern English style guide.
+    develop and extract a feature metric from the segmented whole slide image to quantify and characterize the nature of breast cancer in a given tissue slide. Using this metric, generate a statistical model to predict a proportional survival time for any given case. 
     \item
-    \emph{Politics and the English Language} \cite{Orw68}  A famous essay on effective, clear writing in English.
-    \item
-    \emph{The Elements of Style} \cite{StrWhi07} Outdated, and American, but a classic.
-    \item
-    \emph{The Sense of Style} \cite{Pin15} Excellent, though quite in-depth.
+    evaluate the performance of the cancer detection network against clinically annotated ground truth samples. Measure accuracy of survival time prediction against available clinical data and infer validity of exclusively using whole slide images in delivering disease prognosis. 
 \end{itemize}
-
-\subsubsection{Citation styles}
-
-\begin{itemize}
-\item If you are referring to a reference as a noun, then cite it as: ``\citet{Orw68} discusses the role of language in political thought.''
-\item If you are referring implicitly to references, use: ``There are many good books on writing \citep{Orw68, Wil09, Pin15}.''
-\end{itemize}
-\subsection{Plagiarism warning}
-
-\begin{highlight_title}{WARNING}
-    
-    If you include material from other sources without full and correct attribution, you are commiting plagiarism. The penalties for plagiarism are severe.
-    Quote any included text and cite it correctly. Cite all images, figures, etc. clearly in the caption of the figure.
-\end{highlight_title}
-
 
 %==================================================================================================================================
 \chapter{Background}
-What did other people do, and how is it relevant to what you want to do?
-\section{Guidance}
-\begin{itemize}    
-    \item
-      Don't give a laundry list of references.
-    \item
-      Tie everything you say to your problem.
-    \item
-      Present an argument.
-    \item Think critically; weigh up the contribution of the background and put it in context.    
-    \item
-      \textbf{Don't write a tutorial}; provide background and cite
-      references for further information.
-\end{itemize}
+
+\section{Whole Slide Images}
+\subsection{Slide preparation}
+Biopsied tissue blocks are sliced into thin sections and mounted on glass slides. These tissue slides are generally stained with a Hematoxylin and Eosin dye which has been proven (\textit{\cite{Bancroft2013}}) to exhibit the ability to highlight a wide range of diagnostic cellular artifacts which are otherwise not visible under digital microscopy.  In breast tissue, the Hematoxylin component stains the nuclei of cells in a blue colour as it binds to acidic structures, particularly RNA and DNA (\textit{\cite{chan2014wonderful}}). Eosin on the contrary stains any connective tissue and cellular cytoplasm in shades of red (\textit{\cite{Bancroft2013}}), which in breast tissue samples makes up the majority of the surface due to the presence of muscles, fatty tissue and collagen. Collagen is the dominant component in tissue surrounding breast ducts which is the most common area of origin for breast cancer making this staining even more effective in distinguishing between normal and abnormal cellular growth. Therefore, H\&E staining has become the histopathology standard when diagnosing breast cancer from biopsied tissue.
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=1.2]{images/HE-stain-example.jpg}
+\caption{section of skin showing Hematoxylin(H) \& Eosin(E) stain interactions}
+\label{fig:HE-fig}
+\end{figure}
+
+\subsection{Slide digitization}
+Physical tissue slides are digitized using whole slide image scanners which contain an illumination system, an optical microscope and a focusing apparatus (\textit{\cite{ghaznavi2013digital}}). Scanners most commonly use Brightfield illumination (\textit{\cite{kino1996confocal}}) in which the entire tissue sample is uniformly illuminated. This works in conjunction with the H\&E staining to display the tissue as a dark coloured image on a white background making it easier to distinguish cellular structure. 
+
+The final output of the slide scanner is a virtual rendering of the entire tissue slide, that can be viewed at resolutions of upto 0.25 \si{\micro\meter} corresponding to a 40x objective power of the scanning microscope. In order to replicate a slide under a microscope, WSIs exhibit a pyramid structure consisting of images at multiple resolutions. The base level stores the image in diagnostic resolution of a 40x objective, often containing 100,000 x 100,000 pixels (\textit{\cite{wang2012managing}}). As displayed in figure(\ref{fig:pyramid-fig}) The resolution is down sampled by a fixed factor at each subsequent level. The Cancer Genome Atlas program's repository contains WSIs with 4 resolution levels down-sampled with factors of 1.0, 4.0, 16.0 and 64.0. This feature of WSIs makes these images extremely bulky with average sizes around 1GB per image. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.5]{images/digital-slide-stored-in-a-pyramid-structure.png}
+\caption{Illustration of pyramid structure observed in whole slide images. Highest resolution at 40x magnification followed by 2 downsampled levels at 4.0 (10x) and 40.0 (1x)}
+\label{fig:pyramid-fig}
+\end{figure}
+
+Viewing or analyzing an entire WSI is infeasible as the whole image simply cannot fit into a standard computer's memory. It was demonstrated by \cite{wang2012managing} that sectioning the WSI into several smaller, fixed size tiles at its diagnostic resolution and performing image analysis tasks on each tile allows for more efficient processing compared to using the entire slide image at once. As shown by \cite{aeffner2019introduction}, confining analysis efforts to smaller regions of interest (ROIs) rather than the entire WSI is often necessary to devise any accurate or computationally viable image analysis algorithms. The tile based results can be aggregated in order to generate masks that highlight all ROIs on lower resolution thumbnails of the original WSI in order to display the results of our image analysis tasks. 
+
+\subsection{Slide normalization}
 
 %==================================================================================================================================
 \chapter{Analysis/Requirements}

@@ -59,6 +59,9 @@ if __name__ == '__main__':
         # By how much are levels downsampled from the original image?
         factors = slide.level_downsamples
         print("each level is downsampled by an amount of:", factors)
+        
+        # objective = float(slide.properties[openslide.PROPERTY_NAME_OBJECTIVE_POWER])
+        # print("The objective power is:", objective)
 
 
         #################################

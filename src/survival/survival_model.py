@@ -180,13 +180,13 @@ plt.title("Binary 0|1 prediction model - Malignancy Score covariate")
 
 #%%
 cox_intensity.plot_partial_effects_on_outcome(covariates='Mean Intensity', values=[
-    0.1, 0.4, 0.7, 0.9
+    0.48, 0.42, 0.28, 0.6
     ], cmap='coolwarm')
 plt.title("Probability prediction model - Mean Intensity covariate")
 
 #%%
 cox_score.plot_partial_effects_on_outcome(covariates='Malignancy Score', values=[
-    0.1, 0.4, 0.7, 0.9
+    0.12, 0.098, 0.18, 0.065
     ], cmap='coolwarm')
 plt.title("Probability prediction model - Malignancy Score covariate")
 
@@ -197,4 +197,18 @@ plt.title("Probability prediction model - Malignancy Score covariate")
 # %%
 # results_prob = proportional_hazard_test(cox_prob, cox_data_prob, time_transform='rank')
 # results_prob.print_summary(decimals=3, model="untransformed variables")
+
+# %%
+def calc_score(path):
+    df = pd.read_csv(path)
+    
+    pred_values = df['predictions']
+    counts = pred_values[pred_values >= 0.7].count()
+    malignant_score = counts/df.shape[0]
+    
+    return malignant_score
+
+# %%
+print(calc_score("D:/PCAM DATA/Prediction_data/probability_predictions_all/TCGA-GM-A2DA-01Z-00-DX1.6E409F88-F654-48C8-A753-BB054037BE16-predictions.csv"))
+
 # %%
