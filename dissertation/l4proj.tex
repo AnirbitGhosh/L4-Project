@@ -6,6 +6,7 @@
 %
 % put any additional packages here
 \usepackage{siunitx}
+\usepackage{float}
 %
 
 \begin{document}
@@ -113,7 +114,7 @@ This project aims to investigate the viability of deep-learning based automated 
 
 \section{Whole Slide Images}
 \subsection{Slide preparation}
-Biopsied tissue blocks are sliced into thin sections and mounted on glass slides. These tissue slides are generally stained with a Hematoxylin and Eosin dye which has been proven (\textit{\cite{Bancroft2013}}) to exhibit the ability to highlight a wide range of diagnostic cellular artifacts which are otherwise not visible under digital microscopy.  In breast tissue, the Hematoxylin component stains the nuclei of cells in a blue colour as it binds to acidic structures, particularly RNA and DNA (\textit{\cite{chan2014wonderful}}). Eosin on the contrary stains any connective tissue and cellular cytoplasm in shades of red (\textit{\cite{Bancroft2013}}), which in breast tissue samples makes up the majority of the surface due to the presence of muscles, fatty tissue and collagen. Collagen is the dominant component in tissue surrounding breast ducts which is the most common area of origin for breast cancer making this staining even more effective in distinguishing between normal and abnormal cellular growth. Therefore, H\&E staining has become the histopathology standard when diagnosing breast cancer from biopsied tissue.
+Biopsied tissue blocks are sliced into thin sections and mounted on glass slides. For cancer diagnosis, these tissue slides are generally stained with a Hematoxylin and Eosin dye which has been proven (\textit{\cite{Bancroft2013}}) to exhibit selective affinity for specific cellular artifacts. Stained regions are more prone to absorbing light making them more prominently visible under illumination in a microscopy. In breast tissue, the Hematoxylin component stains the nuclei of cells in a blue colour as it binds to acidic structures, particularly RNA and DNA (\textit{\cite{chan2014wonderful}}). Eosin on the contrary stains any connective tissue and cellular cytoplasm in shades of red (\textit{\cite{Bancroft2013}}), which in breast tissue samples makes up the majority of the surface due to the presence of muscles, fatty tissue and collagen. Collagen is the dominant component in tissue surrounding breast ducts which is the most common area of origin for breast cancer making this staining even more effective in distinguishing between normal and abnormal cellular growth. Therefore, H\&E staining has become the histopathology standard when diagnosing breast cancer from biopsied tissue.
 
 \begin{figure}[h]
 \centering
@@ -137,6 +138,98 @@ The final output of the slide scanner is a virtual rendering of the entire tissu
 Viewing or analyzing an entire WSI is infeasible as the whole image simply cannot fit into a standard computer's memory. It was demonstrated by \cite{wang2012managing} that sectioning the WSI into several smaller, fixed size tiles at its diagnostic resolution and performing image analysis tasks on each tile allows for more efficient processing compared to using the entire slide image at once. As shown by \cite{aeffner2019introduction}, confining analysis efforts to smaller regions of interest (ROIs) rather than the entire WSI is often necessary to devise any accurate or computationally viable image analysis algorithms. The tile based results can be aggregated in order to generate masks that highlight all ROIs on lower resolution thumbnails of the original WSI in order to display the results of our image analysis tasks. 
 
 \subsection{Slide normalization}
+The manual preparation of tissue slides by pathologists is a very sensitive process and despite having an established staining protocol, several factors can imbue a high degree of variability in the presentation of the resulting WSI. As demonstrated by \cite{anghel2019high}, the lack of consistency in the quality and appearance of slide images is attributed to varying antigen concentration, temperatures at which the tissue is stored, physical conditions the slides are subjected to when being put through slide scanners and random human error involved in the process. \textbf{Figure \ref{fig:he-stain-difference}} illustrates how despite having a standardized staining procedure like the Hematoxylin \& Eosin staining, no two slides of the same tissue will exhibit identical color, stain intensity or physical structure.   
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.7]{images/stain-difference-slide.png}
+\caption{Example of two H\&E stained whole slide images of melanomas obtained from different laboratories indicating the drastic difference in color appearance.}
+\label{fig:he-stain-difference}
+\end{figure}
+
+\cite{li2015complete} establishes that performing any quantitative analysis on whole slide images requires numerical features obtained from an input image to be compared against features learned from prior training data. The disparities observed between the compared features help quantify any histopathological information conveyed by such images. If there exists additional variability in the WSI stemming from inconsistent slide preparation, then that corrupts the extracted features as they account for these non-histopathological differences and deviate from the true characterization of the sample. There is particularly high colour and intensity variation in slide images sourced from different pathology labs as each location has different conditions and personnel under which slides are produced. According to the paper on automated prostate cancer detection by \cite{gorelick2013prostate}, information conveyed by color variation on tissue samples is of extreme significance in the quantitative analysis of histopathological images. Therefore, it is crucial to achieve greater color consistency by implementing color normalization algorithms when working with models that utilize pattern recognition and color processing algorithms to deliver a diagnosis from learned features. 
+\\
+
+\subsection{Macenko method for color normalization}
+The Macenko stain normalization method (\cite{macenko2009method}) is considered the gold standard for performing color normalization on H\&E stained whole slide images. This is evidenced by its application in a wide range of works such as, a paper on an end to end learning model for predicting tumour subtypes and genetic mutations from H\&E stained slide images by \cite{van2021deepmed}, predicting colorectal cancer from H\&E stained slides using deep learning by \cite{Kather2019} and \cite{anghel2019high} paper on robust stain normalization system for whole slide images. 
+
+For slide images captured with standard RGB scanners, the stain absorbs three distinct wavelengths of light. \cite{macenko2009method} defines a \textit{stain vector} as the proportion of each wavelength absorbed by the staining component. The overall idea behind this normalization algorithm is that the color of a RGB pixel in a stained slide image is a linear combination of two stain vectors, corresponding to Hematoxylin (H) and Eosin (E). Being able to estimate these stain vectors effectively allows us to project each pixel onto any color plane, thereby converting the WSI into a standardized color profile. The Macenko stain normalization pipeline can be summarized as:
+\begin{itemize}
+    \item Applying a singular value decomposition (SVD) operation, approximate the H\&E stain vectors of all pixels inside the tissue sample (excluding white background pixels) in a given RGB slide image. 
+    \item Apply an intensity correction operation to compensate for irregularities in stain concentration, quality of stain and staining protocol used by the original pathologist. 
+    \item Project resulting image on a reference plane to ensure all normalized pixels exhibit a similar color profile. 
+\end{itemize}
+\hfill\\
+
+
+\subsubsection{Macenko Algorithm}
+\hfill\\
+\cite{macenko2009method} prescribes the SVD based stain normalization algorithm as follows:\\
+\\
+\textbf{INPUT} : RGB slide image
+\begin{itemize}
+    \item Transform RGB slide to Opitcal Density (OD) form where \(OD = -\log_{10}(I)\), \(I\) being the RGB vector normalized to \([0.1]\).
+    \item Remove pixels with OD intensity less than a pre-determined parameter \(\beta\). \cite{macenko2009method} proved \(\beta = 0.15\) provides the most robust normalization.
+    \item Perform singular value decomposition on the OD tuples. Extract the two largest values by magnitude and generate the OD plane in their corresponding direction.
+    \item Project input image data onto the resulting OD plane and normalize to unit length.
+    \item Calculate \(\theta\), which is the angle of each point with respect to the direction of the \(1^{st}\) SVD value.
+    \item Using pre-determined parameter \(\alpha\), calculate robust extremes of the angle which correspond to the \(\alpha^{th}\) and \((100 - \alpha)^{th}\) percentiles. \cite{macenko2009method} empirically recommends a value of \(\alpha = 1\) for the best normalization result. 
+    \item Project extreme values back to OD space.
+    \item Build optical density matrix (ODM) using the obtained projection from previous step
+    \item Inverse ODM to estimate the respective concentration of the Hematoxylin and Eosin stains (\(C_h\) and \(C_e\)). 
+    \item Determine the (\(100 - \alpha^{th}\)) percentile of \(C_h\) and \(C_e\).
+    \item Upon transforming the normalized concentrations of each individual stain component to OD space, revert it back to RGB using an H\&E reference template. 
+\end{itemize}
+
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{lccccc}
+Raw slide image&
+\includegraphics[width=80px]{images/37.jpeg}&
+\includegraphics[width=80px]{images/68.jpeg}&
+\includegraphics[width=80px]{images/195.jpeg}\\
+After Macenko normalization&
+ \includegraphics[width=80px]{images/37_macenko.jpeg}&
+ \includegraphics[width=80px]{images/68_macenko.jpeg}&
+ \includegraphics[width=80px]{images/195_macenko.jpeg}\\
+ \\&
+ (a)&(b)&(c)\\
+\end{tabular}
+\caption{Examples taken from training data - Illustrating effect of Macenko normalization on WSI patches of varying colour intensities }
+\label{fig:macenko-example}
+\end{figure}
+
+\section{Deep Learning in histopathological analysis}
+\subsection{Applications in WSI based diagnosis}
+As proposed by \cite{gurcan2009histopathological}, diagnosing diseases from histopathological images requires the identification of some histological features, for example, cancer nuclei, glands or lymphocytes that serve as indicators of disease severity. With growing popularity of computer assisted diagnosis systems, Deep Learning has been proven to be the preferred approach for such classification and segmentation tasks on whole slide images. 
+
+\cite{Kather2019} has proposed a supervised learning model that uses transfer learning to train a CNN that performs a patch based classification of nine tissue types observed in H\&E stained whole slide images of Colorectal cancer (CRC) samples. The study used 86 H\&E slides of CRC tissue to create a training set of image patches without any associated clinical data. The CNN was trained on these 224x224 px patches. They were labelled manually with patch-level annotations representing the relevant tissue class. The trained CNN would take a WSI, split it into 224x224 px patches and produce a prediction for the type of tissue a given patch represents with a unique color. Therefore, tile-level predictions were obtained to fully segment the given WSI into its constituent tissues and subsequently extract a deep-stromal score from the multi-class segmented WSI to determine the severity of CRC. 
+
+A paper on detecting invasive ductal carcinoma (IDC) from whole slide images using a CNN was presented by \cite{cruz2014automatic}. As shown in figure \ref{fig:ductal-carcinoma-figure}, the paper proposes a supervised learning model trained using WSI patches containing patch-level annotations to learn a hierarchical  representation of malignant vs benign tissue. The CNN identifies tumour regions to determine tumour extent and severity and subsequently estimate disease prognosis. This deep learning based IDC region classification displayed a 84.23\% accuracy when compared to ground-truth pathologist annotations. The paper presents a comparison of the deep learning approach to more traditional machine learning classifiers implementing a Random Forest method for tumour classification using hand-crafted features like tumour area, texture, nuclear structure, color etc. Using a RGB histogram was only 77.24\% accurate while a fuzzy color histogram showed 78.74\% accuracy, proving the effectiveness of deep learning approaches when performing histopathological analysis. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics{images/Cruz-Roa-Ductal-Carcinoma-example.png}
+    \caption{IDC detection framework from H\&E stained WSI - 1)Splitting WSI into tiles, 2)CNN outputs tile-level prediction for probability of being IDC positive, 3)Aggregate predicted tiles to show heatmap of most likely IDC regions with probability > 0.29}
+    \label{fig:ductal-carcinoma-figure}
+\end{figure}
+
+The use of a patch/tile-based approach to train and segment WSIs is observed to be the most common technique to overcome the memory logistic issues associated with the large size and resolution of WSIs. An alternative approach to processing large WSI data was demonstrated by \cite{qin2018large} using a feature Pyramid method comprising of a ResNet50-GICN-GPP pipeline. The ResNet50 architecture was used as an encoder while combining the feature pyramid blocks as decoders which produced a segemntation accuracy of 63\% when tested on the CAMELYON16 challenge dataset. 
+
+In the context of segmenting malignant breast tissue from H\&E stained WSIs, the paper by \cite{priego2020automatic} first proposes a tile-wise sectioning of a breast cancer slide image to deal with the massive sizes of WSIs. The tiled patches are segmented into malignant and benign tissue by the use of a DCNN along with encoder-decoder with a dilated convolution architecture. Subsequently the segmented tiles are merged back into a complete slide image using a strategy based on Conditional Random Fields (CRF) to avoid discontinuities and inconsistencies. 
+
+\subsection{Software to process WSI data for deep learning}
+Whole slide images are captured at a minimum 40x magnification resulting in images having resolutions exceeding \(100,000 \times 100,000\) pixels with an average uncompressed size of 5GB (\cite{bandi2018detection}). Thus, a single image often exceeds the available memory size in most computers making it infeasible to perform tasks like patch extraction by loading the entire WSI to memory. This necessitates the use of specialized software to access such images and perform deep learning tasks such as extracting patches for patch-based tissue segmentation.
+
+\cite{bankhead2017qupath} proposes a Java based whole slide processing tool called QuPath. It can be accessed through its own native GUI to perform WSI analysis but also supports Groovy scripts to execute high level algorithms such as patch extraction from WSIs. QuPath also provides the ability to build low level machine learning classifiers like Support Vector Machines or Random Forests within its integrated GUI environment. Recent developments with deep learning are yet to be translated into QuPath as it does not support  training CNNs natively and only allows predictions to be imported and viewed (\cite{pedersen2021fastpathology}). It is also very restrictive due to being a GUI and not having any API support for other languages. The GUI itself has a steep learning curve and is not very intuitive for users who are not experts/researchers in histopathology. 
+
+\cite{goode2013openslide} presents Open Slide which is an open-source, vendor-neutral C library for viewing, processing and analyzing WSIs. The major problem in digital pathology is the lack of a standardized format for WSI. This causes WSI vendors to create their own proprietary format that requires their proprietary software to process. Open Slide aims to increase interoperability by facilitating transparent handling of various vendor formats of WSIs while supporting multiple programming language APIs. It offers a Python package to enable WSI processing through Python which is very advantageous for many academic works.   
+
+ASAP (CITE ASAP) is another popular open-source software for WSI visualization and analysis. Built using C++, it offers a native GUI along with a Python wrapper for API support. ASAP utilizes other open-source libraries like Open Slide under the shell to process WSIs.   
+
+
+\section{Survival time analysis}
 
 %==================================================================================================================================
 \chapter{Analysis/Requirements}
@@ -148,7 +241,7 @@ Make it clear how you derived the constrained form of your problem via a clear a
 \chapter{Design}
 How is this problem to be approached, without reference to specific implementation details? 
 \section{Guidance}
-Design should cover the abstract design in such a way that someone else might be able to do what you did, but with a different language or library or tool.
+Design should cover the abstract design in such a way that someone else might be able to do what you did, but with a different language or library or tool. 
 
 %==================================================================================================================================
 \chapter{Implementation}
