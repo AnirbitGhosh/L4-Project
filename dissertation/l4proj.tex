@@ -210,14 +210,14 @@ A paper on detecting invasive ductal carcinoma (IDC) from whole slide images usi
 
 \begin{figure}[h]
     \centering
-    \includegraphics{images/Cruz-Roa-Ductal-Carcinoma-example.png}
+    \includegraphics[scale=0.9]{images/Cruz-Roa-Ductal-Carcinoma-example.png}
     \caption{IDC detection framework from H\&E stained WSI - 1)Splitting WSI into tiles, 2)CNN outputs tile-level prediction for probability of being IDC positive, 3)Aggregate predicted tiles to show heatmap of most likely IDC regions with probability > 0.29}
     \label{fig:ductal-carcinoma-figure}
 \end{figure}
 
 The use of a patch/tile-based approach to train and segment WSIs is observed to be the most common technique to overcome the memory logistic issues associated with the large size and resolution of WSIs. An alternative approach to processing large WSI data was demonstrated by \cite{qin2018large} using a feature Pyramid method comprising of a ResNet50-GICN-GPP pipeline. The ResNet50 architecture was used as an encoder while combining the feature pyramid blocks as decoders which produced a segemntation accuracy of 63\% when tested on the CAMELYON16 challenge dataset. 
 
-In the context of segmenting malignant breast tissue in H\&E stained WSIs, the paper by \cite{priego2020automatic} proposes a semantic segmentation pipeline. As observed in figure \ref{fig:Priego-conv-pipeline}, it performs tile-level segmentation of malignant or benign tissue using a DCNN along with a dilated convolutional encoder-decoder architecture. The paper prescribes using a pre-trained MobileNetV2 network as the backbone of the DCNN. The CNN's max pooling layer is replaced with the convolutional encoder to allow features to be extracted at any resolution, independent of the resolution of the input WSI. This makes it possible to accurately segment regions of the same tissue that may appear different due to scaling disparities in the input image compared to the training images. They applied a softmax function to the last layer of the CNN (as shown in figure \ref{fig:Priego-conv-pipeline}) in order to convert the discrete prediction (malignant vs benign) into tile-level probability maps. These probability maps were merged using a Conditional Random Field (CRF) method that allowed overlapping regions of tiles to be captured more efficiently without any loss of information. 
+In the context of segmenting malignant breast tissue in H\&E stained WSIs, the paper by \cite{priego2020automatic} proposes a fast semantic segmentation pipeline. As observed in figure \ref{fig:Priego-conv-pipeline}, it performs tile-level segmentation of malignant or benign tissue using a DCNN along with a dilated convolutional encoder-decoder architecture. The paper prescribes using a pre-trained MobileNetV2 network as the backbone of the DCNN. The CNN's max pooling layer is replaced with the convolutional encoder to allow features to be extracted at any resolution, independent of the resolution of the input WSI. This makes it possible to accurately segment regions of the same tissue that may appear different due to scaling disparities in the input image compared to the training images. They applied a softmax function to the last layer of the CNN (as shown in figure \ref{fig:Priego-conv-pipeline}) in order to convert the discrete prediction (malignant vs benign) into tile-level probability maps. These probability maps were merged using a Conditional Random Field (CRF) method that allowed overlapping regions of tiles to be captured more efficiently without any loss of information. 
 
 \begin{figure}[h]
     \centering
@@ -233,7 +233,18 @@ Whole slide images are captured at a minimum 40x magnification resulting in imag
 
 \cite{goode2013openslide} have created Open Slide which is an open-source, vendor-neutral C library for viewing, processing and analyzing WSIs. The major problem in digital pathology is the lack of a standardized format for WSI. This causes WSI vendors to create their own proprietary format that requires their proprietary software to process. Open Slide aims to increase interoperability by facilitating transparent handling of various vendor formats of WSIs while supporting multiple programming language APIs. It offers a Python package to enable WSI processing through Python which makes it accessible for academic research.   
 
-\subsection{Data availability for training DCNNs}
+\subsection{Data availability for CNN training}
+As reported in the paper on Colorectal Cancer diagnosis from histology slides by \cite{Kather2019}, all data used in training and validation of the CNN was manually annotated by an expert pathologist. They sectioned 86 CRC H\&E whole slides from the NCT biobank and UMM pathology archive to create a training set of 100,000 tiles. Each tile had to be manually annotated at a tile level. to describe the nine relevant tissue classes. Their validation set comprised of 862 H\&E slides retrieved from 500 CRC patients on The Cancer Genome Atlas (TCGA) repository. Data from TCGA does not contain any pixel or slide level annotations and had to be manually reviewed to identify relevant histological artifacts. 
+
+\cite{priego2020automatic} further lay emphasis on the lack of publicly available H\&E stained whole slide images with strong pixel level annotations being a major hindrance in the development of supervised learning models. Their solution to this lack of annotated data was to create an OpenSlide based, online WSI viewer that allowed pathologists from across the world to view and hand annotate tumour regions, thereby constructing a training dataset tailored to this project for breast cancer lesion segmentation.
+
+The CAMELYON16 and CAMELYON17 challenges were identified as viable data sources for training deep learning models to detect breast cancer metastases. \cite{Khened2021} proposed a generalized framework for WSI segmentation and validated its performance in breast cancer segmentation using CAMELYON16 and CAMELYON17 data. As shown by \cite{bejnordi2017diagnostic} in their paper on deep learning algorithms for breast metastases detection, the CAMELYON16 data serves as a very robust dataset for training supervised learning models as it contains 399 WSI (159 malignant and 240 benign samples), sourced from two separate laboratories with pixel level annotations of breast metastases found in sentinel lymph nodes. 
+
+CAMELYON17 on the other hand was showcased by \cite{bandi2018detection} in assessing potential deep learning techniques for breast cancer detection and prognosis assessment. This dataset was built upon CAMELYON16 to include 1399 WSI of breast metastases in sentinel lymph node sections, sourced from five different laboratories to more accurately represent staining variability and allow for more robust training. Instead of pixel level annotations, CAMELYON17 included slide level annotations to allow for a shift of focus on patient-level diagnosis followed by patient prognosis prediction rather than diagnosing metastases in individual WSI. 
+\\
+\subsubsection{Why is CAMELYON data effective for diagnosing breast cancer?}
+\hfill\\
+The effectiveness of CAMELYON16 and CAMELYON17 data in diagnosing breast cancer despite containing lymph node biopsies is explained by \cite{sobin2011tnm} in their TNM staging system. In diagnosing breast cancer, clinicians consider the extent of tumour growth (T-stage), spreading of tumour cells to lymph nodes (N-stage) and the degree of metastases in other parts of the body (M-stage). Presence of breast metastatic cells in sentinel lymph nodes, which is the first lymph node breast cancer cells drain into, is therefore a significant indicator of breast cancer prognosis and can be used to learn how to characterize general breast metastases in deep learning models.
 
 
 \section{Survival time analysis}
@@ -542,7 +553,7 @@ submitted separately.
 % The bibliography style is abbrvnat
 % The bibliography always appears last, after the appendices.
 
-\bibliographystyle{abbrvnat}
+\bibliographystyle{apalike}
 
 \bibliography{l4proj}
 
