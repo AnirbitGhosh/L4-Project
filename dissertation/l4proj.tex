@@ -7,6 +7,7 @@
 % put any additional packages here
 \usepackage{siunitx}
 \usepackage{float}
+\usepackage{amsmath}
 %
 
 \begin{document}
@@ -247,7 +248,57 @@ CAMELYON17 on the other hand was showcased by \cite{bandi2018detection} in asses
 The effectiveness of CAMELYON16 and CAMELYON17 data in diagnosing breast cancer despite containing lymph node biopsies is explained by \cite{sobin2011tnm} in their TNM staging system. In diagnosing breast cancer, clinicians consider the extent of tumour growth (T-stage), spreading of tumour cells to lymph nodes (N-stage) and the degree of metastases in other parts of the body (M-stage). Presence of breast metastatic cells in sentinel lymph nodes, which is the first lymph node breast cancer cells drain into, is therefore a significant indicator of breast cancer prognosis and can be used to learn how to characterize general breast metastases in deep learning models.
 
 
-\section{Survival time analysis}
+\section{Cancer prognosis estimation}
+\subsection{Survival time analysis methods}
+As an extension to deep learning based CRC diagnosis, \cite{Kather2019} have proposed fitting a uni-variable Cox-proportional Hazard model with features extracted from each tissue class to model their respective influence on patient-level survival prediction. Utilizing a Youden index \((sensitivity + specificity - 1)\), they determined an optimal Hazard Ratio (HR) cutoff value. All counts of tissue classes with HR > cutoff were weighted with their HR and combined to develop a deep stromal score quantifying slide-level disease severity. They propose a further step to fit a multivariate Cox proportional hazard model on the TCGA validation data, in order to adjust for clinical factors like tumour stage, sex and age when obtaining the Hazard Ratio. This multivariate HR showed higher confidence in prognosis predictions as it accounted for both slide-level tissue morphology and patient specific clinical factors. 
+
+Other instances of survival analysis on histopathology images, such as the paper by \cite{wetstein2022deep} illustrates a Kaplan-Meier survival analysis using a uni-variable and a multivariate Cox proportional hazard model. The multivariate analysis was included to produce more realistic survival predictions that accounted for clinical characteristics of each patient, such as current treatment, tumour dimensions and lymphovascular state. All these factors are ignored by the uni-variable model which only aims to utilize histological features in its prediction. A similar methodology was also proposed by \cite{Liu2022} using univariable Cox proportional hazard models. They having additionally demonstrated the use of Python's \textit{Lifelines} package in streamlining the Cox model fitting process and KM plot generation to visualize survival events. 
+
+Majority of work in the field of automated survival estimation involves linear parametric Cox models as described previously. The applicability 
+of these methods are constrained by the requirement of strong, pixel-level annotations in facilitating supervised learning models to extract precise features to successfully quantify survival. Alternate approaches of survival analysis are still being developed but are not as prominently established.  \cite{katzman2018deepsurv} proposed a feed-forward neural network called DeepSurv to quantify the influence of a patient's clinical and histological covariates on their hazard rate and subsequently support treatment recommendations. This method uses an alternate approach to  previously described linear Cox regression by using a neural network to optimize the partial likelihood loss function of the Cox model using non-linear features. \cite{wulczyn2020deep} illustrates another method of survival prediction using a weakly supervised learning approach. Uniformly sampled patches were drawn from the slides of a given patient, only knowing if the slide was malignant or benign. Image-based features extracted by the CNN from these patches were processed by a custom loss function - combination of cross-entropy and Cox partial likelihood loss - to output a probability distribution over discretized survival intervals for each patient.
+
+\subsection{Cox proportional hazard model}
+The original paper by \cite{cox1972regression}, demonstrated a generalized regression method as an extension to the Kaplan-Meier survival analysis approach. The Cox proportional hazard model is a linear regression model defined in terms of a hazard function (\(\lambda\)) as follows
+\begin{equation}
+    \centering
+    \lambda (t | \textbf{x}) = \lambda_0 (t) \exp (\beta \textbf{x})
+    \label{eq:hazard model}
+\end{equation}
+
+where \(t\) represents time, \textbf{\(x\)} denotes an \(n \times 1\) element vector of all covariates being modelled such that \(n=1\) for univariable Cox modelling and \(n > 1\) for multivariable models. \(\beta\) represents a vector of all regression coefficients in the model while \(\lambda_0 (t)\) denotes the baseline hazard under initial conditions of \(\textbf{x} = 0\). 
+
+This hazard model displays the relation between the time until some event occurs (in survival models the event is the death of a subject) to the given covariates. The proportional nature of the model implies a multiplicative increase in hazard rate with unit increase in the covariate(s). This can be demonstrated by considering a univariable model where \(x\) and \(\beta\) are both one element vectors representing single covariate regression. Following a unit increase in the covariate, such that we have \(x + 1\) as our new covariate, the new hazard function is
+\begin{equation}
+    \centering
+    \begin{aligned}
+        \lambda (t | x + 1) ={}& \lambda_0 (t) \exp (\beta (x+1)) \\
+                            ={}& \lambda_0 (t) \exp (x\beta  + \beta)) \\
+                            ={}& (\lambda_0 (t) \exp (x\beta)) + \exp (\beta) \\
+                            ={}& \lambda (t | x ) \exp (\beta)
+    \end{aligned}
+\end{equation}
+
+denoting a constant multiplicative scaling by \(\exp (\beta)\) of our original hazard function upon a unit increase in covariate. Furthermore, upon changing sides of the new hazard function we get
+\begin{equation}
+    \centering
+    \begin{aligned}
+        \frac{\lambda (t | x + 1)}{\lambda (t | x )} = \exp (\beta) 
+    \end{aligned}
+\end{equation}
+
+where the ratio \(\exp (\beta)\) is a constant with no time dependence. This represents the "proportional" nature of the Cox hazard model where the relationship over time between original and subsequent hazard functions remains constant despite changing covariates. 
+
+\subsection{Kaplan-Meier analysis}
+The Cox proportional hazard model only describes the hazard or probability of certain survival event happening at a specific point of time. It is useful in analyzing the risk of survival associated with given features. However, it cannot predict overall survival time as hazard is inversely proportional to survival, with survival showing rapid decline at high hazard function values. As defined by \cite{bewick2004statistics}, having survived until a given time \(t\), the hazard function \(\lambda (t)\) corresponds to the probability of dying at \(t\). Whereas, the KM survival function \(S(t)\), represents probability of surviving until time \(t\). \cite{schober2021kaplan} proposes using the Kaplan-Meier method for producing exact survival time predictions. Kaplan-Meier generates a parametric survival function that estimates the probability of patient surviving past a certain point of time. Showing overall survival time prediction using Kaplan-Meier graphs is the most common methodology as observed in all survival analysis papers such as \cite{Kather2019}, \cite{Liu2022} and \cite{Wetstein2022}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.3]{images/KM-plot-example.jpg}
+    \caption{\cite{bewick2004statistics} - Example Kaplan-Meier plot showing overall survival probability }
+    \label{fig:km-plot-example}
+\end{figure}
+
+As observed in figure \ref{fig:km-plot-example}, a KM plot is a step-wise function plotting probability of survival on the y-axis and survival time in any discrete unit on the x-axis. KM plots can support multiple curves on the graph where each represent a unique covariate setting to see their influence on survival. The graph displays vertical drops in survival probability over time at points where an event of interest occurs, which in survival analysis is the death of a subject. The horizontal distance to these points on the curve represent the total interval of time after which the event occurred, thereby showing the probability a subject survives for that period of time. As proposed by \cite{bewick2004statistics}, the median survival time is often a good prediction of overall survival as it is the point of 0.5 probability where half the subjects perish and the other half lives. This median survival time can be used to compare multiple KM plots in terms of how severely  covariate influences survival.  
 
 %==================================================================================================================================
 \chapter{Analysis/Requirements}
