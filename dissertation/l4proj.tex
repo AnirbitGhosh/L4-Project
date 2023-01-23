@@ -7,6 +7,7 @@
 % put any additional packages here
 \usepackage{siunitx}
 \usepackage{float}
+\usepackage{tabularx}
 \usepackage{amsmath}
 %
 
@@ -113,7 +114,7 @@ This project aims to investigate the viability of deep-learning based automated 
 %==================================================================================================================================
 \chapter{Background}
 
-\section{Whole Slide Images}
+\section{Whole Slide Images}\label{wsi-background}
 \subsection{Slide preparation}
 Biopsied tissue blocks are sliced into thin sections and mounted on glass slides. For cancer diagnosis, these tissue slides are generally stained with a Hematoxylin and Eosin dye which has been proven (\textit{\cite{Bancroft2013}}) to exhibit selective affinity for specific cellular artifacts. Stained regions are more prone to absorbing light making them more prominently visible under illumination in a microscopy. In breast tissue, the Hematoxylin component stains the nuclei of cells in a blue colour as it binds to acidic structures, particularly RNA and DNA (\textit{\cite{chan2014wonderful}}). Eosin on the contrary stains any connective tissue and cellular cytoplasm in shades of red (\textit{\cite{Bancroft2013}}), which in breast tissue samples makes up the majority of the surface due to the presence of muscles, fatty tissue and collagen. Collagen is the dominant component in tissue surrounding breast ducts which is the most common area of origin for breast cancer making this staining even more effective in distinguishing between normal and abnormal cellular growth. Therefore, H\&E staining has become the histopathology standard when diagnosing breast cancer from biopsied tissue.
 
@@ -202,7 +203,7 @@ After Macenko normalization&
 \end{figure}
 
 \section{Deep Learning in histopathological analysis}
-\subsection{Applications in WSI based diagnosis}
+\subsection{Applications in WSI based diagnosis} \label{dl-application-background}
 As proposed by \cite{gurcan2009histopathological}, diagnosing diseases from histopathological images requires the identification of some histological features, for example, cancer nuclei, glands or lymphocytes that serve as indicators of disease severity. With growing popularity of computer assisted diagnosis systems, Deep Learning has been proven to be the preferred approach for such classification and segmentation tasks on whole slide images. 
 
 \cite{Kather2019} has proposed a supervised learning model that uses transfer learning to train a CNN that performs a patch based classification of nine tissue types observed in H\&E stained whole slide images of Colorectal cancer (CRC) samples. The study used 86 H\&E slides of CRC tissue to create a training set of image patches without any associated clinical data. The CNN was trained on these 224x224 px patches. They were labelled manually with patch-level annotations representing the relevant tissue class. The trained CNN would take a WSI, split it into 224x224 px patches and produce a prediction for the type of tissue a given patch represents with a unique color. Therefore, tile-level predictions were obtained to fully segment the given WSI into its constituent tissues and subsequently extract a deep-stromal score from the multi-class segmented WSI to determine the severity of CRC. 
@@ -234,7 +235,7 @@ Whole slide images are captured at a minimum 40x magnification resulting in imag
 
 \cite{goode2013openslide} have created Open Slide which is an open-source, vendor-neutral C library for viewing, processing and analyzing WSIs. The major problem in digital pathology is the lack of a standardized format for WSI. This causes WSI vendors to create their own proprietary format that requires their proprietary software to process. Open Slide aims to increase interoperability by facilitating transparent handling of various vendor formats of WSIs while supporting multiple programming language APIs. It offers a Python package to enable WSI processing through Python which makes it accessible for academic research.   
 
-\subsection{Data availability for CNN training}
+\subsection{Data availability for CNN training} \label{data-availability-section}
 As reported in the paper on Colorectal Cancer diagnosis from histology slides by \cite{Kather2019}, all data used in training and validation of the CNN was manually annotated by an expert pathologist. They sectioned 86 CRC H\&E whole slides from the NCT biobank and UMM pathology archive to create a training set of 100,000 tiles. Each tile had to be manually annotated at a tile level. to describe the nine relevant tissue classes. Their validation set comprised of 862 H\&E slides retrieved from 500 CRC patients on The Cancer Genome Atlas (TCGA) repository. Data from TCGA does not contain any pixel or slide level annotations and had to be manually reviewed to identify relevant histological artifacts. 
 
 \cite{priego2020automatic} further lay emphasis on the lack of publicly available H\&E stained whole slide images with strong pixel level annotations being a major hindrance in the development of supervised learning models. Their solution to this lack of annotated data was to create an OpenSlide based, online WSI viewer that allowed pathologists from across the world to view and hand annotate tumour regions, thereby constructing a training dataset tailored to this project for breast cancer lesion segmentation.
@@ -249,7 +250,7 @@ The effectiveness of CAMELYON16 and CAMELYON17 data in diagnosing breast cancer 
 
 
 \section{Cancer prognosis estimation}
-\subsection{Survival time analysis methods}
+\subsection{Survival time analysis methods} \label{survival-analysis-methods}
 As an extension to deep learning based CRC diagnosis, \cite{Kather2019} have proposed fitting a uni-variable Cox-proportional Hazard model with features extracted from each tissue class to model their respective influence on patient-level survival prediction. Utilizing a Youden index \((sensitivity + specificity - 1)\), they determined an optimal Hazard Ratio (HR) cutoff value. All counts of tissue classes with HR > cutoff were weighted with their HR and combined to develop a deep stromal score quantifying slide-level disease severity. They propose a further step to fit a multivariate Cox proportional hazard model on the TCGA validation data, in order to adjust for clinical factors like tumour stage, sex and age when obtaining the Hazard Ratio. This multivariate HR showed higher confidence in prognosis predictions as it accounted for both slide-level tissue morphology and patient specific clinical factors. 
 
 Other instances of survival analysis on histopathology images, such as the paper by \cite{Wetstein2022} illustrates a Kaplan-Meier survival analysis using a uni-variable and a multivariate Cox proportional hazard model. The multivariate analysis was included to produce more realistic survival predictions that accounted for clinical characteristics of each patient, such as current treatment, tumour dimensions and lymphovascular state. All these factors are ignored by the uni-variable model which only aims to utilize histological features in its prediction. A similar methodology was also proposed by \cite{Liu2022} using univariable Cox proportional hazard models. They having additionally demonstrated the use of Python's \textit{Lifelines} package in streamlining the Cox model fitting process and KM plot generation to visualize survival events. 
@@ -302,9 +303,56 @@ As observed in figure \ref{fig:km-plot-example}, a KM plot is a step-wise functi
 
 %==================================================================================================================================
 \chapter{Analysis}
-What is the problem that you want to solve, and how did you arrive at it?
-\section{Guidance}
-Make it clear how you derived the constrained form of your problem via a clear and logical process. 
+\section{General Problem}
+\subsection{Cancer detection}
+The first step to delivering a cancer prognosis from histopathological images is to quantify disease severity and extent through image-based features. As illustrated in figure \ref{fig:camelyon16-example}, there is a clear visual difference between malignant and healthy tissue samples. Firstly we observe in figure \ref{fig:camelyon16-example} - (b), that tumour cells are enclosed within distinct patches among the non-background pixels rather than being homogeneously dispersed throughout the body of the tissue. Secondly in figure (c) we observe a difference in stain intensity between the surrounding healthy cells and the tumour within the annotation lines. This color disparity is caused by abnormal cellular growth - displaying an increase in the size of Hematoxylin stained (blue) nuclei and reduced nuclei density leading to an increase in Eosin stained (pink) cytoplasm observed in tumour regions. 
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{lccccc}
+Normal tissue&
+\includegraphics[width=100px]{images/camelyon16-normal-example.png}&
+\\&
+(a)\\
+Malignant tissue&
+ \includegraphics[width=100px]{images/Camelyon16-cancer-example1.png}&
+ \includegraphics[width=100px]{images/Camelyon16-cancer-example2.png}&
+ \\&
+ (b)&(c)\\
+\end{tabular}
+\caption{Examples taken from CAMELYON16 training data - Normal tissue (a) exhibits healthy breast tissue with no cancerous tumour. Malignant tissue (b) represents annotated location of malignant tumour with respect to the overall slide and (c) displays a closer view of malignant cells inside annotated region}
+\label{fig:camelyon16-example}
+\end{figure}
+
+The general problem we are trying to solve at this stage is to identify whether a given tissue slide is cancerous and subsequently segment its malignant areas to extract meaningful features that convey disease severity and extent. As prescribed in multiple literature reviewed in section \ref{dl-application-background} we can perform a tile-based analysis of the whole slide image. Using the visual differences observed in healthy and cancerous cells, we can predict tiles as malignant or benign based on their constituent cellular morphology. Tumour areas will be detected by high density of tiles predicted as malignant and thereby segmenting the WSI into regions of interest. Since we know a given WSI has a fixed pixel count at the sampling resolution, we can quantify the extent of a tumour in terms of the pixel area covered by malignant tiles. As inferred from figure (\ref{fig:camelyon16-example}), the difference in stain intensity of tumour cells compared to healthy cells can be used to quantify cancer severity in terms of an aggregated color intensity metric of malignant tile regions. Severely abnormal nuclear growth in tumour regions will produce much darker stain intensities due to large nuclei, whereas severe cytoplasmic expansion will display significantly lighter color intensities compared to healthy cellular regions.
+
+\subsection{Survival time estimation}
+As explained by the literature reviewed in section \ref{survival-analysis-methods} we can utilize the image-based features extracted from the previous stage as covariates to fit Cox proportional hazard models. This will allow us to obtain the hazard function for each feature and measure its influence as a risk factor affecting survival of patients. The CPH models for each covariate enables comparison between different features to identify their relative significance in prognosis estimation. The final problem of predicting the overall survival time can then be solved by generating Kaplan-Meier plots of the most significant covariates and obtaining the median survival time from the graph as shown in figure \ref{fig:km-plot-example}. We can extract the chosen feature metrics from each query image to generate its repective KM plot to deliver the final disease prognosis in terms of a discrete unit of time. 
+
+\section{Whole slide images}
+\subsection{Data availability}
+As discussed in section \ref{data-availability-section}, the most widely used approach for automated cancer detection from histopathological images requires large datasets with strong, pixel-level annotations to train a robust supervised learning model. Curating a custom dataset to train and validate our model involved sourcing sufficiently diverse WSIs and having an expert pathologist manually annotate over 100,000 tissue patches for our tile-based approach, which was infeasible for the scope of this project. Therefore, this paper uses CAMELYON16 data as our training dataset since it has been annotated at a pixel level by expert pathologists.
+
+We have utilized the PatchCAMELYON (PCAM) version (\cite{Veeling2018-qh}) which is a pre-tiled, publicly available dataset containing over 327,000 tiles sourced from 399 WSIs included in the CAMELYON16 data. The PCAM data comprises of 96x96px tiles with binary tile-level annotations indicating whether a tile is malignant or benign based on the presence of cancer cells in the center 32x32px patch of each tile. The CAMELYON16 WSIs are provided a 40x objective but PCAM tiles are undersampled at 10x to increase field of view. The PCAM dataset replicates the same train/test split thresholds as the CAMELYON16 dataset, including 50/50 balance between malignant and benign tiles with no overlap to allow unbiased model training. PCAM also holds out 20\% of training tiles to create a validation set to allow models to be cross validated. The tile annotations are provided as CSV files in the following format:
+
+\begin{center}
+\begin{tabular}{ |c|c|c|c|c|c| } 
+ \hline
+ id & coord\_y & coord\_x & tumor\_patch & center\_tumor\_patch & wsi \\ 
+ \hline
+ 1 & 148544 & 74048 & 1 & 1 & camelyon16\_train\_tumor\_003 \\ 
+ \hline
+\end{tabular}
+\end{center}
+
+The X and Y coordinates represent the pixel coordinate of the top-left vertex of the 96x96px tile taken from the whole slide image specified in the wsi column. A binary (0 or 1) annotation is provided for each tile. A value of 1 for tumor\_patch indicates the presence of cancer cells located anywhere within the 96x96px tile. Whereas, an annotation of 1 for center\_tumor\_patch indicates that malignant tissue is present in the center 32x32px patch of the tile. 
+
+\section{Processing}
+\subsection{Image pre-processing}
+
+\subsection{Supervised learning}
+
+\subsection{Ground truth validation}
 
 %==================================================================================================================================
 \chapter{Design}

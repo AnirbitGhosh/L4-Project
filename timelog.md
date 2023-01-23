@@ -294,8 +294,28 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 - *2 hours* : Write introduction of dissertation - aim, motivation and general problem description
 
 ## 15 Jan 2023
-- *8 hours* : Write background of dissertation - read and collect sources, complete section 2.1 of background on Whole Slide Images. 
+- *8 hours* : Write background of dissertation - read and collect sources, write section 2.1 of background on Whole Slide Images. 
 - *30 mins* : Plan to complete next background section on Deep Learning application in cancer detection and then Survival prediction from whole slide images.
 
 ## 16 Jan 2023
-- ** : 
+- *5 hours* : Write background section 2.2 on deep learning application and existing approaches to cancer detection using DL
+
+## 17 Jan 2023
+- *2 hours* : Supervisor meeting - Discuss analysis, design and implementation section of dissertation. Discuss survival results, agree results are significant for mean intensity with p=0.21. Discuss box plots to understand the spread of significant effect for each covariate. 
+
+## 18 Jan 2023
+- *2 hours* : Rewrite and refine introduction section based on supervisor discussion
+- *2 hours* : Include macenko normalization in background for WSI
+
+## 19 jan 2023
+- *4 hours* : Write section 2.2 of background for data availability for deep learning model and start section 2.3 on prognosis prediction background
+
+## Week 15
+## 21 Jan 2023 
+- *8 hours* : Continue prognosis section 2.3 of background including existing survival time analysis methods and Cox proportional hazard model applications
+
+## 22 Jan 2023
+- *4 hours* : Write background on Kaplan Meier method and start analysis section 3.0
+
+## 23 Jan 2023
+- *8 hours* : Complete analysis section 3.1 explaining general problem in two stages (cancer detection and survival estimation). Complete section 3.2 on whole slide image application and choice of data for training (PCAM). 
