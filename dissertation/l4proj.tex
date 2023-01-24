@@ -139,7 +139,7 @@ The final output of the slide scanner is a virtual rendering of the entire tissu
 
 Viewing or analyzing an entire WSI is infeasible as the whole image simply cannot fit into a standard computer's memory. It was demonstrated by \cite{wang2012managing} that sectioning the WSI into several smaller, fixed size tiles at its diagnostic resolution and performing image analysis tasks on each tile allows for more efficient processing compared to using the entire slide image at once. As shown by \cite{aeffner2019introduction}, confining analysis efforts to smaller regions of interest (ROIs) rather than the entire WSI is often necessary to devise any accurate or computationally viable image analysis algorithms. The tile based results can be aggregated in order to generate masks that highlight all ROIs on lower resolution thumbnails of the original WSI in order to display the results of our image analysis tasks. 
 
-\subsection{Slide normalization}
+\subsection{Slide normalization} \label{slide-normalization-background}
 The manual preparation of tissue slides by pathologists is a very sensitive process and despite having an established staining protocol, several factors can imbue a high degree of variability in the presentation of the resulting WSI. As demonstrated by \cite{anghel2019high}, the lack of consistency in the quality and appearance of slide images is attributed to varying antigen concentration, temperatures at which the tissue is stored, physical conditions the slides are subjected to when being put through slide scanners and random human error involved in the process. \textbf{Figure \ref{fig:he-stain-difference}} illustrates how despite having a standardized staining procedure like the Hematoxylin \& Eosin staining, no two slides of the same tissue will exhibit identical color, stain intensity or physical structure.   
 
 \begin{figure}[h]
@@ -202,7 +202,7 @@ After Macenko normalization&
 \label{fig:macenko-example}
 \end{figure}
 
-\section{Deep Learning in histopathological analysis}
+\section{Deep Learning in histopathological analysis} \label{dl-application-background-section}
 \subsection{Applications in WSI based diagnosis} \label{dl-application-background}
 As proposed by \cite{gurcan2009histopathological}, diagnosing diseases from histopathological images requires the identification of some histological features, for example, cancer nuclei, glands or lymphocytes that serve as indicators of disease severity. With growing popularity of computer assisted diagnosis systems, Deep Learning has been proven to be the preferred approach for such classification and segmentation tasks on whole slide images. 
 
@@ -333,6 +333,7 @@ As explained by the literature reviewed in section \ref{survival-analysis-method
 \subsection{Data availability}
 As discussed in section \ref{data-availability-section}, the most widely used approach for automated cancer detection from histopathological images requires large datasets with strong, pixel-level annotations to train a robust supervised learning model. Curating a custom dataset to train and validate our model involved sourcing sufficiently diverse WSIs and having an expert pathologist manually annotate over 100,000 tissue patches for our tile-based approach, which was infeasible for the scope of this project. Therefore, this paper uses CAMELYON16 data as our training dataset since it has been annotated at a pixel level by expert pathologists.
 
+\subsection{PCAM dataset for model training}
 We have utilized the PatchCAMELYON (PCAM) version (\cite{Veeling2018-qh}) which is a pre-tiled, publicly available dataset containing over 327,000 tiles sourced from 399 WSIs included in the CAMELYON16 data. The PCAM data comprises of 96x96px tiles with binary tile-level annotations indicating whether a tile is malignant or benign based on the presence of cancer cells in the center 32x32px patch of each tile. The CAMELYON16 WSIs are provided a 40x objective but PCAM tiles are undersampled at 10x to increase field of view. The PCAM dataset replicates the same train/test split thresholds as the CAMELYON16 dataset, including 50/50 balance between malignant and benign tiles with no overlap to allow unbiased model training. PCAM also holds out 20\% of training tiles to create a validation set to allow models to be cross validated. The tile annotations are provided as CSV files in the following format:
 
 \begin{center}
@@ -348,9 +349,15 @@ We have utilized the PatchCAMELYON (PCAM) version (\cite{Veeling2018-qh}) which 
 The X and Y coordinates represent the pixel coordinate of the top-left vertex of the 96x96px tile taken from the whole slide image specified in the wsi column. A binary (0 or 1) annotation is provided for each tile. A value of 1 for tumor\_patch indicates the presence of cancer cells located anywhere within the 96x96px tile. Whereas, an annotation of 1 for center\_tumor\_patch indicates that malignant tissue is present in the center 32x32px patch of the tile. 
 
 \section{Processing}
-\subsection{Image pre-processing}
-
 \subsection{Supervised learning}
+After reviewing the methods employed by other research papers in section \ref{dl-application-background-section}, we will be utilizing a supervised learning model to solve the first stage of our general problem. This model will utilize a tile-based approach to learn how to segment WSIs into malignant and benign regions. We will employ the strongly annotated PCAM data as the training dataset for our CNN. This will be an end-to-end learning model that learns how to characterize malignant and benign tissue and output a fully segmented representation of the input WSI with clearly demarcated tumour regions. This model will be further validated using the validation dataset included with the PCAM data and on the few annotated WSI's available publicly on TCGA.
+
+Based on several instances of literature using TCGA data for histopathological analysis, we will curate a separate dataset for fitting the statistical model required for the second stage of our general problem. We apply our trained CNN to breast cancer WSIs sourced from the TCGA repository to extract image-based features to quanitfy the extent and severity of malignancy. Using these features as covariates we generate linear Cox regression models and Kaplan Meier plots to perform the overall survival time analysis.
+
+\subsection{Image pre-processing}
+The PCAM dataset used to train our CNN to solve the first stage of our general problem is a derivative of the CAMELYON16 database, which is a vast and diverse collection of histopathological samples sourced from multiple pathology laboratories. As discussed in section \ref{slide-normalization-background}, variability in preparation conditions introduces inconsistencies to the quality and appearance of WSIs. This makes it necessary to apply Macenko normalization to our PCAM data before using it to train our model. This ensures that our model learns to characterize the true morphological difference between malignant and benign breast tissue samples rather than learning the random noise introduced in the appearance of the WSI during preparation.
+
+When applying this model to TCGA breast cancer slides to extract image-based features, we must split the WSI into tiles and eliminate background dominant tiles. Furthermore, we perform Macenko normalization on each tile to make our input data  consistent relative to our model's trained features and ensure accurate segmentation of malignant regions. 
 
 \subsection{Ground truth validation}
 
