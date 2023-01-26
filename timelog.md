@@ -319,3 +319,10 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 
 ## 23 Jan 2023
 - *8 hours* : Complete analysis section 3.1 explaining general problem in two stages (cancer detection and survival estimation). Complete section 3.2 on whole slide image application and choice of data for training (PCAM). 
+
+## 24 Jan 2023
+- *4 hours* : Write analysis section 3.3 on Processing - supervised learning and survival prediction process and image pre-processing
+
+## 25 Jan 2023
+- *2 hours* : Supervisor meeting - Discuss how to fit Design and implementation sections into project. Agree it is a bit inappropriate for research based projects. Discuss making extensions to project to try and get content to be included in implementation. Agree to not make major extensions this late. Discuss survival results including clinical data like Age, Sex etc as extensions - defeats the purpose of not using clinical data and testing the ability of histopathological images to characterize survival prognoses. Discuss including Hyperparameter optimization under implementation section. Agree to complete design section in the coming week and start on implementation next week. 
+- *4 hours* : Make changes to section 3.1 amd 3.3.1 to include some more points on the general problem and approach to solve it. Complete section 3.3 - include ground truth validation and where ground truth will be sourced from and how the models will be tested and validated. 
