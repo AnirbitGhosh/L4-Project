@@ -366,9 +366,21 @@ As described previously, the second stage of our problem aims to develop a regre
 
 %==================================================================================================================================
 \chapter{Design}
-How is this problem to be approached, without reference to specific implementation details? 
-\section{Guidance}
-Design should cover the abstract design in such a way that someone else might be able to do what you did, but with a different language or library or tool. 
+\section{Cancer detection system overview}
+We implement a neural network to solve the first stage of our overall problem. Figure \ref{fig:sys-overview} illustrates a logical workflow of how we go from an input breast tissue slide to a segmented malignancy feature map. As seen in the upper half of the figure, the network is first trained with batches of WSIs, each sectioned into labelled, colour-normalized tiles. During the training process, every RGB tile will undergo a series of convolutions as it passes through each layer of our network. Neurons will learn a weight based on the feature representation extracted by kernel convolutions in each layer. The final layer's output is thresholded to give a class prediction for the tile. This is compared to ground truth label and a loss is calculated. Our goal if to minimize this loss value. This is achieved by using an optimizer to backpropagate and update the weights of each neuron to improve the learned feature representation and produce more precise predictions. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.7]{images/system-overview-1.png}
+    \caption{Workflow of cancer detection system design. The upper half of the figure demonstrates the training procedure of the neural network. It uses annotated WSI tiles to learn feature representations of breast metastatic tissue samples. The training will use the ground-truth annotations of each tile to optimize the neuron weights and minimize training loss. In the lower half of the image, the trained model is used to produce tile-level, binary predictions for a given WSI. The predicted tiles, marked as malignant or benign, are used to generate a segmented feature map of the original WSI}
+    \label{fig:sys-overview}
+\end{figure}
+
+ The trained model will process an input WSI on a tile-by-tile basis to estimate the presence of cancer cells in each tile. Using the learned feature representations of breast cancer morphology, the neural network performs a binary classification task to output the most likely class (malignant (1) or benign (0)) for each tile. The tiled predictions will be overlaid on a thumbnail of the WSI to produce a segmented feature map indicating potential tumour regions, as illustrated in figure \ref{fig:sys-overview}.
+
+\subsection{Tiling and preprocessing}
+
+\subsection{Computation time}
 
 %==================================================================================================================================
 \chapter{Implementation}
