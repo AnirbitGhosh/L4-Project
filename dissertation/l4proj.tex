@@ -164,7 +164,7 @@ For slide images captured with standard RGB scanners, the stain absorbs three di
 \hfill\\
 
 
-\subsubsection{Macenko Algorithm}
+\subsubsection{Macenko Algorithm} \label{macenko-alg}
 \hfill\\
 \cite{macenko2009method} prescribes the SVD based stain normalization algorithm as follows:\\
 \\
@@ -228,7 +228,7 @@ In the context of segmenting malignant breast tissue in H\&E stained WSIs, the p
     \label{fig:Priego-conv-pipeline}
 \end{figure}
 
-\subsection{Methods to process WSI data for deep learning}
+\subsection{Methods to process WSI data for deep learning} \label{background-openslide}
 Whole slide images are captured at a minimum 40x magnification resulting in images having resolutions exceeding \(100,000 \times 100,000\) pixels with an average uncompressed size of 5GB (\cite{bandi2018detection}). Thus, a single image often exceeds the available memory size in most computers making it infeasible to perform tasks like patch extraction by loading the entire WSI to memory. This necessitates the use of specialized software to access such images and perform deep learning tasks such as extracting patches for patch-based tissue segmentation.
 
 \cite{bankhead2017qupath} proposes a Java based whole slide processing tool called QuPath. It can be accessed through its own native GUI to perform WSI analysis but also supports Groovy scripts to execute high level algorithms such as patch extraction from WSIs. QuPath also provides the ability to build low level machine learning classifiers like Support Vector Machines or Random Forests within its integrated GUI environment. Recent developments with deep learning are yet to be translated into QuPath as it does not support  training CNNs natively and only allows predictions to be imported and viewed (\cite{pedersen2021fastpathology}). It is also very restrictive due to being a GUI and not having any API support for other languages. The GUI itself has a steep learning curve and is not very intuitive for users who are not experts/researchers in histopathology. 
@@ -304,7 +304,7 @@ As observed in figure \ref{fig:km-plot-example}, a KM plot is a step-wise functi
 %==================================================================================================================================
 \chapter{Analysis}
 \section{General Problem}
-\subsection{Cancer detection}
+\subsection{Cancer detection} \label{cancer-general-problem}
 The first step to delivering a cancer prognosis from histopathological images is to quantify disease severity and extent through image-based features. As illustrated in figure \ref{fig:camelyon16-example}, there is a clear visual difference between malignant and healthy tissue samples. Firstly we observe in figure \ref{fig:camelyon16-example} - (b), that tumour cells are enclosed within distinct patches among the non-background pixels rather than being homogeneously dispersed throughout the body of the tissue. Secondly in figure (c) we observe a difference in stain intensity between the surrounding healthy cells and the tumour within the annotation lines. This color disparity is caused by abnormal cellular growth - displaying an increase in the size of Hematoxylin stained (blue) nuclei and reduced nuclei density leading to an increase in Eosin stained (pink) cytoplasm observed in tumour regions. 
 
 \begin{figure}[H]
@@ -376,11 +376,34 @@ We implement a neural network to solve the first stage of our overall problem. F
     \label{fig:sys-overview}
 \end{figure}
 
- The trained model will process an input WSI on a tile-by-tile basis to estimate the presence of cancer cells in each tile. Using the learned feature representations of breast cancer morphology, the neural network performs a binary classification task to output the most likely class (malignant (1) or benign (0)) for each tile. The tiled predictions will be overlaid on a thumbnail of the WSI to produce a segmented feature map indicating potential tumour regions, as illustrated in figure \ref{fig:sys-overview}.
+ The trained model will process an input WSI on a tile-by-tile basis to estimate the presence of cancer cells in each tile. Using the learned feature representations of breast cancer morphology, the neural network performs a binary classification task to output the most likely class (malignant (1) or benign (0)) for each tile. The tiled predictions will be overlaid on a thumbnail of the WSI to produce a segmented feature map indicating potential tumour regions, as illustrated in figure \ref{fig:sys-overview}. We repeat this process for a series of WSIs taken from the TCGA repository to generate a collection of segmented feature maps. For the next stage of our problem, we will manipulate this feature dataset to extract covariates that can effectively model and estimate survival time. 
 
-\subsection{Tiling and preprocessing}
+\subsection{Tiling and pre-processing}
+Since the CAMLEYON16 data is sourced from multiple pathological laboratories, we will be applying the Macenko normalization alogrithm (section \ref{macenko-alg}) on each tile of the PCAM dataset before training our model. This normalization will allow the model to learn features of cellular morphology in tiles, based on their actual structure rather than accounting for differences in colour appearance and treating them as different features. This introduces colour invariance to allow the model to more accurately identify similar tissue artifacts across different WSIs. 
 
-\subsection{Computation time}
+The WSIs processed by our CNN to generate segmented tumour maps for the survival analysis, must be tiled individually as TCGA only contains whole histopathological slides. To maintain consistency between training and feature extraction tiles, there are two main points to consider - tile dimension and tile resolution. We utilize the OpenSlide library described in section \ref{background-openslide} to convert a WSI into a stream of tile objects of specified dimension at a chosen resolution level. Therefore, we extract \(96 \times 96\)px tiles sampled at 10x objective to match the PCAM tile dimensions.
+
+Figure \ref{fig:undersample-example} illustrates that a tile sampled at 10x magnification shows a much wider field of view compared to a 40x tile. As explained in section \ref{cancer-general-problem}, detecting tumour regions is based on identifying abnormally large nucleus or increased cytoplasm dispersion. The lower resolution exposes spatial information that allows our model to identify regions of abnormal nuclear growth relative to surrounding cellular structure. The 40x resolution however, zooms in on individual nuclei to the point where any information on spatial locality is lost and our model cannot characterize nucleus size or distribution. 
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{cc}
+ \includegraphics[width=80px]{images/45_117.png}&
+ \includegraphics[width=80px]{images/119_239.png}\\
+ (a)&(b)\\
+\end{tabular}
+\caption{Illustrates two tiled sections sampled from a TCGA WSI, used in feature dataset generation - (a) \(96\times96\)px tile sampled at 10x objective shows greater field of view and less granular detail (b) \(96\times96\)px tile sampled at 40x objective has smaller field of view and shows individual nuclei at greater detail}
+\label{fig:undersample-example}
+\end{figure}
+
+All tiles obtained will be Macenko normalized in order to allow for colour invariant predictions from our model. We must also remove any blank tiles that are predominantly background. This reduces the computation time of our cancer detection pipeline by only processing tiles containing relevant tissue artifacts. The tile filtering will be done by choosing an intensity threshold representing the average intensity of Macenko normalized H\&E stain and eliminating all tiles with higher average intensity. 
+
+\subsection{Tumour prediction - classification and segmentation}
+Tiling is equivalent to dividing a given image into a grid of \(96 \times 96\)px squares. Each tile extracted from a WSI will be stored in disk along with an X-Y coordinate representing its location on the grid. We will generate two types predictions from the CNN - a discrete binary class prediction and a continuous prediction of the likelihood of being malignant. The results from the CNN will be stored against each tile's coordinate in a dataset format. This dataset will serve as the feature dataset for survival analysis. 
+
+In order to visualize the tumour segmentation, we first generate a thumbnail of the WSI downsampled to a resolution that allows viewing the entire image without causing memory issues. For the binary prediction, we map a distinct colour to each of the two classes. For each tile, we overlay the associated colour to its corresponding coordinate on the thumbnail. This creates a sharp segmentation between normal and potential tumour regions of the tissue. Using the continuous predictions, we can generate a complete heatmap showing the exact likelihood of regions being malignant on the tissue surface. The predictions will be a probability value between 0 and 1, which we map to a continuous colour scale thresholded to the same range and overlay the associated colour on each tile coordinate. 
+
+\section{Survival estimation - regression}
 
 %==================================================================================================================================
 \chapter{Implementation}
