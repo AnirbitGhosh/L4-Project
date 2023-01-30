@@ -335,4 +335,7 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 - *5 hours* : Design section 4.1.1 : tiling and pre-processing, 4.1.2 : tumour prediction - classiciation and segmentation 
 
 ## 29 Jan 2023
-- *3 hours* : Design section 4.2 - survival estimation
+- *3 hours* : Design section 4.2 - 4.2.1 model covariates done
+
+## 30 Jan 2023
+- *3 hours* : Design section 4.2 - 4.2.2 survival time prediction done
