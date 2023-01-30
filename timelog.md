@@ -338,4 +338,4 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 - *3 hours* : Design section 4.2 - 4.2.1 model covariates done
 
 ## 30 Jan 2023
-- *3 hours* : Design section 4.2 - 4.2.2 survival time prediction done
+- *4 hours* : Design section 4.2 - 4.2.2 survival time prediction done

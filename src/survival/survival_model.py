@@ -73,8 +73,8 @@ def read_data_prob(survival_path, tumour_path):
         data.loc[idx, "Mean Intensity"] = score[id][1]
      
     # Remove any NaN values from dataframe for patients we dont have prediction data for since we only used WSI of deceased patients
-    data["Malignancy Score"] = data["Malignancy Score"].replace(np.nan, 0)   
-    data["Mean Intensity"] = data["Mean Intensity"].replace(np.nan, 0)
+    data["Malignancy Score"] = data["Malignancy Score"].replace(np.nan, -1)   
+    data["Mean Intensity"] = data["Mean Intensity"].replace(np.nan, -1)
 
     # label fixing - Change DECEASED/ALIVE label to 1 (deceased) and 0 (alive)
     data["OS_STATUS"] = np.where(data["OS_STATUS"] == "1:DECEASED", 1, 0)
@@ -84,20 +84,6 @@ def read_data_prob(survival_path, tumour_path):
     
     return data 
 
-# %%
-temp = pd.read_csv("D:/PCAM DATA/Prediction_data/full_perdiction_set/TCGA-A2-A0CS-01Z-00-DX1.3986B545-63E8-4727-BCC1-701DE947D1FB-predictions.csv", index_col="Unnamed: 0")
-counts = temp['predictions'].value_counts()
-print(counts[1])
-print(temp.shape[0])
-print(counts[1]/temp.shape[0])
-
-#%%
-temp2 = pd.read_csv("D:/PCAM DATA/Prediction_data/probability_predictions_all/TCGA-A2-A0CS-01Z-00-DX1.3986B545-63E8-4727-BCC1-701DE947D1FB-predictions.csv", index_col="Unnamed: 0")
-col = temp2['predictions']
-val_count = col[col >= 0.7].count()
-print(val_count)
-print(temp2.shape[0])
-print(val_count/temp2.shape[0])
 
 #%%
 data = pd.read_csv("D:/PCAM DATA/Survival/survival_data.csv")
@@ -155,7 +141,7 @@ data =  data[data["Malignancy Score"] != 0.0]
 data.head()
 
 #%%
-data_prob = data_prob[data_prob["Malignancy Score"] != 0.0]
+data_prob = data_prob[data_prob["Mean Intensity"] != -1]
 data_prob.head()
 
 #%%
@@ -164,9 +150,9 @@ plt.subplots(figsize=(10, 6))
 cox.plot()
 
 #%%
-cox_data_score, cox_score = cox_model_score(data_prob)
-plt.subplots(figsize=(10, 6))
-cox_score.plot()
+# cox_data_score, cox_score = cox_model_score(data_prob)
+# plt.subplots(figsize=(10, 6))
+# cox_score.plot()
 
 cox_data_intensity, cox_intensity = cox_model_intensity(data_prob)
 plt.subplots(figsize=(10, 6))
@@ -184,31 +170,15 @@ cox_intensity.plot_partial_effects_on_outcome(covariates='Mean Intensity', value
     ], cmap='coolwarm')
 plt.title("Probability prediction model - Mean Intensity covariate")
 
-#%%
-cox_score.plot_partial_effects_on_outcome(covariates='Malignancy Score', values=[
-    0.1, 0.42, 0.28, 0.9
-    ], cmap='coolwarm')
-plt.title("Probability prediction model - Malignancy Score covariate")
-
 # %%
-# results = proportional_hazard_test(cox, cox_data, time_transform='rank')
-# results.print_summary(decimals=3, model="untransformed variables")
+results = proportional_hazard_test(cox, cox_data, time_transform='rank')
+results.print_summary(decimals=3, model="untransformed variables")
 
 # %%
 results_prob = proportional_hazard_test(cox_intensity, cox_data_intensity, time_transform='rank')
 results_prob.print_summary(decimals=3, model="untransformed variables")
 
 # %%
-def calc_score(path):
-    df = pd.read_csv(path)
-    
-    pred_values = df['predictions']
-    counts = pred_values[pred_values >= 0.7].count()
-    malignant_score = counts/df.shape[0]
-    
-    return malignant_score
-
+cox.print_summary()
 # %%
-print(calc_score("D:/PCAM DATA/Prediction_data/probability_predictions_all/TCGA-GM-A2DA-01Z-00-DX1.6E409F88-F654-48C8-A753-BB054037BE16-predictions.csv"))
-
-# %%
+cox_intensity.print_summary()
