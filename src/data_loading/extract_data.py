@@ -13,15 +13,15 @@ the images into their own directories
 __/basedir
           |__ /train
                 |__ camelyonpatch_level_2_split_train_x.h5
-                |__ meta.csv
+                |__ train_labels.csv
                 |__ /tiles
           |__ /test
                 |__ camelyonpatch_level_2_split_test_x.h5
-                |__ meta.csv
+                |__ test_labels.csv
                 |__ /tiles
           |__ /validation
                 |__ camelyonpatch_level_2_split_valid_x.h5
-                |__ meta.csv
+                |__ validation_labels.csv
                 |__ /tiles
 
 The tiles are stored within the /tiles sub-directory inside each of the three dataset directories. 

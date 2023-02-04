@@ -128,12 +128,12 @@ Biopsied tissue blocks are sliced into thin sections and mounted on glass slides
 \subsection{Slide digitization}
 Physical tissue slides are digitized using whole slide image scanners which contain an illumination system, an optical microscope and a focusing apparatus (\textit{\cite{ghaznavi2013digital}}). Scanners most commonly use Brightfield illumination (\textit{\cite{kino1996confocal}}) in which the entire tissue sample is uniformly illuminated. This works in conjunction with the H\&E staining to display the tissue as a dark coloured image on a white background making it easier to distinguish cellular structure. 
 
-The final output of the slide scanner is a virtual rendering of the entire tissue slide, that can be viewed at resolutions of upto 0.25 \si{\micro\meter} corresponding to a 40x objective power of the scanning microscope. In order to replicate a slide under a microscope, WSIs exhibit a pyramid structure consisting of images at multiple resolutions. The base level stores the image in diagnostic resolution of a 40x objective, often containing 100,000 x 100,000 pixels (\textit{\cite{wang2012managing}}). As displayed in figure(\ref{fig:pyramid-fig}) The resolution is down sampled by a fixed factor at each subsequent level. The Cancer Genome Atlas program's repository contains WSIs with 4 resolution levels down-sampled with factors of 1.0, 4.0, 16.0 and 64.0. This feature of WSIs makes these images extremely bulky with average sizes around 1GB per image. 
+The final output of the slide scanner is a virtual rendering of the entire tissue slide, that can be viewed at resolutions of upto 0.25 \si{\micro\meter} corresponding to a 40.0 objective power of the scanning microscope. In order to replicate a slide under a microscope, WSIs exhibit a pyramid structure consisting of images at multiple resolutions. The base level stores the image in diagnostic resolution of a 40.0 objective, often containing 100,000 x 100,000 pixels (\textit{\cite{wang2012managing}}). As displayed in figure(\ref{fig:pyramid-fig}) The resolution is down sampled by a fixed factor at each subsequent level. The Cancer Genome Atlas program's repository contains WSIs with 4 resolution levels down-sampled with factors of 1.0, 4.0, 16.0 and 64.0. This feature of WSIs makes these images extremely bulky with average sizes around 1GB per image. 
 
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.5]{images/digital-slide-stored-in-a-pyramid-structure.png}
-\caption{Illustration of pyramid structure observed in whole slide images. Highest resolution at 40x magnification followed by 2 downsampled levels at 4.0 (10x) and 40.0 (1x)}
+\caption{Illustration of pyramid structure observed in whole slide images. Highest resolution at 40.0 magnification followed by 2 downsampled levels at 4.0 (10x) and 40.0 (1x)}
 \label{fig:pyramid-fig}
 \end{figure}
 
@@ -333,8 +333,8 @@ As explained by the literature reviewed in section \ref{survival-analysis-method
 \subsection{Data availability}
 As discussed in section \ref{data-availability-section}, the most widely used approach for automated cancer detection from histopathological images requires large datasets with strong, pixel-level annotations to train a robust supervised learning model. Creating our own custom dataset to train and validate our model would involve sourcing sufficiently diverse WSIs and having an expert pathologist manually annotate over 100,000 tissue patches for our tile-based approach, which extremely resource intesive and infeasible for the scope of this project. Therefore, this paper uses CAMELYON16 data as our training dataset since it has been annotated at a pixel level by expert pathologists.
 
-\subsection{PCAM dataset for model training}
-We have utilized the PatchCAMELYON (PCAM) version (\cite{Veeling2018-qh}) which is a pre-tiled, publicly available dataset containing over 327,000 tiles sourced from 399 WSIs included in the CAMELYON16 data. The PCAM data comprises of 96x96px tiles with binary tile-level annotations indicating whether a tile is malignant or benign based on the presence of cancer cells in the center 32x32px patch of each tile. The CAMELYON16 WSIs are provided a 40x objective but PCAM tiles are undersampled at 10x to increase field of view. The PCAM dataset replicates the same train/test split thresholds as the CAMELYON16 dataset, including 50/50 balance between malignant and benign tiles with no overlap to allow unbiased model training. PCAM also holds out 20\% of training tiles to create a validation set to allow models to be cross validated. The tile annotations are provided as CSV files in the following format:
+\subsection{PCAM dataset for model training} \label{pcam-background}
+We have utilized the PatchCAMELYON (PCAM) version (\cite{Veeling2018-qh}) which is a pre-tiled, publicly available dataset containing over 327,000 tiles sourced from 399 WSIs included in the CAMELYON16 data. The PCAM data comprises of 96x96px tiles with binary tile-level annotations indicating whether a tile is malignant or benign based on the presence of cancer cells in the center 32x32px patch of each tile. The CAMELYON16 WSIs are provided a 40.0 objective but PCAM tiles are undersampled by 10x to increase field of view. The PCAM dataset replicates the same train/test split thresholds as the CAMELYON16 dataset, including 50/50 balance between malignant and benign tiles with no overlap to allow unbiased model training. PCAM also holds out 20\% of training tiles to create a validation set to allow models to be cross validated. The tile annotations are provided as CSV files in the following format:
 
 \begin{center}
 \begin{tabular}{ |c|c|c|c|c|c| } 
@@ -366,7 +366,7 @@ As described previously, the second stage of our problem aims to develop a regre
 
 %==================================================================================================================================
 \chapter{Design}
-\section{Cancer detection system overview}
+\section{Cancer detection system overview} \label{sec:detection-overview-design}
 We implement a neural network to solve the first stage of our overall problem. Figure \ref{fig:sys-overview} illustrates a logical workflow of how we go from an input breast tissue slide to a segmented malignancy feature map. As seen in the upper half of the figure, the network is first trained with batches of WSIs, each sectioned into labelled, colour-normalized tiles. During the training process, every RGB tile will undergo a series of convolutions as it passes through each layer of our network. Neurons will learn a weight based on the feature representation extracted by kernel convolutions in each layer. The final layer's output is thresholded to give a class prediction for the tile. This is compared to ground truth label and a loss is calculated. Our goal if to minimize this loss value. This is achieved by using an optimizer to backpropagate and update the weights of each neuron to improve the learned feature representation and produce more precise predictions. 
 
 \begin{figure}[h]
@@ -381,9 +381,9 @@ We implement a neural network to solve the first stage of our overall problem. F
 \subsection{Tiling and pre-processing}
 Since the CAMLEYON16 data is sourced from multiple pathological laboratories, we will be applying the Macenko normalization alogrithm (section \ref{macenko-alg}) on each tile of the PCAM dataset before training our model. This normalization will allow the model to learn features of cellular morphology in tiles, based on their actual structure rather than accounting for differences in colour appearance and treating them as different features. This introduces colour invariance to allow the model to more accurately identify similar tissue artifacts across different WSIs. 
 
-The WSIs processed by our CNN to generate segmented tumour maps for the survival analysis, must be tiled individually as TCGA only contains whole histopathological slides. To maintain consistency between training and feature extraction tiles, there are two main points to consider - tile dimension and tile resolution. We utilize the OpenSlide library described in section \ref{background-openslide} to convert a WSI into a stream of tile objects of specified dimension at a chosen resolution level. Therefore, we extract \(96 \times 96\)px tiles sampled at 10x objective to match the PCAM tile dimensions.
+The WSIs processed by our CNN to generate segmented tumour maps for the survival analysis, must be tiled individually as TCGA only contains whole histopathological slides. To maintain consistency between training and feature extraction tiles, there are two main points to consider - tile dimension and tile resolution. We utilize the OpenSlide library described in section \ref{background-openslide} to convert a WSI into a stream of tile objects of specified dimension at a chosen resolution level. Therefore, we extract \(96 \times 96\)px tiles sampled by 10x to a 4.0 objective to match the PCAM tile dimensions.
 
-Figure \ref{fig:undersample-example} illustrates that a tile sampled at 10x magnification shows a much wider field of view compared to a 40x tile. As explained in section \ref{cancer-general-problem}, detecting tumour regions is based on identifying abnormally large nucleus or increased cytoplasm dispersion. The lower resolution exposes spatial information that allows our model to identify regions of abnormal nuclear growth relative to surrounding cellular structure. The 40x resolution however, zooms in on individual nuclei to the point where any information on spatial locality is lost and our model cannot characterize nucleus size or distribution. 
+Figure \ref{fig:undersample-example} illustrates that a tile sampled at 4.0 magnification (10x undersample) shows a much wider field of view compared to a 40.0 objective tile. As explained in section \ref{cancer-general-problem}, detecting tumour regions is based on identifying abnormally large nucleus or increased cytoplasm dispersion. The lower resolution exposes spatial information that allows our model to identify regions of abnormal nuclear growth relative to surrounding cellular structure. The 40.0 magnification however, zooms in on individual nuclei to the point where any information on spatial locality is lost and our model cannot characterize nucleus size or distribution. 
 
 \begin{figure}[H]
 \centering
@@ -392,19 +392,19 @@ Figure \ref{fig:undersample-example} illustrates that a tile sampled at 10x magn
  \includegraphics[width=80px]{images/119_239.png}\\
  (a)&(b)\\
 \end{tabular}
-\caption{Illustrates two tiled sections sampled from a TCGA WSI, used in feature dataset generation - (a) \(96\times96\)px tile sampled at 10x objective shows greater field of view and less granular detail (b) \(96\times96\)px tile sampled at 40x objective has smaller field of view and shows individual nuclei at greater detail}
+\caption{Illustrates two tiled sections sampled from a TCGA WSI, used in feature dataset generation - (a) \(96\times96\)px tile sampled at 4.0 objective shows greater field of view and less granular detail (b) \(96\times96\)px tile sampled at 40.0 objective has smaller field of view and shows individual nuclei at greater detail}
 \label{fig:undersample-example}
 \end{figure}
 
 All tiles obtained will be Macenko normalized in order to allow for colour invariant predictions from our model. We must also remove any blank tiles that are predominantly background. This reduces the computation time of our cancer detection pipeline by only processing tiles containing relevant tissue artifacts. The tile filtering will be done by choosing an intensity threshold representing the average intensity of Macenko normalized H\&E stain and eliminating all tiles with higher average intensity. 
 
-\subsection{Tumour prediction - classification and segmentation}
+\subsection{Tumour prediction - classification and segmentation} \label{sec:classication-design}
 Tiling is equivalent to dividing a given image into a grid of \(96 \times 96\)px squares. Each tile extracted from a WSI will be stored in disk along with an X-Y coordinate representing its location on the grid. We will generate two types predictions from the CNN - a discrete binary class prediction and a continuous prediction of the likelihood of being malignant. The results from the CNN will be stored against each tile's coordinate in a dataset format. This dataset will serve as the feature dataset for survival analysis. 
 
 In order to visualize the tumour segmentation, we first generate a thumbnail of the WSI downsampled to a resolution that allows viewing the entire image without causing memory issues. For the binary prediction, we map a distinct colour to each of the two classes. For each tile, we overlay the associated colour to its corresponding coordinate on the thumbnail. This creates a sharp segmentation between normal and potential tumour regions of the tissue. Using the continuous predictions, we can generate a complete heatmap showing the exact likelihood of regions being malignant on the tissue surface. The predictions will be a probability value between 0 and 1, which we map to a continuous colour scale thresholded to the same range and overlay the associated colour on each tile coordinate. 
 
 \section{Survival estimation - regression}
-\subsection{Model covariates}
+\subsection{Model covariates} \label{sec:covariates}
 \subsubsection{Malignancy spread score} 
 \hfill\\
 Using the binary predictions obtained from our cancer detection model, we develop a scoring system to quantify the extent of malignancy in a given WSI. We estimate the degree of tumour spread in terms of pixel area covered by malignant tiles. This is equivalent to the number of tiles assigned a malignant 
@@ -425,73 +425,109 @@ As described in section \ref{cph-background}, we fit a Cox proportional hazard m
 
 The final pipeline to obtain a survival time estimate for a WSI is as follows:
 \begin{itemize}
-    \item Section WSI into 96x96px tiles at 10x objective resolution
+    \item Section WSI into 96x96px tiles at a 4.0 objective
     \item Macenko normalize each tile
     \item Generate tile level malignancy predictions using trained CNN 
     \item Calculate Mean Malignant Intensity and Malignancy Spread Score for the WSI
-    \item Query fitted survival model to generate KM plots for each covariate 
-    \item Compute the average median survival time from each KM plot
+    \item Query fitted survival model to generate KM plots for each covariate level  
+    \item Compute the median survival time from the fitted model
 \end{itemize}
 
 %==================================================================================================================================
 \chapter{Implementation}
-What did you do to implement this idea, and what technical achievements did you make?
-\section{Guidance}
-You can't talk about everything. Cover the high level first, then cover important, relevant or impressive details.
+\section{System overview}
+We have implemented a separate system corresponding to each of the two main stages of breast cancer analysis - diagnosis and prognosis. The diagnostic system generates both continuous and discrete predictions of malignant regions present in a breast tissue WSI. This system is trained using clinically annotated breast cancer slides as ground truth labels. The resulting predictions are used to extract features that quantify disease severity in terms of metastatic spread. Finally, the prognostic system fits a regression model using the diagnostic features to predict an overall survival time for each patient. We essentially perform 4 distinct high-level tasks: training, diagnostic predictions, model fitting and survival predictions. 
 
+\subsection{Training overview}
+Due to the extremely resource intensive process of strongly annotating cancer WSI tiles by hand, we have used the PCAM dataset for training our neural network to perform cancer detection. The dataset contains tiled breast metastases WSIs sourced from the CAMELYON16 database along with associated tile-level binary annotations indicating if a tile is malignant (1) or benign(0), which is used as the ground truth labels.
 
+We have implemented a pre-processing pipeline (as shown in figure \ref{fig:implementation-overview}),  to prepare any input data into a format that can be processed by our neural network. We first feed our training data through this pipeline, skipping the tiling step as the PCAM dataset is already tiled into \(96 \times 96\)px patches. We subsequently normalize the colour of each tile using the Macenko algorithm to allow our model to achieve colour invariant. In the final stage of pre-processing we perform data augmentation to synthetically expand our training space with random variants of each tile, allowing our model to be more robust by learning rotational and translational invariance.
 
-\section{General points}
+\subsection{Malignancy predictions overview}
+As discussed in section \ref{sec:detection-overview-design}, we have curated our own feature extraction dataset consisting of 75 WSIs sourced from TCGA. Using our trained neural network, we perform a tile-based binary classification task on each WSI to generate fully segmented feature maps indicating potential tumour regions. This implies that each WSI will be fed through the pre-processing pipeline (as shown in figure \ref{fig:implementation-overview}), without the data augmentation step, to generate colour normalized tiles which our trained model will then generate predictions for. The final predictions will be used to extract a malignancy spread score and mean malignant intensity as described in section \ref{sec:covariates}.
 
-These points apply to the whole dissertation, not just this chapter.
-
-
-
-\subsection{Figures}
-\emph{Always} refer to figures included, like Figure \ref{fig:relu}, in the body of the text. Include full, explanatory captions and make sure the figures look good on the page.
-You may include multiple figures in one float, as in Figure \ref{fig:synthetic}, using \texttt{subcaption}, which is enabled in the template.
-
-
-
-% Figures are important. Use them well.
-\begin{figure}
+\begin{figure}[H]
     \centering
-    \includegraphics[width=0.5\linewidth]{images/relu.pdf}    
-
-    \caption{In figure captions, explain what the reader is looking at: ``A schematic of the rectifying linear unit, where $a$ is the output amplitude,
-    $d$ is a configurable dead-zone, and $Z_j$ is the input signal'', as well as why the reader is looking at this: 
-    ``It is notable that there is no activation \emph{at all} below 0, which explains our initial results.'' 
-    \textbf{Use vector image formats (.pdf) where possible}. Size figures appropriately, and do not make them over-large or too small to read.
-    }
-
-    % use the notation fig:name to cross reference a figure
-    \label{fig:relu} 
+    \includegraphics[scale=0.7]{images/implementation-overview.png}
+    \caption{Complete overview of our entire system implementation. PCAM data containing raw WSI tiles and ground truth annotations are used as training data. The tiled dataset is colour normalized and augmented using our pre-processing pipeline before being used to train our convnet architecture based neural network. We curate a feature extraction dataset containing WSIs from TCGA. Each WSI is pre-processed into colour normalized tiles and fed through our trained model to generate feature maps indicating malignant regions. Predicted features are then used to fit a parametric Cox regression model which uses Kaplan-Meier method to generate a median survival time prediction.}
+    \label{fig:implementation-overview}
 \end{figure}
 
+\subsection{Survival time predictions overview}
+Our neural network will generate discrete and continuous predictions that will be used to extract two scores that characterize the disease severity in terms of tumour spread of the given WSI. For all 75 WSIs in our feature extraction dataset, we also obtain their clinically determined survival times to serve as ground truth labels for our survival model. Finally, we use the predicted scores along with survival time annotations to fit a parametric Cox regression models for each metric. Each model generates a hazard ratio and a negative log-likelihood indicating the associated risk factor of the covariate and the significance of impact on survival respectively. We then produce a median survival time estimate from the models to compare their performance with respect to the corresponding ground truth survival time and evaluate their effectiveness in survival prognosis estimation.
 
-\begin{figure}
-    \centering
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{images/synthetic.png}
-        \caption{Synthetic image, black on white.}
-        \label{fig:syn1}
-    \end{subfigure}
-    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
-      %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{images/synthetic_2.png}
-        \caption{Synthetic image, white on black.}
-        \label{fig:syn2}
-    \end{subfigure}
-    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
-    %(or a blank line to force the subfigure onto a new line)    
-    \caption{Synthetic test images for edge detection algorithms. \subref{fig:syn1} shows various gray levels that require an adaptive algorithm. \subref{fig:syn2}
-    shows more challenging edge detection tests that have crossing lines. Fusing these into full segments typically requires algorithms like the Hough transform.
-    This is an example of using subfigures, with \texttt{subref}s in the caption.
-    }\label{fig:synthetic}
-\end{figure}
+\section{Machine Learning - Cancer diagnosis}
+\subsection{Datasets}
+\subsubsection{Training data}\hfill\\
+For the purpose of training our neural network model to make breast cancer predictions, we have utilized the tiled and annotated version of the CAMELYON16 challenge data called the Patch CAMELYON (PCAM) dataset. It contains 399 WSIs, tiled into over 300,000 total tiles. Each tile is annotated with a binary annotation indicating malignancy nature as described in section \ref{pcam-background}. Tiles are \(96 \times 96\)px in dimension with their resolution undersampled by 10x to a 4.0 objective rather than the 40.0 native objective. 
 
-\clearpage
+The PCAM data contains separate datasets for training, validation and testing, each with an equal balance between malignant positive and healthy (malignant negative) tiles. Each set is stored in a Hierarchical Data Format version 5 (HDF5) file. This format stores extremely large (in this case 200,000 images) data in a structured format resembling an entire file system hierarchy as a single file. It allows individual data points to be accessed in an efficient manner without needing to transfer entire datasets to memory and as a result overloading available memory. 
+
+In an HDF5 file data is organized into groups representing folders. These groups contain other groups or the datasets which resemble files. As seen in listing \ref{lst:pcam-hdf5}, each PCAM dataset contains two main groups labeled 'x' and 'y' under the root. The 'x' group holds the WSI tiles, represented as \(96 \times 96 \times 3\) numpy arrays of 8bit unsigned integers (0 to 255) under groups labled with a unique id for each tile. The 'y' group holds the malignancy annotation of each tile. The annotation is a binary label that is stored under the group with id corresponding to the tile it labels. 
+
+\begin{lstlisting}[language=python, caption={PCAM Data HDF5 schema - Each set has a group labeled 'x' - containing all the tiles as numpy arrays of 8-bit unsigned integers. Each array has a unique id (0, 1, 2...) and shape \(96 \times 96 \times 3\) indicating a \(96 \times 96\)px RGB tile. The second group labeled 'y' contains the annotations for each tile. The annotations are shown as binary labels against each tile id. }, label= lst:pcam-hdf5]
+    # root group
+    /
+        # image data group
+        x/
+            # tile id group
+            0/
+                [96 x 96 x 3 - 8bit unsigned integer numpy array]
+            1/
+            2/
+            ...
+        # annotation group
+        y/
+            # tile id group
+            0/
+                0
+            1/
+                1
+            2/
+            3/
+            ...
+\end{lstlisting}
+
+We iterate over the HDF5 datasets and save the numpy array of each tile as a \texttt{.jpeg} image into a \texttt{/tiles} directory within each of the three dataset directories. We extract 100,000 training tiles and 20,000 validation tiles, both equally balanced between the two classes, for example, the training tiles consist of 49,977 malignant (1) and 50,023 benign (0) tiles. We also extract the corresponding annotations from HDF5 format into a \texttt{.csv} file, indexed by the tile id as described in section \ref{pcam-background}. This allows for more efficient data handling through the CNN using dataloader objects that can readily associate batch of images to their corresponding labels during the training process. 
+
+\subsubsection{Feature extraction data}\hfill\\
+We also created a second dataset consisting of raw WSIs to serve as the basis of extracting malignancy features required to develop a survival model for making survival time predictions. This dataset consisted of 75 WSIs sourced from the TCGA breast cancer repository. We cross checked each WSI's TCGA ID against the clinical data on cBioPortal to only select WSIs which had associated clinical data available showing overall survival time and belonged to deceased patients. This allowed us to retrieve the overall survival duration for each patient, given the malignancy condition displayed by their biopsy sample to serve as ground truth labels for our survival model. All TCGA WSIs have a native 40.0 objective at the highest resolution level and an average file size of 2GB due to their massive pixel resolution. This made storage a major bottleneck for this dataset as all images had to be stored locally to make them readily accessible by our machine learning model. 
+
+\subsection{Pre-processing}
+\subsubsection{WSI Tiling}\hfill\\
+\subsubsection{Macenko normalization}\hfill\\
+\subsubsection{Data augmentation}\hfill\\
+
+\subsection{Neural network architecture}
+\subsection{Training}
+\subsection{Feature extraction}
+
+\section{Regression - Survival time prediction}
+
+
+% % Figures are important. Use them well.
+% \begin{figure}
+%     \centering
+%     \begin{subfigure}[b]{0.45\textwidth}
+%         \includegraphics[width=\textwidth]{images/synthetic.png}
+%         \caption{Synthetic image, black on white.}
+%         \label{fig:syn1}
+%     \end{subfigure}
+%     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+%       %(or a blank line to force the subfigure onto a new line)
+%     \begin{subfigure}[b]{0.45\textwidth}
+%         \includegraphics[width=\textwidth]{images/synthetic_2.png}
+%         \caption{Synthetic image, white on black.}
+%         \label{fig:syn2}
+%     \end{subfigure}
+%     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+%     %(or a blank line to force the subfigure onto a new line)    
+%     \caption{Synthetic test images for edge detection algorithms. \subref{fig:syn1} shows various gray levels that require an adaptive algorithm. \subref{fig:syn2}
+%     shows more challenging edge detection tests that have crossing lines. Fusing these into full segments typically requires algorithms like the Hough transform.
+%     This is an example of using subfigures, with \texttt{subref}s in the caption.
+%     }\label{fig:synthetic}
+% \end{figure}
+
 
 \subsection{Equations}
 

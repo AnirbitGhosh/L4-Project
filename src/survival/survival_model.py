@@ -160,16 +160,28 @@ cox_intensity.plot()
 
 # %%
 cox.plot_partial_effects_on_outcome(covariates='Malignancy Score', values=[
-    0.2, 0.3, 0.4, 0.8, 0.9
+     0.48, 0.42, 0.28, 0.9
     ], cmap='coolwarm')
 plt.title("Binary 0|1 prediction model - Malignancy Score covariate")
 
 #%%
 cox_intensity.plot_partial_effects_on_outcome(covariates='Mean Intensity', values=[
-    0.48, 0.42, 0.28, 0.9
+    0.1, 0.99, 0.9, 0.99999
     ], cmap='coolwarm')
 plt.title("Probability prediction model - Mean Intensity covariate")
 
+#%%
+cox_data_intensity.head()
+
+#%%
+print(cox_intensity.predict_median(cox_data_intensity))
+print(cox.predict_median(cox_data))
+
+print(cox_data['OS_MONTHS'].head())
+#%%
+cox_intensity.plot_partial_effects_on_outcome(covariates='Mean Intensity', values=[
+    0.39
+    ], cmap='coolwarm')
 # %%
 results = proportional_hazard_test(cox, cox_data, time_transform='rank')
 results.print_summary(decimals=3, model="untransformed variables")
