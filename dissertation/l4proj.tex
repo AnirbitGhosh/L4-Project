@@ -378,7 +378,7 @@ We implement a neural network to solve the first stage of our overall problem. F
 
  The trained model will process an input WSI on a tile-by-tile basis to estimate the presence of cancer cells in each tile. Using the learned feature representations of breast cancer morphology, the neural network performs a binary classification task to output the most likely class (malignant (1) or benign (0)) for each tile. The tiled predictions will be overlaid on a thumbnail of the WSI to produce a segmented feature map indicating potential tumour regions, as illustrated in figure \ref{fig:sys-overview}. We repeat this process for a series of WSIs taken from the TCGA repository to generate a collection of segmented feature maps. For the next stage of our problem, we will manipulate this feature dataset to extract covariates that can effectively model and estimate survival time. 
 
-\subsection{Tiling and pre-processing}
+\subsection{Tiling and pre-processing} \label{tiling-design}
 Since the CAMLEYON16 data is sourced from multiple pathological laboratories, we will be applying the Macenko normalization alogrithm (section \ref{macenko-alg}) on each tile of the PCAM dataset before training our model. This normalization will allow the model to learn features of cellular morphology in tiles, based on their actual structure rather than accounting for differences in colour appearance and treating them as different features. This introduces colour invariance to allow the model to more accurately identify similar tissue artifacts across different WSIs. 
 
 The WSIs processed by our CNN to generate segmented tumour maps for the survival analysis, must be tiled individually as TCGA only contains whole histopathological slides. To maintain consistency between training and feature extraction tiles, there are two main points to consider - tile dimension and tile resolution. We utilize the OpenSlide library described in section \ref{background-openslide} to convert a WSI into a stream of tile objects of specified dimension at a chosen resolution level. Therefore, we extract \(96 \times 96\)px tiles sampled by 10x to a 4.0 objective to match the PCAM tile dimensions.
@@ -491,15 +491,107 @@ In an HDF5 file data is organized into groups representing folders. These groups
 We iterate over the HDF5 datasets and save the numpy array of each tile as a \texttt{.jpeg} image into a \texttt{/tiles} directory within each of the three dataset directories. We extract 100,000 training tiles and 20,000 validation tiles, both equally balanced between the two classes, for example, the training tiles consist of 49,977 malignant (1) and 50,023 benign (0) tiles. We also extract the corresponding annotations from HDF5 format into a \texttt{.csv} file, indexed by the tile id as described in section \ref{pcam-background}. This allows for more efficient data handling through the CNN using dataloader objects that can readily associate batch of images to their corresponding labels during the training process. 
 
 \subsubsection{Feature extraction data}\hfill\\
-We also created a second dataset consisting of raw WSIs to serve as the basis of extracting malignancy features required to develop a survival model for making survival time predictions. This dataset consisted of 75 WSIs sourced from the TCGA breast cancer repository. We cross checked each WSI's TCGA ID against the clinical data on cBioPortal to only select WSIs which had associated clinical data available showing overall survival time and belonged to deceased patients. This allowed us to retrieve the overall survival duration for each patient, given the malignancy condition displayed by their biopsy sample to serve as ground truth labels for our survival model. All TCGA WSIs have a native 40.0 objective at the highest resolution level and an average file size of 2GB due to their massive pixel resolution. This made storage a major bottleneck for this dataset as all images had to be stored locally to make them readily accessible by our machine learning model. 
+We also created a second dataset consisting of raw WSIs to serve as the basis of extracting malignancy features required to develop a survival model for making survival time predictions. This dataset consisted of 75 WSIs sourced from the TCGA breast cancer repository. We cross checked each WSI's TCGA ID against the clinical data on cBioPortal to only select WSIs which had associated clinical data available showing overall survival time and belonged to deceased patients. This allowed us to retrieve the overall survival duration for each patient, given the malignancy condition displayed by their biopsy sample to serve as ground truth labels for our survival model. All TCGA WSIs have a native 40.0 magnification at the highest resolution level and an average file size of 2GB due to their large pixel count. Images were downloaded and stored in disk in a \texttt{.svs} format which supports multi-level resolution sampling.  
 
-\subsection{Pre-processing}
+\subsection{Data pre-processing}
+We store all relevant data in their raw format before being used with our machine learning model. As explained previously, histopathological slide images are subject to high levels of irregularities caused by conditions under which they were produced. Furthermore, WSIs are extremely massive images, which in their raw format simply cannot be processed in an online fashion like standard machine learning problems. Therefore, we have developed a general pre-processing pipeline consisting of  operations that convert the raw image data into a consistent format that can be processed more efficiently by our neural network. This pipeline performs three main operations - tiling, colour normalization and data augmentation. 
+\\
 \subsubsection{WSI Tiling}\hfill\\
+The PCAM training data consists of pre-tiled WSIs with each tile having dimensions \(96 \times 96\)px and a 10x downsampled resolution. As explained in section \ref{tiling-design}, we have to ensure we tile each WSI in the feature extraction dataset using the same dimensions so that our model can make meaningful predictions based on the model weights learned from PCAM tiles. We utilize the OpenSlide package to tile the WSIs without needing to load the entire image into memory. 
+
+We fetch each WSI's \texttt{.svs} file from disk and open it as an \texttt{open\_slide} object as shown in listing \ref{lst:tiling-code}. This allows us to inspect the slide's metadata using \texttt{slide.properties} attribute and choose which level number corresponding to our desired sampling resolution. We then use the \texttt{DeepZoomGenerator} object which takes as parameter the WSI as an \texttt{open\_slide} object, the tiling dimension and an overlap percentage to convert the slide image into a stream of tile references. 
+
+\begin{lstlisting}[language=python, caption={Code excerpt showing how OpenSlide and DeepZoomGenerator are used to obtain tiles of specified dimension and resolution level from an input WSI image}, label= lst:tiling-code]
+    from openslide import open_slide
+    from openslide.deepzoom import DeepZoomGenerator
+    slide = open_slide(wsi_file_path)
+    tiles = DeepZoomGenerator(slide, tile_size=96, overlap=0, limit_bounds=False)
+    level_num = (tiles.level_count)-2
+    cols, rows = tiles.level_tiles[level_num]
+    for row in range(rows):
+            for col in range(cols):
+                temp_tile = np.array(tiles.get_tile(level_num, (col, row)).convert('RGB'))
+                if temp_tile.std() > 15 and temp_tile.mean() < 230 and temp_tile.shape == (96,96,3):
+                    tiff.imsave(save_path, temp_tile)
+\end{lstlisting}
+
+We set the desired resolution level - it is the 2nd highest level for TCGA WSIs that exhibit a 10x downsampling to 4.0 objective. We iterate over each tile reference and obtain the individual tile image as a Numpy array at the specified resolution. We must also filter out any tile that is majority blank background in order to reduce our overall processing space and prevent unnecessary computation. We completely tiled a sample WSI to analyze a collection of its tiles. On average undesirable tiles with majority white background had a mean pixel intensity of >230. Whereas, useful tiles with significant tissue content had an average pixel std deviation of >15. Therefore, a mean intensity lower than 230 indicates the presence of darker tissue regions on the tile. Furthermore, a std deviation of greater than 15 indicates greater variance in pixel intensity values, implying that the darker regions are significant enough for the tile to not be majority white space. As shown in the above code, we filtered out all tiles that did not meet the mean and std deviation requirements before saving each tile as a \texttt{.tiff} file.
+\\
+
 \subsubsection{Macenko normalization}\hfill\\
+As described in section \ref{slide-normalization-background}, we follow the standard algorithm prescribed by Macenko to implement a function that accepts as input a tile image and returns a colour normalized tile. 
+
+We implemented a \texttt{macenko\_norm\_H\&E()} function that takes as parameters the input image and  normalization factors. We use the recommended parameter values of \(\alpha = 1\) and \(\beta = 0.15\). Additionally we also provide a normalizing factor of \(IO = 240\), taken from the MATLAB implementation of the algorithm available at \textit{https://github.com/mitkovetta/staining-normalization}. Our implementation calculates the optical density (OD) of our input image and eliminates transparent pixels below the \(\beta\) threshold. We perform an SVD operation using \texttt{np.linalg.eigh} on the OD matrix and project it onto the plane represented by the largest eigenvalues using a dot product with the corresponding eigenvectors. Computing the angles in the direction of the first SVD we find its robust extremes. These angles determine the individual stain vectors corresponding to Hematoxylin and Eosin components. Using the obtained HE matrix, we determine the least square solution to the equation \texttt{HE @ X = Y} using \texttt{np.linalg.lstsq(HE, Y)} where Y represents the OD matrix of the input image. The computed solution is the concentration factor that scales the HE matrix to obtain the given image's stain appearance. We finally normalize the obtained concentration by dividing it using maximum H\& concentration values and recreate the input image in the normalized colour space. This is finally projected back to RGB space and returned as the final Macenko normalized image along with the H-image and E-image as shown in figure \ref{fig:macenko-code-example}.
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.2\textwidth}
+        \includegraphics[width=\textwidth]{images/35.jpeg}
+        \caption{Default tile}
+        \label{fig:default-tile}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[b]{0.2\textwidth}
+        \includegraphics[width=\textwidth]{images/mnorm.jpeg}
+        \caption{Normalized Tile}
+        \label{fig:mnorm-tile}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[b]{0.2\textwidth}
+        \includegraphics[width=\textwidth]{images/h.jpeg}
+        \caption{H-component tile}
+        \label{fig:h-tile}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+    %(or a blank line to force the subfigure onto a new line)   
+    \begin{subfigure}[b]{0.2\textwidth}
+        \includegraphics[width=\textwidth]{images/e.jpeg}
+        \caption{E-component tile}
+        \label{fig:e-tile}
+    \end{subfigure}
+    \caption{Illustrating effect of Macenko normalization on the base H\&E stained tile. Additionally shows the H-component tile with prominently highlighted nuclei and the E-component highlighting cytoplasmic distribution}\label{fig:macenko code example}
+\end{figure}
+
+ As shown below in listing \ref{lst:tiling-normalized}, we extend the tiling pipeline by applying normalization function on each tile's Numpy array and save the normalized version. There is code to catch any convergence errors thrown by Numpy's \texttt{linalg.eigh} function that is often quite unstable and can fail when values are too high. This is the case with external and tissue edge tiles that contain large areas of white background but pass our mean intensity filter due to having high std deviation caused by presence of debris. 
+
+\begin{lstlisting}[language=python, caption={Code excerpt showing modification made to the tiling pipeline to normalize each tile before saving. It calls \texttt{macenko\_norm\_HnE()} on each tile's numpy array and saves the normalized image. We also catch any SVD convergence errors thrown by tiles that have large areas of white space. This is the case for external tiles containing debris outside the main body of tissue.}, label= lst:tiling-normalized]
+    for row in range(rows):
+            for col in range(cols):
+                temp_tile = np.array(tiles.get_tile(level_num, (col, row)).convert('RGB'))
+                if temp_tile.std() > 15 and temp_tile.mean() < 230 and temp_tile.shape == (96,96,3):
+                    try:
+                        macenko_norm, h_norm, e_norm = macenko_norm_HnE(temp_tile)
+                        tiff.imsave(save_path, macenko_norm)
+                    except np.linalg.LinAlgError as LinAlgError:
+                        tiff.imsave(save_path, temp_tile_RGB_np)
+\end{lstlisting}
+
 \subsubsection{Data augmentation}\hfill\\
+Following good scientific practice when working with limited training data, we have implemented a series of data augmentation steps as a method of synthetically expanding our training data space by including randomized variations of existing images. We utilize \textit{torchvision.transforms.Compose()} to combine a series of random translational transforms, each with occurrence probability of p = 0.5, and a single 45 degree random rotational transform. The final step is a \texttt{.ToTensor()} transform that converts the image variant into a format that the CNN can readily process. The custom dataset class (explained further in section \ref{training-implementation}) applies these data transformations to each image that is fetched from the dataset during the model training loop. Data augmentation also serves to give our model rotational and translational invariance allowing it to make more robust predictions irrespective of the image orientation. 
 
 \subsection{Neural network architecture}
-\subsection{Training}
+\subsection{Training} \label{training-implementation}
+\subsubsection{Data loading}\hfill\\
+Our datasets constitute of large volumes of images stored locally on disk in their base formats. The HDF5 format is usually very memory efficient when dealing with large datsets allowing us to load relevant slices of data into memory. However, we are required to perform pre-processing tasks on individual images and then feed the resulting images through the neural network. It would be highly memory inefficient to fetch images from the HDF5 dataset and preserve all pre-processed copies in memory until further processing. Therefore, all images are read from the disk, fed through the pre-processing pipeline described previously and written back after they have been processed. Listing \ref{lst:dataset-class}, displays the solution we implemented for continuous and efficient data fetching from disk. We utilize a dedicated dataset component, to fetch processed data from disk and create a stream of images the CNN can readily process without loading any image to memory. The dataset allows 
+
+\begin{lstlisting}[ language=python, caption={custom \texttt{breastCancerDataset} class to fetch all training and validation images and ground truth labels from a given base directory. It creates objects associating each image's path with its corresponding label to make a stream of data that can be read by pytorch's CNN dataloaders}, label= lst:dataset-class]
+    class breastCancerDataset(Dataset):
+    def __init__(self, data_dir, transform, data_type='train'):
+        # path to images
+        data_path = os.path.join(data_dir, data_type+"/tiles")
+        # get list of images
+        fnames = os.listdir(data_path)
+        self.full_fnames = [os.path.join(data_path, f) for f in fnames]
+        # labels are in a csv file names train_labels.csv
+        labels_path = os.path.join(data_dir, data_type+"/" + data_type + "_labels.csv")
+        labels_df = pd.read_csv(labels_path)
+        # set data frame index to id
+        labels_df.set_index("id", inplace=True)
+        # obtain labels from data frame
+        self.labels = [labels_df.loc[int(f[:-5])].values[3] for f in fnames]
+        self.transform = transform
+\end{lstlisting}
 \subsection{Feature extraction}
 
 \section{Regression - Survival time prediction}

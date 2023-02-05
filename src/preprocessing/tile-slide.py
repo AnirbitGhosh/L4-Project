@@ -9,7 +9,7 @@ from pixel_analysis import find_mean_std_pixel_value
 from openslide.deepzoom import DeepZoomGenerator
 import tifffile as tiff
 import argparse
-from norm_HnE import norm_HnE
+from macenko_norm import macenko_norm_HnE
 
 def dir_path(string):
     if os.path.isdir(string):
@@ -109,8 +109,8 @@ if __name__ == '__main__':
                     print("saving tile number:", tile_name)
                     try:
                         # choose which normalization to use for tiling each WSI to be used in prediction
-                        Inorm, h_norm = norm_HnE(temp_tile_RGB_np) 
-                        tiff.imsave(sub_dir_path + "/" +tile_name + ".tif", Inorm)
+                        macenko_norm, h_norm = macenko_norm_HnE(temp_tile_RGB_np) 
+                        tiff.imsave(sub_dir_path + "/" +tile_name + ".tif", macenko_norm)
                     except np.linalg.LinAlgError as LinAlgError:
                         print(f"Eigenvalue did not converge for {tile_name}, saving non-norm tile")
                         tiff.imsave(sub_dir_path + "/" +tile_name + ".tif", temp_tile_RGB_np)

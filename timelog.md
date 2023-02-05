@@ -339,3 +339,16 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 
 ## 30 Jan 2023
 - *4 hours* : Design section 4.2 - 4.2.2 survival time prediction done
+
+## 1 Feb 2023
+- *2 hours* : supervisor meeting - Discuss how to evaluate survival model. Bring up possibility of extending current project direction to include additional clinical covariates like Age in model. Agree to use predict_median as the survival time prediction. Agree that using multiple covariates gives a proportional model displaying hazard impact from all covariates invovled but plots dont display that since they are partial effect outcome plots which assume all other parameters remain unchanged. Discuss performing a cross-validation process to compare the two scores to see which gives better predictions. Cross-validate using jack-knifing where we train on 99 samples and leave 1 out for validation and repeat. Get accuracy value compared to ground truth labels for each model. Can be acceptable even with large errors as that serves as testament to the viability of given task. 
+
+## Week 17
+## 01 Feb 2023
+- *5 hours* : Implementation section 5.1 - overview complete
+
+## 02 Feb 2023
+- *8 hours* : Implementation section 5.2 - Machine learning - 5.2.1 dataset and 5.2.2 preprocessing complete. 
+
+## 03 Feb 2023
+- *8 hours* : Implementation section 5.2.3 - CNN architecture, 5.2.4 - Training
