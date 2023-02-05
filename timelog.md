@@ -351,4 +351,4 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 - *8 hours* : Implementation section 5.2 - Machine learning - 5.2.1 dataset and 5.2.2 preprocessing complete. 
 
 ## 03 Feb 2023
-- *8 hours* : Implementation section 5.2.3 - CNN architecture, 5.2.4 - Training
+- *5 hours* : Implementation section 5.2.3 - CNN architecture
