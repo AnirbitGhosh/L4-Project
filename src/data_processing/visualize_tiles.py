@@ -59,6 +59,8 @@ def process_image(image_name, image_dir):
 
 def generate_pixel_map(thumb, predictions):
     np_thumb = np.array(thumb)
+    np_thumb = np_thumb/255.0
+    np_thumb = np.zeros_like(np_thumb)
     for coord, pred in predictions.items():
         split_coord = coord.split('_')
         col_coord, row_coord = int(split_coord[0]), int(split_coord[1])

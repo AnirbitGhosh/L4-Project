@@ -501,7 +501,7 @@ The PCAM training data consists of pre-tiled WSIs with each tile having dimensio
 
 We fetch each WSI's \texttt{.svs} file from disk and open it as an \texttt{open\_slide} object as shown in listing \ref{lst:tiling-code}. This allows us to inspect the slide's metadata using \texttt{slide.properties} attribute and choose which level number corresponding to our desired sampling resolution. We then use the \texttt{DeepZoomGenerator} object which takes as parameter the WSI as an \texttt{open\_slide} object, the tiling dimension and an overlap percentage to convert the slide image into a stream of tile references. 
 
-\begin{lstlisting}[language=python, caption={Code excerpt showing how OpenSlide and DeepZoomGenerator are used to obtain tiles of specified dimension and resolution level from an input WSI image}, label= lst:tiling-code]
+\begin{lstlisting}[language=python, caption={Code excerpt showing how OpenSlide and DeepZoomGenerator are used to obtain tiles of specified dimension and resolution level from an input WSI image and saming them as a .tiff image. We also added a modification to normalize each tile (explained in the next section) before saving. It calls \texttt{macenko\_norm\_HnE()} on each tile's numpy array and saves the normalized image. We also catch any SVD convergence errors thrown by tiles that have large areas of white space. This is the case for external tiles containing debris outside the main body of tissue.}, label= lst:tiling-code]
     from openslide import open_slide
     from openslide.deepzoom import DeepZoomGenerator
     slide = open_slide(wsi_file_path)
@@ -512,7 +512,11 @@ We fetch each WSI's \texttt{.svs} file from disk and open it as an \texttt{open\
             for col in range(cols):
                 temp_tile = np.array(tiles.get_tile(level_num, (col, row)).convert('RGB'))
                 if temp_tile.std() > 15 and temp_tile.mean() < 230 and temp_tile.shape == (96,96,3):
-                    tiff.imsave(save_path, temp_tile)
+                    try:
+                        macenko_norm, h_norm, e_norm = macenko_norm_HnE(temp_tile)
+                        tiff.imsave(save_path, macenko_norm)
+                    except np.linalg.LinAlgError as LinAlgError:
+                        tiff.imsave(save_path, temp_tile_RGB_np)
 \end{lstlisting}
 
 We set the desired resolution level - it is the 2nd highest level for TCGA WSIs that exhibit a 10x downsampling to 4.0 objective. We iterate over each tile reference and obtain the individual tile image as a Numpy array at the specified resolution. We must also filter out any tile that is majority blank background in order to reduce our overall processing space and prevent unnecessary computation. We completely tiled a sample WSI to analyze a collection of its tiles. On average undesirable tiles with majority white background had a mean pixel intensity of >230. Whereas, useful tiles with significant tissue content had an average pixel std deviation of >15. Therefore, a mean intensity lower than 230 indicates the presence of darker tissue regions on the tile. Furthermore, a std deviation of greater than 15 indicates greater variance in pixel intensity values, implying that the darker regions are significant enough for the tile to not be majority white space. As shown in the above code, we filtered out all tiles that did not meet the mean and std deviation requirements before saving each tile as a \texttt{.tiff} file.
@@ -554,19 +558,9 @@ We implemented a \texttt{macenko\_norm\_H\&E()} function that takes as parameter
     \label{fig:macenko-code-example}
 \end{figure}
 
- As shown below in listing \ref{lst:tiling-normalized}, we extend the tiling pipeline by applying normalization function on each tile's Numpy array and save the normalized version. There is code to catch any convergence errors thrown by Numpy's \texttt{linalg.eigh} function that is often quite unstable and can fail when values are too high. This is the case with external and tissue edge tiles that contain large areas of white background but pass our mean intensity filter due to having high std deviation caused by presence of debris. 
+ As shown in listing \ref{lst:tiling-code}, we extended the tiling pipeline by applying a normalization function on each tile's Numpy array and saving the normalized version. There is code to catch any convergence errors thrown by Numpy's \texttt{linalg.eigh} function that is often quite unstable and can fail when values are too high. This is the case with external and tissue edge tiles that contain large areas of white background but pass our mean intensity filter due to having high std deviation caused by presence of debris. 
 
-\begin{lstlisting}[language=python, caption={Code excerpt showing modification made to the tiling pipeline to normalize each tile before saving. It calls \texttt{macenko\_norm\_HnE()} on each tile's numpy array and saves the normalized image. We also catch any SVD convergence errors thrown by tiles that have large areas of white space. This is the case for external tiles containing debris outside the main body of tissue.}, label= lst:tiling-normalized]
-    for row in range(rows):
-            for col in range(cols):
-                temp_tile = np.array(tiles.get_tile(level_num, (col, row)).convert('RGB'))
-                if temp_tile.std() > 15 and temp_tile.mean() < 230 and temp_tile.shape == (96,96,3):
-                    try:
-                        macenko_norm, h_norm, e_norm = macenko_norm_HnE(temp_tile)
-                        tiff.imsave(save_path, macenko_norm)
-                    except np.linalg.LinAlgError as LinAlgError:
-                        tiff.imsave(save_path, temp_tile_RGB_np)
-\end{lstlisting}
+
 
 \subsubsection{Data augmentation}\hfill\\
 Following good scientific practice when working with limited training data, we have implemented a series of data augmentation steps as a method of synthetically expanding our training data space by including randomized variations of existing images. We utilize \textit{torchvision.transforms.Compose()} to combine a series of random translational transforms, each with occurrence probability of p = 0.5, and a single 45 degree random rotational transform. The final step is a \texttt{.ToTensor()} transform that converts the image variant into a format that the CNN can readily process. The custom dataset class (explained further in section \ref{training-implementation}) applies these data transformations to each image that is fetched from the dataset during the model training loop. Data augmentation also serves to give our model rotational and translational invariance allowing it to make more robust predictions irrespective of the image orientation. 
@@ -632,14 +626,38 @@ As explained previously, we used the PCAM dataset's training data consisting of 
 We create PyTorch dataloaders for each dataset by fetching images from disk using our custom dataset class. We provide a batch size of 32 for training data and 64 for validation data. As explained previously, we use random transformations on training data to augment the dataset. However, we don't use data augmentation on the validation set and only transform each validation image into a PyTorch tensor. To train our model, using a \textbf{Negative Log Likelihood} loss function was appropriate because we have a single-label, binary class classification problem. The model also uses an \textbf{Adam} optimizer. This was chosen over the standard SGD method because SGD has a single, fixed learning rate for all weights. Adam maintains separate learning rates for each neuron weight that get updated independently as learning unfolds allowing for more robust feature learning. Consequently, we use a \textbf{ReduceLROnPlateau} learning rate scheduler which allows the model's learning rate to be reduced whenever learning stagnates. During training process, we simultaneously calculate NLLLoss for both training and validation batches. While training loss is used to backpropagate and update neuron weights using our optimizer, the validation loss is used with the LR scheduler to reduce the model's learning rate by a factor of 0.5 if the loss does not show any improvement for 10 consecutive epochs. 
 \\
 \subsubsection{Training time}\hfill\\
-Our CNN model was trained using pytorch's CUDA package to take advantage of GPU accelerated processing, thereby reducing training time significantly. The model was trained on a system with current state-of-the-art NVIDIA RTX 3070 GPU. The training time for our model was a bottleneck as we are required to train on 100,000 images and validate against 25,000 images every epoch and we used 100 epochs for our model training. This total training time ranged between 90 minutes to  2 hours based on our batch sizes.
+Our CNN model was trained using pytorch's CUDA package to take advantage of GPU accelerated processing, thereby reducing training time significantly. The model was trained on a system with current state-of-the-art NVIDIA RTX 3070 GPU. The training time for our model was a bottleneck as we are required to train on 100,000 images and validate against 25,000 images every epoch and we used 100 epochs for our model training. This total training time ranged between 2 to 5 hours based on our batch sizes.
 The prediction stage using our trained model proved to be even more significant as a computational bottleneck. Generating tumour maps of 75 WSIs involved predicting over 2 million tiles and processing 800GB of total image data through our model. The entire feature dataset took over 8 hours to be generated each time making repeated feature extractions infeasible.
 \\
 \subsubsection{Hyperparameter tuning}\hfill\\
-We have undertaken a parameter space exploration task to identify the most optimal configuration for our model, particularly the activation function, optimizer, batch size and dropout rate. We have utilized PyTorch's \texttt{RayTune} package to automatically perform a combinatorial parameter space exploration. It takes as input all possible parameter values we want to test and records the performance of a specified number of models, each trained with a random parameter combination. We avoided exhaustively testing every possible model setting as that was causing a "parameter space explosion", crashing the entire process due to overloaded GPU memory. Using the model's validation loss as the chosen performance metric, we have identified the most optimal configuration  for our final model that we illustrated in section \ref{cnn-architecture}. 
+We have undertaken a parameter space exploration task to identify the most optimal configuration for our model, particularly the activation function, learning rate, batch size and dropout rate. We have utilized PyTorch's \texttt{Ray[Tune]} package to automatically search through combinations of parameter settings and find the most optimal configuration. We avoided exhaustively testing every possible combination of parameter values as that was causing a "combinatorial explosion", crashing the entire process due to overloaded GPU memory. Therefore, we chose to test 20 models with randomly sampled parameter values from the given search space. Using each model's validation loss as the chosen performance metric, we have identified the most optimal configuration  for our final model that we illustrated in section \ref{cnn-architecture}. Given the scale of training and validation data we used, each tuning model took around 8 to 10 minutes to complete every training epoch which added up to over 13 hours for a single model to be trained and evaluated over 100 epochs. Thus, we trained our parameter tuning prototype models on a 10,000 image subset of our training data (still maintaining a 50-50 class balance). We also reduced the training epochs to 50 as that was sufficient to get a general idea of which parameter settings were trending in the optimal direction. Furthermore, \texttt{Ray[Tune]} allows setting a \texttt{grace\_period=10} parameter to the tuning process which automatically stops training and discards a model if it does not show improvement in performance metrics for over 10 epochs.
+ 
 
 \section{Regression - Survival time prediction}
+\subsection{Feature extraction and visualization}
+As explained previously we have curated a dataset of 75 breast cancer WSIs from TCGA to extract relevant features characterizing their malignancy severity and build a survival time model around those features. We feed each WSI through our pre-processor and subsequently generate a prediction for each individual tile. All predictions for a single WSI are stored in a \texttt{.csv} file as labels against  grid coordinates of its tiles - binary predictions display a 0 or 1 label and continuous predictions display a probability value of belonging to class 1 (malignant). We have then used the \texttt{Pandas} library to process this structured prediction data and calculate, for each WSI, its Malignancy Spread Score and Mean Malignant Intensity as explained in section \ref{sec:covariates}. 
 
+As shown in figure \ref{fig:visualization-example}, we also implemented a visualization pipeline that allows generated predictions to be displayed as a tumour map indicating the predicted regions of malignancy for visual confirmation and validation. Since WSI resolutions are too massive to view the entire image we displayed the predictions as a mask overlaid on top of a downsampled thumbnail of the slide. We downsampled our image to a resolution where the number of image pixels had a 1:1 ratio with the number of tiles, such that a tile at grid coordinate \((X, Y)\) represents the pixel at that coordinate on the thumbnail. Based on each tile's predicted value, we mapped the corresponding pixel to a colour - discrete colour map for binary predictions and a continuous colour map for continuous predictions. 
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[scale=0.37]{images/TCGA-BH-A1FE-noback.png}
+        \caption{Binary prediction map - red areas represent potential malignancy and green areas represent healthy tissue}
+        \label{fig:binary-map}
+    \end{subfigure}\hfill%
+    ~~
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[scale=0.3]{images/TCGA-BH-A1FE-continuous.png}
+        \caption{Continuous prediction heatmap - Darker areas represent regions of strong malignant intensity while lighter regions show lower malignant intensity/healthy tissue}
+        \label{fig:continuous-heatmap}
+    \end{subfigure}
+
+    \caption{We illustrate the two types of feature maps generated during the prediction stage by our trained model. }
+    \label{fig:visualization-example}
+\end{figure}
+
+\subsection{Regression model fitting}
 
 % % Figures are important. Use them well.
 % \begin{figure}
@@ -665,135 +683,7 @@ We have undertaken a parameter space exploration task to identify the most optim
 % \end{figure}
 
 
-\subsection{Equations}
 
-Equations should be typeset correctly and precisely. Make sure you get parenthesis sizing correct, and punctuate equations correctly 
-(the comma is important and goes \textit{inside} the equation block). Explain any symbols used clearly if not defined earlier. 
-
-For example, we might define:
-\begin{equation}
-    \hat{f}(\xi) = \frac{1}{2}\left[ \int_{-\infty}^{\infty} f(x) e^{2\pi i x \xi} \right],
-\end{equation}    
-where $\hat{f}(\xi)$ is the Fourier transform of the time domain signal $f(x)$.
-
-\subsection{Algorithms}
-Algorithms can be set using \texttt{algorithm2e}, as in Algorithm \ref{alg:metropolis}.
-
-% NOTE: line ends are denoted by \; in algorithm2e
-\begin{algorithm}
-    \DontPrintSemicolon
-    \KwData{$f_X(x)$, a probability density function returing the density at $x$.\; $\sigma$ a standard deviation specifying the spread of the proposal distribution.\;
-    $x_0$, an initial starting condition.}
-    \KwResult{$s=[x_1, x_2, \dots, x_n]$, $n$ samples approximately drawn from a distribution with PDF $f_X(x)$.}
-    \Begin{
-        $s \longleftarrow []$\;
-        $p \longleftarrow f_X(x)$\;
-        $i \longleftarrow 0$\;
-        \While{$i < n$}
-        {
-            $x^\prime \longleftarrow \mathcal{N}(x, \sigma^2)$\;
-            $p^\prime \longleftarrow f_X(x^\prime)$\;
-            $a \longleftarrow \frac{p^\prime}{p}$\;
-            $r \longleftarrow U(0,1)$\;
-            \If{$r<a$}
-            {
-                $x \longleftarrow x^\prime$\;
-                $p \longleftarrow f_X(x)$\;
-                $i \longleftarrow i+1$\;
-                append $x$ to $s$\;
-            }
-        }
-    }
-    
-\caption{The Metropolis-Hastings MCMC algorithm for drawing samples from arbitrary probability distributions, 
-specialised for normal proposal distributions $q(x^\prime|x) = \mathcal{N}(x, \sigma^2)$. The symmetry of the normal distribution means the acceptance rule takes the simplified form.}\label{alg:metropolis}
-\end{algorithm}
-
-\subsection{Tables}
-
-If you need to include tables, like Table \ref{tab:operators}, use a tool like https://www.tablesgenerator.com/ to generate the table as it is
-extremely tedious otherwise. 
-
-\begin{table}[]
-    \caption{The standard table of operators in Python, along with their functional equivalents from the \texttt{operator} package. Note that table
-    captions go above the table, not below. Do not add additional rules/lines to tables. }\label{tab:operators}
-    %\tt 
-    \rowcolors{2}{}{gray!3}
-    \begin{tabular}{@{}lll@{}}
-    %\toprule
-    \textbf{Operation}    & \textbf{Syntax}                & \textbf{Function}                            \\ %\midrule % optional rule for header
-    Addition              & \texttt{a + b}                          & \texttt{add(a, b)}                                    \\
-    Concatenation         & \texttt{seq1 + seq2}                    & \texttt{concat(seq1, seq2)}                           \\
-    Containment Test      & \texttt{obj in seq}                     & \texttt{contains(seq, obj)}                           \\
-    Division              & \texttt{a / b}                          & \texttt{div(a, b) }  \\
-    Division              & \texttt{a / b}                          & \texttt{truediv(a, b) } \\
-    Division              & \texttt{a // b}                         & \texttt{floordiv(a, b)}                               \\
-    Bitwise And           & \texttt{a \& b}                         & \texttt{and\_(a, b)}                                  \\
-    Bitwise Exclusive Or  & \texttt{a \textasciicircum b}           & \texttt{xor(a, b)}                                    \\
-    Bitwise Inversion     & \texttt{$\sim$a}                        & \texttt{invert(a)}                                    \\
-    Bitwise Or            & \texttt{a | b}                          & \texttt{or\_(a, b)}                                   \\
-    Exponentiation        & \texttt{a ** b}                         & \texttt{pow(a, b)}                                    \\
-    Identity              & \texttt{a is b}                         & \texttt{is\_(a, b)}                                   \\
-    Identity              & \texttt{a is not b}                     & \texttt{is\_not(a, b)}                                \\
-    Indexed Assignment    & \texttt{obj{[}k{]} = v}                 & \texttt{setitem(obj, k, v)}                           \\
-    Indexed Deletion      & \texttt{del obj{[}k{]}}                 & \texttt{delitem(obj, k)}                              \\
-    Indexing              & \texttt{obj{[}k{]}}                     & \texttt{getitem(obj, k)}                              \\
-    Left Shift            & \texttt{a \textless{}\textless b}       & \texttt{lshift(a, b)}                                 \\
-    Modulo                & \texttt{a \% b}                         & \texttt{mod(a, b)}                                    \\
-    Multiplication        & \texttt{a * b}                          & \texttt{mul(a, b)}                                    \\
-    Negation (Arithmetic) & \texttt{- a}                            & \texttt{neg(a)}                                       \\
-    Negation (Logical)    & \texttt{not a}                          & \texttt{not\_(a)}                                     \\
-    Positive              & \texttt{+ a}                            & \texttt{pos(a)}                                       \\
-    Right Shift           & \texttt{a \textgreater{}\textgreater b} & \texttt{rshift(a, b)}                                 \\
-    Sequence Repetition   & \texttt{seq * i}                        & \texttt{repeat(seq, i)}                               \\
-    Slice Assignment      & \texttt{seq{[}i:j{]} = values}          & \texttt{setitem(seq, slice(i, j), values)}            \\
-    Slice Deletion        & \texttt{del seq{[}i:j{]}}               & \texttt{delitem(seq, slice(i, j))}                    \\
-    Slicing               & \texttt{seq{[}i:j{]}}                   & \texttt{getitem(seq, slice(i, j))}                    \\
-    String Formatting     & \texttt{s \% obj}                       & \texttt{mod(s, obj)}                                  \\
-    Subtraction           & \texttt{a - b}                          & \texttt{sub(a, b)}                                    \\
-    Truth Test            & \texttt{obj}                            & \texttt{truth(obj)}                                   \\
-    Ordering              & \texttt{a \textless b}                  & \texttt{lt(a, b)}                                     \\
-    Ordering              & \texttt{a \textless{}= b}               & \texttt{le(a, b)}                                     \\
-    % \bottomrule
-    \end{tabular}
-    \end{table}
-\subsection{Code}
-
-Avoid putting large blocks of code in the report (more than a page in one block, for example). Use syntax highlighting if possible, as in Listing \ref{lst:callahan}.
-
-\begin{lstlisting}[language=python, float, caption={The algorithm for packing the $3\times 3$ outer-totalistic binary CA successor rule into a 
-    $16\times 16\times 16\times 16$ 4 bit lookup table, running an equivalent, notionally 16-state $2\times 2$ CA.}, label=lst:callahan]
-    def create_callahan_table(rule="b3s23"):
-        """Generate the lookup table for the cells."""        
-        s_table = np.zeros((16, 16, 16, 16), dtype=np.uint8)
-        birth, survive = parse_rule(rule)
-
-        # generate all 16 bit strings
-        for iv in range(65536):
-            bv = [(iv >> z) & 1 for z in range(16)]
-            a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p = bv
-
-            # compute next state of the inner 2x2
-            nw = apply_rule(f, a, b, c, e, g, i, j, k)
-            ne = apply_rule(g, b, c, d, f, h, j, k, l)
-            sw = apply_rule(j, e, f, g, i, k, m, n, o)
-            se = apply_rule(k, f, g, h, j, l, n, o, p)
-
-            # compute the index of this 4x4
-            nw_code = a | (b << 1) | (e << 2) | (f << 3)
-            ne_code = c | (d << 1) | (g << 2) | (h << 3)
-            sw_code = i | (j << 1) | (m << 2) | (n << 3)
-            se_code = k | (l << 1) | (o << 2) | (p << 3)
-
-            # compute the state for the 2x2
-            next_code = nw | (ne << 1) | (sw << 2) | (se << 3)
-
-            # get the 4x4 index, and write into the table
-            s_table[nw_code, ne_code, sw_code, se_code] = next_code
-
-        return s_table
-
-\end{lstlisting}
 
 %==================================================================================================================================
 \chapter{Evaluation} 

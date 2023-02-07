@@ -147,7 +147,7 @@ def train_cifar(config, checkpoint_dir=None, data_dir=None):
         "lr_scheduler": lr_scheduler,
     }
     
-    for epoch in range(10):
+    for epoch in range(100):
         running_loss = 0.0
         epoch_steps = 0
         print(f"Training Epoch {epoch+1} : ")
@@ -277,4 +277,4 @@ def main(num_samples=10, max_num_epochs=100):
     
 #%%
 if __name__ == "__main__":
-    main(num_samples=20, max_num_epochs=100)
+    main(num_samples=20, max_num_epochs=50)
