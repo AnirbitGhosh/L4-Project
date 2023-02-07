@@ -1,10 +1,10 @@
 import copy
 from mimetypes import init
-from models.utils import findConv2dOutShape
+from utils import findConv2dOutShape
 import torch.nn.functional as F
 import torch
 import torch.nn as nn
-from models.utils import loss_batch, get_lr
+from utils import loss_batch, get_lr
 
 device = torch.device("cuda")
 
@@ -16,7 +16,7 @@ class Net (nn.Module):
         num_fc1=params["num_fc1"]
         num_classes=params["num_classes"]
         self.dropout_rate=params["dropout_rate"]
-        
+        self.activation_str = params['activation_func']
         
         self.conv1 = nn.Conv2d(C_in, init_f, kernel_size=3)
         h,w=findConv2dOutShape(H_in,W_in,self.conv1)
@@ -34,19 +34,25 @@ class Net (nn.Module):
         self.num_flatten=h*w*8*init_f
         self.fc1 = nn.Linear(self.num_flatten, num_fc1)
         self.fc2 = nn.Linear(num_fc1, num_classes)
-        
+    
+    @staticmethod
+    def activation_func(act_str):
+        if act_str == 'tanh' or act_str == 'sigmoid':
+            return eval("torch." + act_str)
+        elif act_str == 'relu' or act_str == 'leaky_relu' or act_str == 'silu':
+            return eval('torch.nn.functional.' + act_str)
         
     def forward(self, x):
-        x = F.tanh(self.conv1(x))
+        x = self.activation_func(self.activation_str)(self.conv1(x))
         x = F.max_pool2d(x, 2, 2)
-        x = F.tanh(self.conv2(x))
+        x = self.activation_func(self.activation_str)(self.conv2(x))
         x = F.max_pool2d(x, 2, 2)
-        x = F.tanh(self.conv3(x))
+        x = self.activation_func(self.activation_str)(self.conv3(x))
         x = F.max_pool2d(x, 2, 2)
-        x = F.tanh(self.conv4(x))
+        x = self.activation_func(self.activation_str)(self.conv4(x))
         x = F.max_pool2d(x, 2, 2)
         x = x.view(-1, self.num_flatten)
-        x = F.tanh(self.fc1(x))
+        x = self.activation_func(self.activation_str)(self.fc1(x))
         x=F.dropout(x, self.dropout_rate, training= self.training)
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
@@ -96,6 +102,7 @@ def train_val(model, params):
     sanity_check=params["sanity_check"]
     lr_scheduler=params["lr_scheduler"]
     path2weights=params["path2weights"]
+    save=params["save_weights"]
     
     # history of loss values in each epoch
     loss_history={
@@ -142,7 +149,8 @@ def train_val(model, params):
             best_model_wts = copy.deepcopy(model.state_dict())
             
             # store weights into a local file
-            torch.save(model.state_dict(), path2weights)
+            if save:
+                torch.save(model.state_dict(), path2weights)
             print("Copied best model weights!")
         
         # collect loss and metric for validation dataset
@@ -155,7 +163,7 @@ def train_val(model, params):
             print("Loading best model weights!")
             model.load_state_dict(best_model_wts) 
 
-        print("train loss: %.6f, dev loss: %.6f, accuracy: %.2f" %(train_loss,val_loss,100*val_metric))
+        print("train loss: %.6f, val loss: %.6f, val accuracy: %.2f" %(train_loss,val_loss,100*val_metric))
         print("-"*10) 
 
     # load best model weights

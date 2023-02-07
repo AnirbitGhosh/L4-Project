@@ -67,7 +67,8 @@ if __name__ == "__main__":
         "initial_filters" : 8,
         "num_fc1" : 100,
         "dropout_rate" : 0.25,
-        "num_classes" : 2
+        "num_classes" : 2,
+        "activation_func" : 'tanh',
     }
     print(params_model)
     model = create_model(Net, params_model)
@@ -77,7 +78,7 @@ if __name__ == "__main__":
     loss_func = nn.NLLLoss(reduction="sum")
     opt = optim.Adam(model.parameters(), lr=3e-4)
     # opt = optim.SGD(model.parameters(), lr=3e-4)
-    lr_scheduler = ReduceLROnPlateau(opt, mode="min", factor=0.5, patience=20, verbose=1)
+    lr_scheduler = ReduceLROnPlateau(opt, mode="min", factor=0.5, patience=10, verbose=1)
 
     
     params_train={
@@ -88,6 +89,7 @@ if __name__ == "__main__":
         "val_dl": validation,
         "sanity_check": True,
         "lr_scheduler": lr_scheduler,
+        "save_weights": False,
         "path2weights": "D:/PCAM DATA/trained_models/weights_01_100k_normalized.pt",
     }
     print(params_train)

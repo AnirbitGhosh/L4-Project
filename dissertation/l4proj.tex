@@ -571,7 +571,7 @@ We implemented a \texttt{macenko\_norm\_H\&E()} function that takes as parameter
 \subsubsection{Data augmentation}\hfill\\
 Following good scientific practice when working with limited training data, we have implemented a series of data augmentation steps as a method of synthetically expanding our training data space by including randomized variations of existing images. We utilize \textit{torchvision.transforms.Compose()} to combine a series of random translational transforms, each with occurrence probability of p = 0.5, and a single 45 degree random rotational transform. The final step is a \texttt{.ToTensor()} transform that converts the image variant into a format that the CNN can readily process. The custom dataset class (explained further in section \ref{training-implementation}) applies these data transformations to each image that is fetched from the dataset during the model training loop. Data augmentation also serves to give our model rotational and translational invariance allowing it to make more robust predictions irrespective of the image orientation. 
 
-\subsection{Neural network architecture}
+\subsection{Neural network architecture} \label{cnn-architecture}
 Following the most common approach to solving image analysis tasks using deep learning model, we have implemented a convolutional neural network based on the state-of-the-art ConvNet architecture. Our implementation utilizes a series of standard convolution layers followed by dense layers to produce the final class prediction. We have implemented our CNN using the PyTorch \footnote{https://pytorch.org/} library for Python. 
 
 As illustrated in figure \ref{fig:CNN-Arch-diagram}, we provide tensors of RGB tiles having dimension \(96 \times 96 \times 3\) as input to our CNN. The input is received as image batches which we have set to a batch size of 32. Next, the images are passed through 4 hidden convolution layers, each using a \(3 \times 3\) kernel with default values for padding = 0 and stride = 1. The first layer convolves the (3, 96, 96) shaped image tensor using 8 total filters to produce an output of dimension (8, 94, 94). At every subsequent hidden layer, the number of filters is increased by a factor of 2 (8 \(\rightarrow\) 16 \(\rightarrow\) 32 \(\rightarrow\) 64) which in turn progressively doubles the channel dimension while reducing the image size. The output from each hidden layer is passed to a Max Pooling layer with a kernel size and stride of 2. This downsamples the image dimensions exactly by a factor of 2. Max Pooling allows the neurons to retain the weights of the most prominent features from the convolved feature map which allows the model to identify any abnormalities in cellular morphology that can indicate malignancy. We also apply a \(\tanh\) activation function to all hidden layers. After 4 layers of convolutions, pooling and activation, the output feature maps has dimension (64, 4, 4) which is then passed to the classification layers. 
@@ -590,9 +590,9 @@ The fully convolved batch of \(4 \times 4 \times 64\) feature maps are each flat
 
 \subsection{Training} \label{training-implementation}
 \subsubsection{Data loading}\hfill\\
-Our datasets constitute of large volumes of images stored locally on disk in their base formats. The HDF5 format is usually very memory efficient when dealing with large datsets allowing us to load relevant slices of data into memory. However, we are required to perform pre-processing tasks on individual images and then feed the resulting images through the neural network. It would be highly memory inefficient to fetch images from the HDF5 dataset and preserve all pre-processed copies in memory until further processing. Therefore, all images are read from the disk, fed through the pre-processing pipeline described previously and written back after they have been processed. Listing \ref{lst:dataset-class}, displays the solution we implemented for continuous and efficient data fetching from disk. We utilize a dedicated dataset component, to fetch processed data from disk and create a stream of images the CNN can readily process without loading any image to memory. The dataset allows 
+The HDF5 format is usually very memory efficient when dealing with large datsets allowing us to load relevant slices of data into memory. However, we are required to perform pre-processing tasks on individual images and then feed the resulting images through the neural network. It was highly memory inefficient to extract images from the HDF5 dataset, pre-process them and then hold all images in memory for further processing. Therefore, we read raw images from the disk, feed them through the pre-processing described above and write processed images back to disk. Listing \ref{lst:dataset-class}, displays the solution we implemented for continuous and efficient data fetching from disk for model training. We utilize a dedicated dataset component, to fetch processed images from disk and create a stream of image references and their labels which we pass to PyTorch dataloaders to seamlessly extract image batches and feed them to our CNN for training and validation. 
 
-\begin{lstlisting}[ language=python, caption={custom \texttt{breastCancerDataset} class to fetch all training and validation images and ground truth labels from a given base directory. It creates objects associating each image's path with its corresponding label to make a stream of data that can be read by pytorch's CNN dataloaders}, label= lst:dataset-class]
+\begin{lstlisting}[ language=python, caption={Custom \texttt{breastCancerDataset} class to fetch all training and validation images and ground truth labels from a given base directory. It creates objects associating each image's path in disk with its corresponding label to make a stream of data that pytorch's dataloaders can readily use to fetch batches of images without needing to initially load all images to memory}, label= lst:dataset-class]
     class breastCancerDataset(Dataset):
     def __init__(self, data_dir, transform, data_type='train'):
         # path to images
@@ -608,11 +608,35 @@ Our datasets constitute of large volumes of images stored locally on disk in the
         # obtain labels from data frame
         self.labels = [labels_df.loc[int(f[:-5])].values[3] for f in fnames]
         self.transform = transform
+    def __getitem__(self, index):
+        if isinstance(index, slice):
+            start = 0 if index.start == None else index.start
+            stop = -1 if index.stop == None else index.stop
+            step = 1 if index.step == None else index.step
+            images = []
+            for idx in range(start, stop, step):
+                img = Image.open(self.full_fnames[idx])
+                img = self.transform(img)
+                images.append(img)
+            return images, self.labels[start:stop:step]
+        else:
+            # open image, apply transform and return with label
+            image = Image.open(self.full_fnames[index])
+            image = self.transform(image)
+            return image, self.labels[index]
 \end{lstlisting}
 
+\subsubsection{Model training and validation}
+As explained previously, we used the PCAM dataset's training data consisting of 100,000 histological tiles to train our model to detect malignant tissue. The training set was balanced with equal distribution between the two predictable classes. The PCAM dataset also provides a dedicated validation set which we limited to 25,000 images to use for model validation during training. 
 
-
-\subsection{Feature extraction}
+We create PyTorch dataloaders for each dataset by fetching images from disk using our custom dataset class. We provide a batch size of 32 for training data and 64 for validation data. As explained previously, we use random transformations on training data to augment the dataset. However, we don't use data augmentation on the validation set and only transform each validation image into a PyTorch tensor. To train our model, using a \textbf{Negative Log Likelihood} loss function was appropriate because we have a single-label, binary class classification problem. The model also uses an \textbf{Adam} optimizer. This was chosen over the standard SGD method because SGD has a single, fixed learning rate for all weights. Adam maintains separate learning rates for each neuron weight that get updated independently as learning unfolds allowing for more robust feature learning. Consequently, we use a \textbf{ReduceLROnPlateau} learning rate scheduler which allows the model's learning rate to be reduced whenever learning stagnates. During training process, we simultaneously calculate NLLLoss for both training and validation batches. While training loss is used to backpropagate and update neuron weights using our optimizer, the validation loss is used with the LR scheduler to reduce the model's learning rate by a factor of 0.5 if the loss does not show any improvement for 10 consecutive epochs. 
+\\
+\subsubsection{Training time}\hfill\\
+Our CNN model was trained using pytorch's CUDA package to take advantage of GPU accelerated processing, thereby reducing training time significantly. The model was trained on a system with current state-of-the-art NVIDIA RTX 3070 GPU. The training time for our model was a bottleneck as we are required to train on 100,000 images and validate against 25,000 images every epoch and we used 100 epochs for our model training. This total training time ranged between 90 minutes to  2 hours based on our batch sizes.
+The prediction stage using our trained model proved to be even more significant as a computational bottleneck. Generating tumour maps of 75 WSIs involved predicting over 2 million tiles and processing 800GB of total image data through our model. The entire feature dataset took over 8 hours to be generated each time making repeated feature extractions infeasible.
+\\
+\subsubsection{Hyperparameter tuning}\hfill\\
+We have undertaken a parameter space exploration task to identify the most optimal configuration for our model, particularly the activation function, optimizer, batch size and dropout rate. We have utilized PyTorch's \texttt{RayTune} package to automatically perform a combinatorial parameter space exploration. It takes as input all possible parameter values we want to test and records the performance of a specified number of models, each trained with a random parameter combination. We avoided exhaustively testing every possible model setting as that was causing a "parameter space explosion", crashing the entire process due to overloaded GPU memory. Using the model's validation loss as the chosen performance metric, we have identified the most optimal configuration  for our final model that we illustrated in section \ref{cnn-architecture}. 
 
 \section{Regression - Survival time prediction}
 
