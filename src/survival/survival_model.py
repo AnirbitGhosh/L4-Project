@@ -160,15 +160,19 @@ cox_intensity.plot()
 
 # %%
 cox.plot_partial_effects_on_outcome(covariates='Malignancy Score', values=[
-     0.48, 0.42, 0.28, 0.9
+     0.1 , 0.3, 0.6, 0.9
     ], cmap='coolwarm')
-plt.title("Binary 0|1 prediction model - Malignancy Score covariate")
+plt.title(" Population survival probability with Malignancy Spread Score")
+plt.xlabel("Time (months)")
+plt.ylabel("Survival probability")
 
 #%%
 cox_intensity.plot_partial_effects_on_outcome(covariates='Mean Intensity', values=[
-    0.1, 0.99, 0.9, 0.99999
+    0.1 , 0.3, 0.6, 0.9
     ], cmap='coolwarm')
-plt.title("Probability prediction model - Mean Intensity covariate")
+plt.title("Population survival probability with Mean Malignant Intensity")
+plt.xlabel("Time (months)")
+plt.ylabel("Survival probability")
 
 #%%
 cox_data_intensity.head()
