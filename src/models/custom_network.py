@@ -60,6 +60,8 @@ class Net (nn.Module):
 def loss_epoch(model, loss_func, dataset_dl, sanity_check=False, opt=None):
     running_loss=0.0
     running_metric=0.0
+    data_steps = 0
+    total = 0
     len_data=len(dataset_dl.dataset)
 
     for xb, yb in dataset_dl:
@@ -75,6 +77,8 @@ def loss_epoch(model, loss_func, dataset_dl, sanity_check=False, opt=None):
         
         # update running loss
         running_loss+=loss_b
+        data_steps +=1
+        total += yb.size(0)
         
         # update running metric
         if metric_b is not None:
@@ -85,10 +89,10 @@ def loss_epoch(model, loss_func, dataset_dl, sanity_check=False, opt=None):
             break
     
     # average loss value
-    loss=running_loss/float(len_data)
+    loss=running_loss/float(data_steps)
     
     # average metric value
-    metric=running_metric/float(len_data)
+    metric=running_metric/float(total)
     
     return loss, metric
 

@@ -343,12 +343,30 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 ## 1 Feb 2023
 - *2 hours* : supervisor meeting - Discuss how to evaluate survival model. Bring up possibility of extending current project direction to include additional clinical covariates like Age in model. Agree to use predict_median as the survival time prediction. Agree that using multiple covariates gives a proportional model displaying hazard impact from all covariates invovled but plots dont display that since they are partial effect outcome plots which assume all other parameters remain unchanged. Discuss performing a cross-validation process to compare the two scores to see which gives better predictions. Cross-validate using jack-knifing where we train on 99 samples and leave 1 out for validation and repeat. Get accuracy value compared to ground truth labels for each model. Can be acceptable even with large errors as that serves as testament to the viability of given task. 
 
-## Week 17
 ## 01 Feb 2023
 - *5 hours* : Implementation section 5.1 - overview complete
 
 ## 02 Feb 2023
 - *8 hours* : Implementation section 5.2 - Machine learning - 5.2.1 dataset and 5.2.2 preprocessing complete. 
 
-## 03 Feb 2023
+## Week 17
+## 04 Feb 2023
 - *5 hours* : Implementation section 5.2.3 - CNN architecture
+
+## 05 Feb 2023
+- *6 hours* : Implementation section 5.2.4 - Network Training and hyperparam tuning
+
+## 06 Feb 2023
+- *7 hours* : Hyperaparameter tuning - implement Ray[Tune] hyperparam tuning by modifying the existing network to accept variable params. Train models with 10k data points, and 50 epochs to test 20 random parameter combinations. Results - show tanh is best model with other parameters close to ones i used. 
+
+## 08 Feb 2023
+- *2 hours* : Start implementation section 5.3 - feature extraction and visualization section 5.3.1
+- *1.5 hours* : Supervisor meeting - Show hyperparam tuning, agree its good and is sufficient since it agrees with my original model. Discuss plan for evaluation - Aim to complete classification evaluation by next week. Classification evaluation to contain hyperparam tuning results and calculate metrics (acc, precision, recall) for classified predictions and plot confusion matrix. Regression evaluation plan - 1. Discuss significance of derived scores as covariates with confidence interval plot. 2. For each model, plot predicted median survival against actual survival time to show if any relationship can be derived between the two. 3. Perform 5 fold cross validation to calculate RMSE scores for each model, plot SD and mean RMSE as distribution curves to show how predictions will be distributed.
+
+## Week 18
+## 10 Feb 2023
+- *6 hours* - Implementation section 5.3 - regression and feature extraction - complete feature extraction section 5.3.1 and model fitting section 5.3.2
+
+## 11 Feb 2023
+- *3 hours* : evaluation code for model - calculate and obtain metric values and confusion matrix from best 100k model. Try evaluate effects of varying dataset sizes on metrics to discuss increasing data potentially for better results if a trend can be observed. 
+- *4 hours* : Write evaluation section 6.1  - Classification stage evaluation - 6.1.1 Metrics used and 6.1.2 how well does our DL model detect presence of cancer from histology images? 

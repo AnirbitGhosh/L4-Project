@@ -5,7 +5,6 @@ import os
 sys.path.insert(0, os.path.abspath("/home/anirbit/Anirbit_Ghosh/L4-Project/src"))
 from data_loading.data_transform import validation_transfomer, pretrained_pred_transformer
 from models.custom_network import Net
-from pretrained_model.pretrained_network import PretrainedNet
 import torch
 import matplotlib.pyplot as plt
 from torchvision import models
@@ -43,11 +42,12 @@ device = "cuda:0" if torch.cuda.is_available() else 'cpu'
 # %%
 def read_model(weights):
     params_model = {
-        "input_shape" : (3, 96,96),
+        "input_shape" : (3, 96, 96),
         "initial_filters" : 8,
         "num_fc1" : 100,
         "dropout_rate" : 0.25,
-        "num_classes" : 2
+        "num_classes" : 2,
+        "activation_func" : 'tanh',
     }
     
     model = Net(params_model)

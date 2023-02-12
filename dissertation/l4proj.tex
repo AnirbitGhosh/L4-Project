@@ -692,48 +692,94 @@ As shown in figure \ref{fig:KM-plot-result}, we have also generalized the model 
 
 %==================================================================================================================================
 \chapter{Evaluation} 
-How good is your solution? How well did you solve the general problem, and what evidence do you have to support that?
-
-\section{Guidance}
+\section{Classification stage - Cacncer detection}
+\subsection{Metrics for evaluating classification}
+Our classification task predicts binary labels - malignant or benign - for each WSI tile. The better the individual tile-level predictions, the more accurate our slide-level tumour segmentation is. In order to measure the performance of our trained model we have chosen to use the standard metrics used in single-label classification - accuracy, precision and recall. We have processed a collection of 20,000 test images obtained from the PCAM dataset through our prediction pipeline to calculate these metrics for our model and also plot a \(2 \times 2\) confusion matrix to display the correctness of our prediction results. Using the concepts of true positives (TP), false positives (FP), true negatives (TN) and false negatives (FN) we calculated the metrics as follows:
 \begin{itemize}
-    \item
-        Ask specific questions that address the general problem.
-    \item
-        Answer them with precise evidence (graphs, numbers, statistical
-        analysis, qualitative analysis).
-    \item
-        Be fair and be scientific.
-    \item
-        The key thing is to show that you know how to evaluate your work, not
-        that your work is the most amazing product ever.
+    \item \begin{equation}
+        Accuracy = \frac{TP + TN}{TP + TN + FP + FN}
+    \end{equation}
+
+    \item \begin{equation}
+        Recall = \frac{TP}{TP + FN}
+    \end{equation}
+
+    \item \begin{equation}
+        Precision = \frac{TP}{TP + FP}
+    \end{equation}
 \end{itemize}
 
-\section{Evidence}
-Make sure you present your evidence well. Use appropriate visualisations, reporting techniques and statistical analysis, as appropriate.
+\subsection{How well does our deep learning model detect the presence of breast cancer from histopathology images?}
+In figure \ref{fig:result-conf-mat}, we have illustrated our model's overall prediction results on the test dataset as a binary-class confusion matrix. This illustrates, that utilizing the model with the best parameter settings obtained after hyperparameter optimization, achieves significantly high overall performance. This is further evidenced in table \ref{tab:metric-data}, displaying the values obtained for our chosen metrics. Our model can distinguish between malignant and benign tiles with a 67\% accuracy indicating it is significantly better than a random model. However, it exhibits a 66\% precision in predicting malignant tiles. Given that our dataset is equally balanced, a completely random classifier would have displayed 50\% precision. Although this indicates that our model has actually learned something meaningful, it doesn't exhibit very high confidence in its predictions. Overall, the significant majority of all malignant predictions are likely to be relevant while only a small fraction of those predictions will be falsely labeled as malignant.
 
-If you visualise, follow the basic rules, as illustrated in Figure \ref{fig:boxplot}:
-\begin{itemize}
-\item Label everything correctly (axis, title, units).
-\item Caption thoroughly.
-\item Reference in text.
-\item \textbf{Include appropriate display of uncertainty (e.g. error bars, Box plot)}
-\item Minimize clutter.
-\end{itemize}
-
-See the file \texttt{guide\_to\_visualising.pdf} for further information and guidance.
-
-\begin{figure}
+\begin{table}[h]
     \centering
-    \includegraphics[width=1.0\linewidth]{images/boxplot_finger_distance.pdf}    
+    \begin{tabular}{c|c|c}
+         Accuracy&Recall&Precision  \\ \hline
+         0.67&0.74&0.66 
+    \end{tabular}
+    \caption{Computed scores for performance metrics - Accuracy, Recall and Precision - obtained from predictions generated on 20,000 PCAM test set images by the model with best parameters obtained from hyperparameter tuning.}
+    \label{tab:metric-data}
+\end{table}
 
-    \caption{Average number of fingers detected by the touch sensor at different heights above the surface, averaged over all gestures. Dashed lines indicate
-    the true number of fingers present. The Box plots include bootstrapped uncertainty notches for the median. It is clear that the device is biased toward 
-    undercounting fingers, particularly at higher $z$ distances.
-    }
+We observe a fairly high recall score of 0.74 indicating our model is successfully detecting majority of all possible malignant tiles. When translated to the context of cancer characterization in a WSI, this would imply a slight underestimation of metastases severity as 26\% of actually malignant tiles are predicted as benign. As discussed in section \ref{cancer-general-problem}, a combination of abnormal nucleus growth and low cytoplasmic density indicate the presence of cancer. This makes detecting malignant tissue a lot more nuanced than detecting benign tissue. Our model often encounters cases where one or both of these metastases markers are present but not visually dominant in the tile causing the prediction to become biased towards the benign class. Considering random errors and variability in the quality of tissue slides, our model demonstrates high success in being able to significantly capture the overall extent of cancer in a given collection of tissue sections. 
 
-    % use the notation fig:name to cross reference a figure
-    \label{fig:boxplot} 
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.5]{images/confusion-matrix.png}
+    \caption{Confusion matrix showing overall prediction performance of our best model when predicting classes for the PCAM test set images. Out of 20,000 query images - we have 10,133 malignant and 9867 benign tiles from which the model correctly predicts 7463 malignant and 6021 benign tiles.}
+    \label{fig:result-conf-mat}
 \end{figure}
+
+
+
+\section{Regression stage - Survival prognosis prediction}
+\subsection{Metrics for evaluating regression}
+\subsection{How effectively does our survival model generate overall survival time predictions from extracted image features?}
+
+
+% How good is your solution? How well did you solve the general problem, and what evidence do you have to support that?
+
+% \section{Guidance}
+% \begin{itemize}
+%     \item
+%         Ask specific questions that address the general problem.
+%     \item
+%         Answer them with precise evidence (graphs, numbers, statistical
+%         analysis, qualitative analysis).
+%     \item
+%         Be fair and be scientific.
+%     \item
+%         The key thing is to show that you know how to evaluate your work, not
+%         that your work is the most amazing product ever.
+% \end{itemize}
+
+% \section{Evidence}
+% Make sure you present your evidence well. Use appropriate visualisations, reporting techniques and statistical analysis, as appropriate.
+
+% If you visualise, follow the basic rules, as illustrated in Figure \ref{fig:boxplot}:
+% \begin{itemize}
+% \item Label everything correctly (axis, title, units).
+% \item Caption thoroughly.
+% \item Reference in text.
+% \item \textbf{Include appropriate display of uncertainty (e.g. error bars, Box plot)}
+% \item Minimize clutter.
+% \end{itemize}
+
+% See the file \texttt{guide\_to\_visualising.pdf} for further information and guidance.
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=1.0\linewidth]{images/boxplot_finger_distance.pdf}    
+
+%     \caption{Average number of fingers detected by the touch sensor at different heights above the surface, averaged over all gestures. Dashed lines indicate
+%     the true number of fingers present. The Box plots include bootstrapped uncertainty notches for the median. It is clear that the device is biased toward 
+%     undercounting fingers, particularly at higher $z$ distances.
+%     }
+
+%     % use the notation fig:name to cross reference a figure
+%     \label{fig:boxplot} 
+% \end{figure}
 
 
 %==================================================================================================================================
