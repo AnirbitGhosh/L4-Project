@@ -369,4 +369,8 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 
 ## 11 Feb 2023
 - *3 hours* : evaluation code for model - calculate and obtain metric values and confusion matrix from best 100k model. Try evaluate effects of varying dataset sizes on metrics to discuss increasing data potentially for better results if a trend can be observed. 
-- *4 hours* : Write evaluation section 6.1  - Classification stage evaluation - 6.1.1 Metrics used and 6.1.2 how well does our DL model detect presence of cancer from histology images? 
+- *4 hours* : Write evaluation section 6.1  - Classification stage evaluation - 6.1.2 Metrics used and 6.1.3 how well does our DL model detect presence of cancer from histology images? 
+
+## 12 Feb 2023
+- *2 hours* : Perform 2nd round of hyperparameter optimization with fixed activation and batch size to find optimal LR and Dropout
+- *4 hours* : Write evaluation section 6.1.1 - Hyperparameter optimization results

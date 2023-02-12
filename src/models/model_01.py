@@ -35,8 +35,8 @@ def build_datasets(dir):
     train_ds = breastCancerDataset(dir, train_transform, data_type="train")
     val_ds = breastCancerDataset(dir, val_transform, data_type="validation")
     
-    train_dl = DataLoader(train_ds, batch_size=32, shuffle=True)
-    val_dl = DataLoader(val_ds, batch_size=64, shuffle=False)
+    train_dl = DataLoader(train_ds, batch_size=64, shuffle=True)
+    val_dl = DataLoader(val_ds, batch_size=32, shuffle=False)
     
     return train_dl, val_dl
 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         "input_shape" : (3, 96, 96),
         "initial_filters" : 8,
         "num_fc1" : 100,
-        "dropout_rate" : 0.25,
+        "dropout_rate" : 0.75,
         "num_classes" : 2,
         "activation_func" : 'tanh',
     }
@@ -76,8 +76,7 @@ if __name__ == "__main__":
     
     print("\nsetting up training params...")
     loss_func = nn.NLLLoss(reduction="sum")
-    opt = optim.Adam(model.parameters(), lr=3e-4)
-    # opt = optim.SGD(model.parameters(), lr=3e-4)
+    opt = optim.Adam(model.parameters(), lr=5e-4)
     lr_scheduler = ReduceLROnPlateau(opt, mode="min", factor=0.5, patience=20, verbose=1)
 
     

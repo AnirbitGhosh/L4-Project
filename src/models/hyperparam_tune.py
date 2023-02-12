@@ -220,13 +220,13 @@ def test_accuracy(net, device="cpu"):
 def main(num_samples=10, max_num_epochs=100):
     data_dir = "D:/PCAM DATA/tuning"
     config = {
-        "activation_func": tune.choice(['tanh', 'relu', 'leaky_relu']),
+        "activation_func": tune.choice(['tanh', 'relu', 'leaky relu']),
         "dropout_rate": tune.uniform(0, 1),
         "train_batch": tune.choice([32, 64, 128]),
         "val_batch" : tune.choice([32, 64, 128]),
-        "lr": tune.loguniform(1e-4, 1e-1)
+        "lr": tune.loguniform(1e-5, 1e-1)
     }
-
+    
     scheduler = ASHAScheduler(
         metric="loss",
         mode="min",
