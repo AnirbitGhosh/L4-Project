@@ -22,7 +22,6 @@ from genericpath import isdir
 import torch
 from torch.utils.data import Dataset
 import pandas as pd
-import torchvision.transforms as transforms
 import os
 import numpy as np
 from PIL import Image

@@ -126,75 +126,73 @@ def cox_model_intensity(data):
     return data, cph
 
 #%%
-# if __name__ == "__main__":
-# args = parser.parse_args()
+if __name__ == "__main__":
+    pred_dir = "D:/PCAM DATA/Prediction_data/full_perdiction_set"
+    pred_dir_prob = "D:/PCAM DATA/Prediction_data/probability_predictions_all"
+    data_path ="D:/PCAM DATA/Survival/survival_data.csv"
 
-pred_dir = "D:/PCAM DATA/Prediction_data/full_perdiction_set"
-pred_dir_prob = "D:/PCAM DATA/Prediction_data/probability_predictions_all"
-data_path ="D:/PCAM DATA/Survival/survival_data.csv"
+    data = read_data(data_path, pred_dir)
+    data_prob = read_data_prob(data_path, pred_dir_prob)
 
-data = read_data(data_path, pred_dir)
-data_prob = read_data_prob(data_path, pred_dir_prob)
+    # %%
+    data =  data[data["Malignancy Score"] != 0.0]
+    data.head()
 
-# %%
-data =  data[data["Malignancy Score"] != 0.0]
-data.head()
+    #%%
+    data_prob = data_prob[data_prob["Mean Intensity"] != -1]
+    data_prob.head()
 
-#%%
-data_prob = data_prob[data_prob["Mean Intensity"] != -1]
-data_prob.head()
+    #%%
+    cox_data, cox = cox_model(data)
+    plt.subplots(figsize=(10, 6))
+    cox.plot()
 
-#%%
-cox_data, cox = cox_model(data)
-plt.subplots(figsize=(10, 6))
-cox.plot()
+    #%%
+    # cox_data_score, cox_score = cox_model_score(data_prob)
+    # plt.subplots(figsize=(10, 6))
+    # cox_score.plot()
 
-#%%
-# cox_data_score, cox_score = cox_model_score(data_prob)
-# plt.subplots(figsize=(10, 6))
-# cox_score.plot()
+    cox_data_intensity, cox_intensity = cox_model_intensity(data_prob)
+    plt.subplots(figsize=(10, 6))
+    cox_intensity.plot()
 
-cox_data_intensity, cox_intensity = cox_model_intensity(data_prob)
-plt.subplots(figsize=(10, 6))
-cox_intensity.plot()
+    # %%
+    cox.plot_partial_effects_on_outcome(covariates='Malignancy Score', values=[
+        0.1 , 0.3, 0.6, 0.9
+        ], cmap='coolwarm')
+    plt.title(" Population survival probability with Malignancy Spread Score")
+    plt.xlabel("Time (months)")
+    plt.ylabel("Survival probability")
 
-# %%
-cox.plot_partial_effects_on_outcome(covariates='Malignancy Score', values=[
-     0.1 , 0.3, 0.6, 0.9
-    ], cmap='coolwarm')
-plt.title(" Population survival probability with Malignancy Spread Score")
-plt.xlabel("Time (months)")
-plt.ylabel("Survival probability")
+    #%%
+    cox_intensity.plot_partial_effects_on_outcome(covariates='Mean Intensity', values=[
+        0.1 , 0.3, 0.6, 0.9
+        ], cmap='coolwarm')
+    plt.title("Population survival probability with Mean Malignant Intensity")
+    plt.xlabel("Time (months)")
+    plt.ylabel("Survival probability")
 
-#%%
-cox_intensity.plot_partial_effects_on_outcome(covariates='Mean Intensity', values=[
-    0.1 , 0.3, 0.6, 0.9
-    ], cmap='coolwarm')
-plt.title("Population survival probability with Mean Malignant Intensity")
-plt.xlabel("Time (months)")
-plt.ylabel("Survival probability")
+    #%%
+    cox_data_intensity.head()
 
-#%%
-cox_data_intensity.head()
+    #%%
+    print(cox_intensity.predict_median(cox_data_intensity))
+    print(cox.predict_median(cox_data))
 
-#%%
-print(cox_intensity.predict_median(cox_data_intensity))
-print(cox.predict_median(cox_data))
+    print(cox_data['OS_MONTHS'].head())
+    #%%
+    cox_intensity.plot_partial_effects_on_outcome(covariates='Mean Intensity', values=[
+        0.39
+        ], cmap='coolwarm')
+    # %%
+    results = proportional_hazard_test(cox, cox_data, time_transform='rank')
+    results.print_summary(decimals=3, model="untransformed variables")
 
-print(cox_data['OS_MONTHS'].head())
-#%%
-cox_intensity.plot_partial_effects_on_outcome(covariates='Mean Intensity', values=[
-    0.39
-    ], cmap='coolwarm')
-# %%
-results = proportional_hazard_test(cox, cox_data, time_transform='rank')
-results.print_summary(decimals=3, model="untransformed variables")
+    # %%
+    results_prob = proportional_hazard_test(cox_intensity, cox_data_intensity, time_transform='rank')
+    results_prob.print_summary(decimals=3, model="untransformed variables")
 
-# %%
-results_prob = proportional_hazard_test(cox_intensity, cox_data_intensity, time_transform='rank')
-results_prob.print_summary(decimals=3, model="untransformed variables")
-
-# %%
-cox.print_summary()
-# %%
-cox_intensity.print_summary()
+    # %%
+    cox.print_summary()
+    # %%
+    cox_intensity.print_summary()
