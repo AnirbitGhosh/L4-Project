@@ -722,7 +722,7 @@ However, randomly sampling only 20 models did not allow us to fully explore the 
 
 As highlighted in figure \ref{fig:tuning-stage-2}, during the second iteration of hyperparameter tuning, a 0.75 Dropout and 0.0005 learning rate produced the best accuracy and lowest loss values when combined with the other parameters obtained in stage 1. The resulting model - TanH activation, 0.75 Dropout, 0.0005 LR and 64 training batch size was chosen as the final architecture, as described in section \ref{cnn-architecture}, for the classification task.
 
-\subsection{Metrics for evaluating classification}
+\subsection{Metrics used for evaluating classification}
 Our classification task predicts binary labels - malignant or benign - for each WSI tile. In order to measure the performance of our trained model we have chosen to use the standard metrics used in single-label classification - accuracy, precision and recall. We have processed a collection of 20,000 test images obtained from the PCAM dataset through our prediction pipeline to calculate these metrics for our model and also plot a \(2 \times 2\) confusion matrix to display the correctness of our prediction results. Using the concepts of true positives (TP), false positives (FP), true negatives (TN) and false negatives (FN) we calculated the metrics as follows:
 \begin{itemize}
     \item \begin{equation}
@@ -763,8 +763,23 @@ We observe a fairly high recall score of 0.74 indicating our model is successful
 
 
 \section{Regression stage - Survival prognosis prediction}
-\subsection{Metrics for evaluating regression}
-We use the mean malignant intensity and the malignancy spread score calculated from the WSIs in the feature extraction dataset, to regress distinct survival time estimates. We have chosen to use root mean square error (RMSE) as the primary metric to analyze the performance of our survival time prediction models. In linear regression problems, RMSE is the most common choice for evaluating model performance as it provides a way to quantify exactly how far our model's predictions are from the ground-truth values. Furthermore, using RMSE over standard MSE has the advantage of producing the deviation in the same unit as our predicted variable. In our case, this will tell us, in terms of months, how far off our survival time estimates are from the expected clinical prognosis. 
+\subsection{Metrics used for evaluating regression}
+\subsubsection{Evaluating goodness of fit of survival models}\hfill\\
+We use each of the two scores, mean malignant intensity (MMI) and the malignancy spread score (MSS) calculated from the fully segmented WSIs in the feature extraction dataset, as covariates to fit separate univariable Cox Hazard models. Before making survival time predictions, we must evaluate the effectiveness of our fitted models to deem if the predictions generated are meaningful. In order to understand the significance of correlation, if any exists at all, between our chosen image-based feature scores and the survival prognosis of a given a sample,  we have utilized the following statistical metrics:
+\begin{itemize}
+    \item \textbf{Regression coefficients}: The regression coefficients, obtained as the \(\beta\) vector from our Cox hazard function (shown in eq \ref{eq:hazard model}), provide a measure of the direction of hazard for the associated covariate. A positive \(\beta\) coefficient implies our covariate represents a risk factor to survival such that a higher value will contribute to higher risk of death translating to lower survival time. Whereas, a negative coefficient implies a protective factor which reduces the risk of death at higher values. 
+    
+    \item \textbf{Wald test}: This metric gives us a measure of how statistically different from 0 is the \(\beta\) regression coefficient of our hazard function (shown in equation \ref{eq:hazard model}). Higher the value the more significant is the effect of the associated model covariate on the survival of a patient. We calculated the Wald statistic value using equation \ref{eq:wald-test}, where \(\hat{\theta}\) is the regression coefficient of our Cox hazard model and \(se(\hat{\theta})\) is the standard error in the estimated parameter. 
+    \begin{equation} \label{eq:wald-test}
+        W = \frac{\hat{\theta}}{se(\hat{\theta})}
+    \end{equation}
+    
+    \item \textbf{Hazard ratios and their confidence intervals}
+    \item \textbf{Overall statistical significance of our models}
+\end{itemize}
+
+\subsubsection{Evaluating prediction performance of models}\hfill\\
+We have chosen to use root mean square error (RMSE) as the primary metric to analyze the predictive performance of our survival models. In linear regression problems, RMSE is the most common choice for evaluating model performance as it provides a way to quantify exactly how far our model's predictions are from the ground-truth values. Furthermore, using RMSE over standard MSE has the advantage of producing the deviation in the same unit as our predicted variable. In our case, this will tell us, in terms of months, how far off our survival time estimates are from the expected clinical prognosis. 
 
 We computed the RMSE for survival time predictions generated by each model across a collection of WSIs using equation \ref{eq:RMSE}. We essentially calculate the squared difference between the predicted value, \(t_{i}\), and the actual clinically recorded survival duration, \(\hat{t_{i}}\), for each patient. Finally we take the mean error across all \(N\) WSIs and square root it to get the average error in months. 
 \begin{equation} \label{eq:RMSE}
@@ -775,7 +790,6 @@ We have computed the average RMSE values across multiple sets of WSIs to give us
 \begin{equation} \label{eq:std-dev}
     StdDev = \sqrt{\frac{\sum_{n=1}^{N} (t_{i} - \bar{t_{i}})^2}{N-1}}
 \end{equation}
-
 
 \subsection{How effectively does our survival model generate overall survival time predictions from extracted image features?}
 

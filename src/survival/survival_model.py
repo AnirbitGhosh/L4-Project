@@ -138,7 +138,6 @@ if __name__ == "__main__":
     data =  data[data["Malignancy Score"] != 0.0]
     data.head()
 
-    #%%
     data_prob = data_prob[data_prob["Mean Intensity"] != -1]
     data_prob.head()
 
