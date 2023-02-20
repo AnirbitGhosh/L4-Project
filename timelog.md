@@ -374,3 +374,16 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 ## 12 Feb 2023
 - *2 hours* : Perform 2nd round of hyperparameter optimization with fixed activation and batch size to find optimal LR and Dropout
 - *4 hours* : Write evaluation section 6.1.1 - Hyperparameter optimization results
+
+## 13 Feb 2023
+- *8 hours* : Perform survival model evaluation - calculate 5 fold cross val RMSE scores and Std dev. Plot graph of prediction vs ground truth survival. Calculate effect of increasing data on prediction performance. 
+
+## 15 Feb 2023
+- *2 hours* : Supervisor meeting - discuss plan for evaluation. Agree that metrics calculated from survival evaluation look really good. Include 3 evaluations for prediction performance (RMSE+SD of 5fold val, prediction calibration and data increase effect). Add Evaluation for cox model using model statistics like Wald test, Log-rank test, regression coeff and hazard ratio + Conf Intervals. Plan to complete eval by next week
+
+## Week 19
+## 18 Feb 2023
+- *6 hours* : Write Evaluation metrics for survival model section 6.2 - Dissertation section 6.2.1 metrics for Cox evaluation and prediction performance evaluation (RMSE + SD) complete
+## 19 Feb 2023
+- *7 hours* : Complete first part of survival evaluation - Disseration section 6.2.2 how effective were our chosen image-based features as survival model covariates? 
+- *2 hours* : plot CI graphs, caclulate metric scores for Cox model evaluation results

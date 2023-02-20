@@ -706,7 +706,7 @@ As described in section \ref{impl-hyperparam}, we first iteratively trained 20 r
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.5]{images/tuning-stage1.png}
+    \includegraphics[scale=0.4]{images/tuning-stage1.png}
     \caption{Stage 1 Hyperparameter tuning results - Showing validation loss and accuracy values for 20 trained models with randomly sampled parameter settings. The best model with highest accuracy and lowest validation loss is highlighted in red. }
     \label{fig:tuning-stage-1}
 \end{figure}
@@ -715,7 +715,7 @@ However, randomly sampling only 20 models did not allow us to fully explore the 
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.5]{images/tuning-stage2.png}
+    \includegraphics[scale=0.4]{images/tuning-stage2.png}
     \caption{Stage 2 Hyperparameter tuning results - Showing validation loss and accuracy values for 10 trained models with randomly sampled values for Learning Rate and Dropout while keeping Activation function and Batch sizes fixed to the value obtained in stage 1. }
     \label{fig:tuning-stage-2}
 \end{figure}
@@ -739,7 +739,7 @@ Our classification task predicts binary labels - malignant or benign - for each 
 \end{itemize}
 
 \subsection{How well does our deep learning model detect the presence of breast cancer from histopathology images?}
-In figure \ref{fig:result-conf-mat}, we have illustrated our model's overall prediction results on the test dataset as a binary-class confusion matrix. This illustrates, that utilizing the model with the best parameter settings obtained after hyperparameter optimization, achieves significantly high overall performance. This is further evidenced in table \ref{tab:metric-data}, displaying the values obtained for our chosen metrics. Our model can distinguish between malignant and benign tiles with a 67\% accuracy indicating it is significantly better than a random model. However, it exhibits a 66\% precision in predicting malignant tiles. Given that our dataset is equally balanced, a completely random classifier would have displayed 50\% precision. Although this indicates that our model has actually learned something meaningful, it doesn't exhibit very high confidence in its predictions. Overall, the significant majority of all malignant predictions are likely to be relevant while only a small fraction of those predictions will be falsely labeled as malignant.
+In figure \ref{fig:result-conf-mat}, we have illustrated our model's overall prediction results on the test dataset as a binary-class confusion matrix. This illustrates, that utilizing the model with the best parameter settings obtained after hyperparameter optimization, achieves significantly high overall performance. This is further evidenced in table \ref{tab:metric-data}, displaying the values obtained for our chosen metrics. Our model can distinguish between malignant and benign tiles with a 67\% accuracy indicating it is performs better than a random model. However, it exhibits a 66\% precision in predicting malignant tiles. Given that our dataset is equally balanced, a completely random classifier would have displayed 50\% precision. Although this indicates that our model has actually learned something meaningful, it doesn't exhibit very high confidence in its malignant predictions. Overall, the majority of malignant predictions are likely to be correct with a relatively smaller subset of those predictions being falsely labeled as malignant.
 
 \begin{table}[h]
     \centering
@@ -751,11 +751,11 @@ In figure \ref{fig:result-conf-mat}, we have illustrated our model's overall pre
     \label{tab:metric-data}
 \end{table}
 
-We observe a fairly high recall score of 0.74 indicating our model is successfully detecting majority of all possible malignant tiles. When translated to the context of cancer characterization in a WSI, this would imply a slight underestimation of metastases severity as 26\% of actually malignant tiles are predicted as benign. As discussed in section \ref{cancer-general-problem}, a combination of abnormal nucleus growth and low cytoplasmic density indicate the presence of cancer. This makes detecting malignant tissue a lot more nuanced than detecting benign tissue. Our model often encounters cases where one or both of these metastases markers are present but not visually dominant in the tile causing the prediction to become biased towards the benign class. Considering random errors and variability in the quality of tissue slides, our model demonstrates high success in being able to significantly capture the overall extent of cancer in a given collection of tissue sections. 
+We observe a fairly high recall score of 0.74 indicating our model is successfully detecting majority of all possible malignant tiles. When translated to the context of cancer characterization in a WSI, this would imply a slight underestimation of metastases severity as 26\% of actually malignant tiles are predicted as benign. As discussed in section \ref{cancer-general-problem}, a combination of abnormal nucleus growth and low cytoplasmic density indicate the presence of cancer. This makes detecting malignant tissue a lot more nuanced than detecting benign tissue as a combination of both features are required for a section of tissue to be malignant. Our model often encounters cases where one or both of these metastases markers are present but likely not visually dominant in the tile causing the prediction to become biased towards the benign class as it fails to meet the feature requirements of malignancy. Considering random errors and variability in the quality of tissue slides, our model demonstrates good success in being able to capture the overall extent of cancer in a given collection of tissue sections. 
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.5]{images/confusion-matrix.png}
+    \includegraphics[scale=0.3]{images/confusion-matrix.png}
     \caption{Confusion matrix showing overall prediction performance of our best model when predicting classes for the PCAM test set images. Out of 20,000 query images - we have 10,133 malignant and 9867 benign tiles from which the model correctly predicts 7463 malignant and 6021 benign tiles.}
     \label{fig:result-conf-mat}
 \end{figure}
@@ -767,15 +767,18 @@ We observe a fairly high recall score of 0.74 indicating our model is successful
 \subsubsection{Evaluating goodness of fit of survival models}\hfill\\
 We use each of the two scores, mean malignant intensity (MMI) and the malignancy spread score (MSS) calculated from the fully segmented WSIs in the feature extraction dataset, as covariates to fit separate univariable Cox Hazard models. Before making survival time predictions, we must evaluate the effectiveness of our fitted models to deem if the predictions generated are meaningful. In order to understand the significance of correlation, if any exists at all, between our chosen image-based feature scores and the survival prognosis of a given a sample,  we have utilized the following statistical metrics:
 \begin{itemize}
-    \item \textbf{Regression coefficients}: The regression coefficients, obtained as the \(\beta\) vector from our Cox hazard function (shown in eq \ref{eq:hazard model}), provide a measure of the direction of hazard for the associated covariate. A positive \(\beta\) coefficient implies our covariate represents a risk factor to survival such that a higher value will contribute to higher risk of death translating to lower survival time. Whereas, a negative coefficient implies a protective factor which reduces the risk of death at higher values. 
+    \item \textbf{Regression coefficients}: The regression coefficients, obtained as the \(\beta\) vector from our Cox hazard function (shown in eq \ref{eq:hazard model}), provide a measure of the direction of hazard for the associated covariate. A positive \(\beta\) coefficient implies our covariate represents a risk factor such that a higher value will contribute to a higher risk of death translating to lower survival duration. Whereas, a negative coefficient implies a protective factor which reduces the risk of death at higher values thereby improving survival prospects. 
     
-    \item \textbf{Wald test}: This metric gives us a measure of how statistically different from 0 is the \(\beta\) regression coefficient of our hazard function (shown in equation \ref{eq:hazard model}). Higher the value the more significant is the effect of the associated model covariate on the survival of a patient. We calculated the Wald statistic value using equation \ref{eq:wald-test}, where \(\hat{\theta}\) is the regression coefficient of our Cox hazard model and \(se(\hat{\theta})\) is the standard error in the estimated parameter. 
+    \item \textbf{Wald coefficient}: This metric, also called the z value, gives us a measure of how statistically different from 0 is the \(\beta\) regression coefficient of our hazard function (shown in equation \ref{eq:hazard model}). Higher the value the stronger is the effect of the associated covariate on the survival of a patient. We calculated the Wald statistic value using equation \ref{eq:wald-test}, where \(\hat{\theta}\) is the regression coefficient of our Cox hazard model and \(se(\hat{\theta})\) is the standard error in the estimated parameter. 
     \begin{equation} \label{eq:wald-test}
         W = \frac{\hat{\theta}}{se(\hat{\theta})}
     \end{equation}
     
-    \item \textbf{Hazard ratios and their confidence intervals}
-    \item \textbf{Overall statistical significance of our models}
+    \item \textbf{Hazard ratios}: We calculate the hazard ratio (HR) for a given covariate using equation \ref{eq:hazard-ratio}, where \(\beta\) is the regression coefficient of the model. Therefore, A HR > 1 signifies a covariate being associated with greater hazard negatively impacting survival times. A HR < 1 is associated with covariates that reduce the hazard while HR = 1 has no effect on survival time. We then generate the 95\% confidence intervals (CI) of our model's hazard ratio. If the model does not include HR=1 (the null hypothesis) in its CI, then the associated covariate is a significant risk factor to survival. By computing the overall statistical significance (p-value) of our model using a log-rank test we further substantiate the validity and the significance of our model covariate as a potential risk factor to patient survival. 
+    \begin{equation}\label{eq:hazard-ratio}
+        HR = exp(\beta)
+    \end{equation}
+
 \end{itemize}
 
 \subsubsection{Evaluating prediction performance of models}\hfill\\
@@ -791,12 +794,56 @@ We have computed the average RMSE values across multiple sets of WSIs to give us
     StdDev = \sqrt{\frac{\sum_{n=1}^{N} (t_{i} - \bar{t_{i}})^2}{N-1}}
 \end{equation}
 
-\subsection{How effectively does our survival model generate overall survival time predictions from extracted image features?}
+\subsection{How effective were our chosen image-based features as survival model covariates?}
+We calculated the mean malignant intensity (MMI) and malignancy spread score (MSS) from each WSI's predictions generated by our model. We used the \texttt{CoxPHFitter} class from the Lifelines package (described in section \ref{survival-analysis-methods}) to generate a univariable Cox hazard function for each covariate using the ground truth survival durations and the computed malignancy feature scores. From each fitted model, using the \texttt{print\_summary()} function, we obtained the model regression coefficient (\(\beta\)), hazard ratio (\(\exp(\beta)\)), standard error in the regression coefficient (se(\(\beta\))) and calculated the Wald statistic (z-value) using equation \ref{eq:wald-test}. The final metric values for each covariate are displayed in table \ref{tab:model-stats}. 
 
-\subsubsection{How significant are the chosen malignancy covariates in predicting overall survival time? }\hfill \\
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c|c|c|c|c|c}
+    \hline 
+         Covariate&\(\beta\)&\(\exp{(\beta)}\)&\(se(\beta)\)&z&p\\ \hline
+         Malignancy Spread Score & 1.02 & 2.78 & 0.58 & 1.76 & 0.08 \\
+         Mean Malignant Intensity & 3.41 & 30.20 & 1.51 & 2.25 & 0.02 
+    \end{tabular}
+    \caption{The values obtained for the regression coefficient, hazard ratio, standard error in regression, Wald statistic (z-value) and overall statistical significance (p-value) of each covariate's Cox hazard model.}
+    \label{tab:model-stats}
+\end{table}
+
+As noted in table \ref{tab:model-stats}, we obtained Cox models having a positive regression coefficient of 1.02 and 3.41 respectively for each covariate. A value of \(\beta > 0\) for the hazard functions signifies that both covariates represent a non-protective risk factor, negatively influencing patient survival at higher values. This also implies that our chosen image-based features are able to independently characterize the metastases severity of a sample to an extent where the extracted feature score exhibits a positive correlation with the associated hazard of death.
+
+The Cox model with the MSS covariate displayed a hazard ratio of \(exp(1.02) = 2.78\) while the MMI model had a HR of \(exp(3.41) = 30.20\). With HR > 1, both models are associated with having a negative effect on survival times at higher covariate levels. However, the MMI model has a much larger HR than MSS, implying that it has a much stronger influence on the associated metastatic hazard than the MSS covariate. Due to the proportional nature of the Cox model, every unit increase in the MMI value assumes an increase in hazard and a proportional decrease in survival time by a factor of 30.2 compared to 2.78 for the MSS model. Thus, the MMI covariate was able to span over a much larger range of hazard values and significantly account for differences in survival time associated with small changes in the covariate level. Whereas, with the MSS covariate, the lower HR value restricted the hazard to a smaller range making differences in survival time at varying covariate levels less pronounced and more likely to be obscured due to cluttered values.  
+
+In order to test for statistical significance of our models, we performed a null hypothesis test by plotting the 95\% confidence intervals of each model's log-hazard ratio (\(log(HR) = log(\exp{\beta}) = \beta)\)), as shown in figure \ref{fig:95-CI-interval}. The HR and corresponding log(HR) values for upper and lower bounds of the 95\% confidence intervals are listed in table \ref{tab:CI-stats}. Due to the large difference between the upper and lower bound HR values of the two covariates, we chose \(\log(HR)\) in order to scale down HR values  to a similar range. We observe that the CI of the MMI covariate does not include the null value of \(HR = 1 \implies \log(HR) = 0\) (shown as the blue line in figure \ref{fig:95-CI-interval}). This validates the MMI covariate as a significant risk factor affecting patient survival. However, the MSS covariate does include the null value in its confidence interval of making it less statistically significant as a risk factor to patient survival. 
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c|c|c|c|c}
+    \hline 
+         Covariate&log(HR) lower 95\%&log(HR) upper 95\%&HR lower 95\%&HR upper 95\%\\ \hline
+         MSS & -0.12 & 2.17 & 0.89 & 8.74  \\
+         MMI& 0.44 & 6.37 & 1.56 & 586.49 
+    \end{tabular}
+    \caption{The upper and lower hazard ratio bounds for 95\% confidence intervals. Also displaying the upper and lower bounds for log(HR) confidence intervals. }
+    \label{tab:CI-stats}
+\end{table}
+
+It is worth noting that despite having a statistically significant effect on patient survival, the log(HR) of the MMI covariate displayed a large CI. This makes the model's predictions less accurate as the actual HR for a given covariate level can vary over a very large range of values (shown in table \ref{tab:CI-stats}). The high uncertainty involved in determining the true hazard value using the MMI covariate propagated to the survival time estimates making the predictions very noisy and deviate significantly from the expected ground truth (dicussed in the next section). On the contrary, the MSS covariate had a smaller CI for its log(HR), making the true HR lie within a much smaller range of values. This reduced the uncertainty involved in determining the true hazard value for a given covariate. However, the model fit of this covariate itself was not statistically significant.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.5]{images/95-CI-Interval.png}
+    \caption{We illustrate the 95\% confidence intervals of the log(HR) of Mean Malignant Intensity and Malignancy Spread Score covariates. The null hypothesis of log(HR)=0 is highlighted. We observe the MSS covariate includes the null value within its CI, while the MMI covariate does not. We also display the corresponding p-values, calculated using the log-rank test, of each covariate to further substantiate their respective statistical significance.}
+    \label{fig:95-CI-interval}
+\end{figure}
+
+WALD Z VALUE AND P VALUE EVALUATION HERE 
+
+\subsection{How effectively does our model generate overall survival time predictions from WSI-based features?}
 
 
-\subsubsection{How does limited data availability impact prediction accuracy?}\hfill \\
+\subsubsection{How are the predicted survival times correlated to the ground-truth values of patient survival duration?}\hfill \\
+
+\subsubsection{How does limited data availability impact prediction performance?}\hfill \\
 
 
 % How good is your solution? How well did you solve the general problem, and what evidence do you have to support that?

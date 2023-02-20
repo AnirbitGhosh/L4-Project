@@ -195,3 +195,22 @@ if __name__ == "__main__":
     cox.print_summary()
     # %%
     cox_intensity.print_summary()
+    
+# %%
+### CI 95% graph
+x_val = [1.02, 3.41]
+y_val = [1, 5]
+errors = [1.14, 2.97]
+y_tick_labels = ['Malignancy Spread Score', 'Mean Malignant Intensity']
+lines={'linestyle': 'None'}
+
+plt.figure()
+plt.rc('lines', **lines)
+plt.plot(x_val, y_val, 'rs')
+plt.errorbar(x_val, y_val, xerr=errors, fmt='b', color='k')
+plt.axvline(0, ls='--')
+plt.xlabel("log(HR) (95% CI)")
+plt.title("95% confidence interval of log(HR) for each covariate")
+plt.yticks(y_val, y_tick_labels)
+plt.show()
+# %%
