@@ -9,7 +9,7 @@
 \usepackage{float}
 \usepackage{tabularx}
 \usepackage{amsmath}
-%
+\usepackage{capt-of}
 
 \begin{document}
 
@@ -809,11 +809,11 @@ We calculated the mean malignant intensity (MMI) and malignancy spread score (MS
     \label{tab:model-stats}
 \end{table}
 
-As noted in table \ref{tab:model-stats}, we obtained Cox models having a positive regression coefficient of 1.02 and 3.41 respectively for each covariate. A value of \(\beta > 0\) for the hazard functions signifies that both covariates represent a non-protective risk factor, negatively influencing patient survival at higher values. This also implies that our chosen image-based features are able to independently characterize the metastases severity of a sample to an extent where the extracted feature score exhibits a positive correlation with the associated hazard of death.
+As noted in table \ref{tab:model-stats}, we obtained Cox models having a positive regression coefficient of 1.02 and 3.41 respectively for each covariate. A value of \(\beta > 0\) for the hazard functions signifies that both covariates represent a non-protective risk factor, negatively influencing patient survival at higher values. This implies that our chosen image-based features were able to independently capture an approximate representation of the metastases severity in a sample to an extent where the extracted feature score exhibited a positive correlation with the associated hazard of death.
 
-The Cox model with the MSS covariate displayed a hazard ratio of \(exp(1.02) = 2.78\) while the MMI model had a HR of \(exp(3.41) = 30.20\). With HR > 1, both models are associated with having a negative effect on survival times at higher covariate levels. However, the MMI model has a much larger HR than MSS, implying that it has a much stronger influence on the associated metastatic hazard than the MSS covariate. Due to the proportional nature of the Cox model, every unit increase in the MMI value assumes an increase in hazard and a proportional decrease in survival time by a factor of 30.2 compared to 2.78 for the MSS model. Thus, the MMI covariate was able to span over a much larger range of hazard values and significantly account for differences in survival time associated with small changes in the covariate level. Whereas, with the MSS covariate, the lower HR value restricted the hazard to a smaller range making differences in survival time at varying covariate levels less pronounced and more likely to be obscured due to cluttered values.  
+The Cox model with the MSS covariate displayed a hazard ratio of \(exp(1.02) = 2.78\) while the MMI model had a HR of \(exp(3.41) = 30.20\). With HR > 1, both models are associated with having a negative effect on survival times at higher covariate levels. However, the MMI model has a much larger HR than MSS, implying that it has a much stronger influence on the associated metastatic hazard than the MSS covariate. Due to the proportional nature of the Cox model, every unit increase in the MMI value assumes an increase in hazard and a proportional decrease in survival time by a factor of 30.2 compared to 2.78 for the MSS model. Thus, the MMI covariate allowed the hazard function to span over a large range of values and significantly model differences in survival time associated with very small changes in the covariate level. Whereas, with the MSS covariate, the lower HR value restricted the hazard function to a smaller range making differences in survival time at varying covariate levels less pronounced and more likely to be obscured due to cluttered values.  
 
-In order to test for statistical significance of our models, we performed a null hypothesis test by plotting the 95\% confidence intervals of each model's log-hazard ratio (\(log(HR) = log(\exp{\beta}) = \beta)\)), as shown in figure \ref{fig:95-CI-interval}. The HR and corresponding log(HR) values for upper and lower bounds of the 95\% confidence intervals are listed in table \ref{tab:CI-stats}. Due to the large difference between the upper and lower bound HR values of the two covariates, we chose \(\log(HR)\) in order to scale down HR values  to a similar range. We observe that the CI of the MMI covariate does not include the null value of \(HR = 1 \implies \log(HR) = 0\) (shown as the blue line in figure \ref{fig:95-CI-interval}). This validates the MMI covariate as a significant risk factor affecting patient survival. However, the MSS covariate does include the null value in its confidence interval of making it less statistically significant as a risk factor to patient survival. 
+In order to test for statistical significance of our models, we performed a null hypothesis test by plotting the 95\% confidence intervals of each model's log-hazard ratio (\(log(HR) = log(\exp{\beta}) = \beta)\)), as shown in figure \ref{fig:95-CI-interval}. The upper and lower bounds of the 95\% confidence intervals are listed in table \ref{tab:CI-stats}. Due to the large difference between the upper and lower bound HR values of the two covariates, we chose \(\log(HR)\) in order to scale down HR values  to a similar range. We observe that the CI of the MMI covariate does not include the null value of \(HR = 1 \implies \log(HR) = 0\) (shown as the blue line in figure \ref{fig:95-CI-interval}). This validates the MMI covariate as a significant risk factor affecting patient survival. However, the MSS covariate includes the null value in its confidence interval making it less statistically significant as a risk factor to patient survival as the true value of corresponding hazard can take the value of 1. 
 
 \begin{table}[h]
     \centering
@@ -827,23 +827,71 @@ In order to test for statistical significance of our models, we performed a null
     \label{tab:CI-stats}
 \end{table}
 
-It is worth noting that despite having a statistically significant effect on patient survival, the log(HR) of the MMI covariate displayed a large CI. This makes the model's predictions less accurate as the actual HR for a given covariate level can vary over a very large range of values (shown in table \ref{tab:CI-stats}). The high uncertainty involved in determining the true hazard value using the MMI covariate propagated to the survival time estimates making the predictions very noisy and deviate significantly from the expected ground truth (dicussed in the next section). On the contrary, the MSS covariate had a smaller CI for its log(HR), making the true HR lie within a much smaller range of values. This reduced the uncertainty involved in determining the true hazard value for a given covariate. However, the model fit of this covariate itself was not statistically significant.
+It is worth noting that despite having a statistically significant effect on patient survival, the log(HR) of the MMI covariate displayed a large confidence interval. This made the model's predictions less accurate as the actual HR for a given covariate level can vary over a very large range of values (shown in table \ref{tab:CI-stats}). The high uncertainty involved in determining the true hazard value using the MMI covariate propagated into the survival time estimates making the predictions very noisy and deviate significantly from the expected ground truth (dicussed in the next section). On the contrary, the MSS covariate had a smaller CI for its log(HR), making the true HR lie within a much smaller range of values. This reduced the uncertainty involved in determining the true hazard value for a given covariate. However, the model fit of this covariate itself was not statistically significant.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.5]{images/95-CI-Interval.png}
+    \includegraphics[scale=0.4]{images/95-CI-Interval.png}
     \caption{We illustrate the 95\% confidence intervals of the log(HR) of Mean Malignant Intensity and Malignancy Spread Score covariates. The null hypothesis of log(HR)=0 is highlighted. We observe the MSS covariate includes the null value within its CI, while the MMI covariate does not. We also display the corresponding p-values, calculated using the log-rank test, of each covariate to further substantiate their respective statistical significance.}
     \label{fig:95-CI-interval}
 \end{figure}
 
-WALD Z VALUE AND P VALUE EVALUATION HERE 
+We calculated a Wald's z-value of 1.76 for the MSS model and 2.25 for the MMI model using equation \ref{eq:wald-test}. This supports our previous results by establishing the MMI covariate as having the stronger effect on patient survival. The MSS model failing to reject the null hypothesis according to the 95\% confidence interval means it has a likelihood of having no effect on the survival risk. However, the computed z-value assigns a non-zero significance to the MSS covariate in being able to effect patient survival. This implies that for the given patient data, the MSS covariate is not likely to take up the null hazard value and is able to model some meaningful, albeit minor, effect on survival times. Our generated models also output the overall statistical significance of each covariate as a p-value (shown in figure \ref{fig:95-CI-interval}). In the context of Cox models, a p<0.05 is considered reasonably significant as it represents a 5\% risk of incorrectly concluding that our model fits the data well. Consequently, the MMI covariate despite having higher uncertainty in its hazard ratio, displayed the more statistically significant (p=0.02) model fit compared to the MSS covariate (p=0.08).
 
 \subsection{How effectively does our model generate overall survival time predictions from WSI-based features?}
 
+\subsubsection{How are the predicted survival times correlated to the clinical values of patient survival duration?}\hfill \\
+In figure \ref{fig:prediction-calibration} we have plotted the median survival time predictions of our survival models against the respective clinically determined survival duration of all 73 patients. Figure \ref{fig:mss-predictions} and \ref{fig:mmi-predictions} display the prediction results generated using the MMI and MSS covariates respectively. 
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[scale=0.45]{images/pva-mmi.png}
+        \caption{Mean malignant intensity covariate - median survival time predictions against clinically determined survival duration of each patient }
+        \label{fig:mss-predictions}
+    \end{subfigure}\hfill%
+    ~
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[scale=0.45]{images/pva-mss.png}
+        \caption{Malignancy spread score covariate - median survival time predictions against clinically determined survival duration of each patient }
+        \label{fig:mmi-predictions}
+    \end{subfigure}
+    \caption{Plots showing prediction performance of our models against ground-truth survival times}
+    \label{fig:prediction-calibration}
+\end{figure}
 
-\subsubsection{How are the predicted survival times correlated to the ground-truth values of patient survival duration?}\hfill \\
+We observe that there is no definite linear correlation between the the predicted and true values as we would expect if predictions were aligned with their corresponding ground-truth. For both models, the predicted times are between 30 and 80 months and don't scale very well for samples with higher ground-truth survival times. Similarly, samples with low survival times of <30 months are not predicted accurately. We used the total survival duration to fit our models which is the time between diagnosis and point of death. This makes our data left-censored as it does not account for the length of time a patient might have been afflicted by cancer before the point of diagnosis. A late diagnosis would result in lower survival time due to disease progression and possibly the lack of treatments options at later stages. Our models fail to account for these effects and overestimate the predicted survival time of such samples. Similarly, our models do not account for any treatment received post-diagnosis that has the effect of extending the survival period of patients, making our training data right-censored. This results in an underestimation when basing our model predictions on the physical morphology of metastases alone without considering the protective effects of external factors. 
+
+
 
 \subsubsection{How does limited data availability impact prediction performance?}\hfill \\
+We were restricted to a dataset of 73 WSIs to use for feature extraction and model fitting. We fitted our survival model with each covariate using smaller subsets of this data, in order to investigate the effect of increasing training data on regression performance. As shown in table \ref{tab:datset-size-effect}, we split  100\% of the feature extraction dataset into 4 subsets of specified sizes. With each data subset, we fitted Cox models for both covariates and obtained median survival time predictions on the entire dataset including both unseen and training samples. Using the generated predictions and the ground-truth survival duration of each WSI we calculated the RMSE value, as shown in the table, for each covariate.
+
+\begin{table}[ht]
+\hspace{-1cm}
+\begin{minipage}[b]{0.56\linewidth}
+\centering
+\begin{tabular}{c|c|c}
+    \hline
+         Dataset size & MMI RMSE & MSS RMSE  \\ \hline
+         25\% & 61.712 & 59.657\\
+         50\% & 52.011 & 52.021\\
+         75\% & 48.758 & 48.695\\
+         100\% & 44.322 & 43.275\\
+    \end{tabular}
+    \vspace{2cm}
+    \caption{The calculated RMSE results (in months) for both, mean malignant intesnity and malignancy spread score covariates, when the model is fitted with data subsets of the specified size. The fitted model generates median survival time predictions of 100\% of the dataset which is used to compute the RMSE with the ground truth survival duration.}
+    \label{tab:datset-size-effect}
+\end{minipage}\hfill
+\hspace{-2cm}
+\begin{minipage}[b]{0.4\linewidth}
+\centering
+    \includegraphics[scale=0.3]{images/data-size-RMSE.png}
+    \captionof{figure}{Illustrating the effect of varying training dataset size on RMSE of survival time predictions. The RMSE decreases with increase in training data, expressed as a percentage of total data available.}
+    \label{fig:data-size-RMSE}
+\end{minipage}
+\end{table}
+
+As illustrated in figure \ref{fig:data-size-RMSE}, we observe a continuous decrease in the prediction RMSE for both covariates with increasing dataset size. The 25\% data subset  generates a mean error of 61.71 and 59.66 months for each covariate respectively causing a large deviation in our predicted median survival times. Whereas, with 100\% of the dataset, we observe a mean error of 44.32 and 43.28 months respectively. This is a large decrease in prediction RMSE with a small increase in training data. Therefore, despite our model's predictions having large error values, the observed trend indicates this is largely in part due to the lack of available data and increasing the training dataset size used to fit our survival models would likely continue improving our model's prediction performance. 
 
 
 % How good is your solution? How well did you solve the general problem, and what evidence do you have to support that?

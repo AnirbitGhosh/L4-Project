@@ -39,20 +39,30 @@ print(data_prob.head())
 # %%
 prob_x = data_prob["OS_MONTHS"]
 prob_y = data_prob["median_prediction"]
+prob_a, prob_b = np.polyfit(prob_x, prob_y, 1)
 
-plt.scatter(prob_x, prob_y)
+plt.scatter(prob_x, prob_y, label="Survival time")
+plt.plot(prob_x, prob_a*prob_x+prob_b, 'r', label="Linear best fit")
 plt.xlabel("Actual survival duration (months)")
 plt.ylabel("Predicted median survival time (months)")
-plt.title("Predicted vs actual survival time - intensity score")
+plt.yticks(np.linspace(0, 200, 5))
+plt.title("Predicted vs actual survival time - MMI covariate")
+plt.legend()
+plt.savefig("../../dissertation/images/pva-mmi.png", format='png')
 
 # %%
 bin_x = data_binary["OS_MONTHS"]
 bin_y = data_binary["median_prediction"]
+bin_a, bin_b = np.polyfit(bin_x, bin_y, 1)
 
-plt.scatter(bin_x, bin_y)
+plt.scatter(bin_x, bin_y, label="Survival time")
+plt.plot(bin_x, bin_a*bin_x+bin_b, 'r', label="Linear best fit")
 plt.xlabel("Actual survival duration (months)")
 plt.ylabel("Predicted median survival time (months)")
-plt.title("Predicted vs actual survival time - binary spread score")
+plt.yticks(np.linspace(0, 200, 5))
+plt.title("Predicted vs actual survival time - MSS covariate")
+plt.legend()
+plt.savefig("../../dissertation/images/pva-mss.png", format='png')
 
 #%%
 ######## Dataset size effect ######
@@ -117,6 +127,20 @@ print("RMSE 75% prob training data: ", prob_75_rmse)
 train_data_100 = train_data_prob
 prob_100_rmse = calculate_rmse(train_data_100, data_prob, cox_model)
 print("RMSE 100% prob training data: ", prob_100_rmse)
+
+#%%
+x = [25, 50, 75, 100]
+y1 = [prob_25_rmse, prob_50_rmse, prob_75_rmse, prob_100_rmse]
+y2 = [binary_25_rmse, binary_50_rmse, binary_75_rmse, binary_100_rmse]
+
+plt.figure()
+plt.plot(x, y1, label="Mean malignant intensity")
+plt.plot(x, y2, label="Malignancy spread score")
+plt.xticks(x)
+plt.xlabel("Training data size as % of total dataset")
+plt.ylabel("RMSE (months)")
+plt.title("RMSE vs training data size")
+plt.legend()
 
 # %%
 ###### 5 fold cross validation ########
@@ -238,7 +262,3 @@ score_mean_rmse = statistics.mean([fold1_rmse, fold2_rmse, fold3_rmse, fold4_rms
 score_sd_rmse = statistics.stdev([fold1_rmse, fold2_rmse, fold3_rmse, fold4_rmse, fold5_rmse])
 print("Average RMSE across 5 folds when using binary malignancy score: ", score_mean_rmse)
 print("Std Dev across 5 folds when using binary malignancy score: ", score_sd_rmse)
-
-
-#%%
-###### Jack-knifing cross validation #######
