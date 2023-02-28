@@ -255,8 +255,7 @@ As an extension to deep learning based CRC diagnosis, \cite{Kather2019} have pro
 
 Other instances of survival analysis on histopathology images, such as the paper by \cite{Wetstein2022} illustrates a Kaplan-Meier survival analysis using a uni-variable and a multivariate Cox proportional hazard model. The multivariate analysis was included to produce more realistic survival predictions that accounted for clinical characteristics of each patient, such as current treatment, tumour dimensions and lymphovascular state. All these factors are ignored by the uni-variable model which only aims to utilize histological features in its prediction. A similar methodology was also proposed by \cite{Liu2022} using univariable Cox proportional hazard models. They having additionally demonstrated the use of Python's \textit{Lifelines} package in streamlining the Cox model fitting process and KM plot generation to visualize survival events. 
 
-Majority of work in the field of automated survival estimation involves linear parametric Cox models as described previously. The applicability 
-of these methods are constrained by the requirement of strong, pixel-level annotations in facilitating supervised learning models to extract precise features to successfully quantify survival. Alternate approaches of survival analysis are still being developed but are not as prominently established.  \cite{katzman2018deepsurv} proposed a feed-forward neural network called DeepSurv to quantify the influence of a patient's clinical and histological covariates on their hazard rate and subsequently support treatment recommendations. This method uses an alternate approach to  previously described linear Cox regression by using a neural network to optimize the partial likelihood loss function of the Cox model using non-linear features. \cite{wulczyn2020deep} illustrates another method of survival prediction using a weakly supervised learning approach. Uniformly sampled patches were drawn from the slides of a given patient, only knowing if the slide was malignant or benign. Image-based features extracted by the CNN from these patches were processed by a custom loss function - combination of cross-entropy and Cox partial likelihood loss - to output a probability distribution over discretized survival intervals for each patient.
+Majority of work in the field of automated survival estimation involves linear semi-parametric Cox models as described previously. The applicability of these methods are constrained by the requirement of strong, pixel-level annotations in facilitating supervised learning models to extract precise features to successfully quantify survival. Alternate approaches of survival analysis are still being developed but are not as prominently established.  \cite{katzman2018deepsurv} proposed a feed-forward neural network called DeepSurv to quantify the influence of a patient's clinical and histological covariates on their hazard rate and subsequently support treatment recommendations. This method uses an alternate approach to  previously described linear Cox regression by using a neural network to optimize the partial likelihood loss function of the Cox model using non-linear features. \cite{wulczyn2020deep} illustrates another method of survival prediction using a weakly supervised learning approach. Uniformly sampled patches were drawn from the slides of a given patient, only knowing if the slide was malignant or benign. Image-based features extracted by the CNN from these patches were processed by a custom loss function - combination of cross-entropy and Cox partial likelihood loss - to output a probability distribution over discretized survival intervals for each patient.
 
 \subsection{Cox proportional hazard model} \label{cph-background}
 The original paper by \cite{cox1972regression}, demonstrated a generalized regression method as an extension to the Kaplan-Meier survival analysis approach. The Cox proportional hazard model is a linear regression model defined in terms of a hazard function (\(\lambda\)) as follows
@@ -290,7 +289,7 @@ denoting a constant multiplicative scaling by \(\exp (\beta)\) of our original h
 where the ratio \(\exp (\beta)\) is a constant with no time dependence. This represents the "proportional" nature of the Cox hazard model where the relationship over time between original and subsequent hazard functions remains constant despite changing covariates. 
 
 \subsection{Kaplan-Meier analysis} \label{km-background}
-The Cox proportional hazard model only describes the hazard or probability of certain survival event happening at a specific point of time. It is useful in analyzing the risk of survival associated with given features. However, it cannot predict overall survival time as hazard is inversely proportional to survival, with survival showing rapid decline at high hazard function values. As defined by \cite{bewick2004statistics}, having survived until a given time \(t\), the hazard function \(\lambda (t)\) corresponds to the probability of dying at \(t\). Whereas, the KM survival function \(S(t)\), represents probability of surviving until time \(t\). \cite{schober2021kaplan} proposes using the Kaplan-Meier method for producing exact survival time predictions. Kaplan-Meier generates a parametric survival function that estimates the probability of patient surviving past a certain point of time. Showing overall survival time prediction using Kaplan-Meier graphs is the most common methodology as observed in all survival analysis papers such as \cite{Kather2019}, \cite{Liu2022} and \cite{Wetstein2022}.
+The Cox proportional hazard model only describes the hazard or probability of certain survival event happening at a specific point of time. It is useful in analyzing the risk of survival associated with given features. However, it cannot predict overall survival time as hazard is inversely proportional to survival, with survival showing rapid decline at high hazard function values. As defined by \cite{bewick2004statistics}, having survived until a given time \(t\), the hazard function \(\lambda (t)\) corresponds to the probability of dying at \(t\). Whereas, the KM survival function \(S(t)\), represents probability of surviving until time \(t\). \cite{schober2021kaplan} proposes using the Kaplan-Meier method for producing exact survival time predictions. Kaplan-Meier generates a non-parametric survival function that estimates the probability of patient surviving past a certain point of time. Showing overall survival time prediction using Kaplan-Meier graphs is the most common methodology as observed in all survival analysis papers such as \cite{Kather2019}, \cite{Liu2022} and \cite{Wetstein2022}.
 
 \begin{figure}[h]
     \centering
@@ -299,7 +298,7 @@ The Cox proportional hazard model only describes the hazard or probability of ce
     \label{fig:km-plot-example}
 \end{figure}
 
-As observed in figure \ref{fig:km-plot-example}, a KM plot is a step-wise function plotting probability of survival on the y-axis and survival time in any discrete unit on the x-axis. KM plots can support multiple curves on the graph where each represent a unique covariate setting to see their influence on survival. The graph displays vertical drops in survival probability over time at points where an event of interest occurs, which in survival analysis is the death of a subject. The horizontal distance to these points on the curve represent the total interval of time after which the event occurred, thereby showing the probability a subject survives for that period of time. As proposed by \cite{bewick2004statistics}, the median survival time is often a good prediction of overall survival as it is the point of 0.5 probability where half the subjects perish and the other half lives. This median survival time can be used to compare multiple KM plots in terms of how severely  covariate influences survival.  
+As observed in figure \ref{fig:km-plot-example}, a KM plot is a step-wise function plotting probability of survival on the y-axis and survival time in any discrete unit on the x-axis. KM plots can support multiple curves on the graph where each represent a unique covariate setting to see their influence on survival. The graph displays vertical drops in survival probability over time at points where an event of interest occurs, which in survival analysis is the death of a subject. The horizontal distance to these points on the curve represent the total interval of time after which the event occurred, thereby showing the probability a subject survives for that period of time. As proposed by \cite{bewick2004statistics}, the median survival time is often a good prediction of overall survival as it is the point of 0.5 probability where half the subjects die and the other half survives at that point of time. This median survival time can be used to compare multiple KM plots in terms of how severely  covariate influences survival.  
 
 %==================================================================================================================================
 \chapter{Analysis}
@@ -449,12 +448,12 @@ As discussed in section \ref{sec:detection-overview-design}, we have curated our
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.7]{images/implementation-overview.png}
-    \caption{Complete overview of our entire system implementation. PCAM data containing raw WSI tiles and ground truth annotations are used as training data. The tiled dataset is colour normalized and augmented using our pre-processing pipeline before being used to train our convnet architecture based neural network. We curate a feature extraction dataset containing WSIs from TCGA. Each WSI is pre-processed into colour normalized tiles and fed through our trained model to generate feature maps indicating malignant regions. Predicted features are then used to fit a parametric Cox regression model which uses Kaplan-Meier method to generate a median survival time prediction.}
+    \caption{Complete overview of our entire system implementation. PCAM data containing raw WSI tiles and ground truth annotations are used as training data. The tiled dataset is colour normalized and augmented using our pre-processing pipeline before being used to train our convnet architecture based neural network. We curate a feature extraction dataset containing WSIs from TCGA. Each WSI is pre-processed into colour normalized tiles and fed through our trained model to generate feature maps indicating malignant regions. Predicted features are then used to fit a semi-parametric Cox regression model which uses Kaplan-Meier method to generate a median survival time prediction.}
     \label{fig:implementation-overview}
 \end{figure}
 
 \subsection{Survival time predictions overview}
-Our neural network will generate discrete and continuous predictions that will be used to extract two scores that characterize the disease severity in terms of tumour spread of the given WSI. For all 73 WSIs in our feature extraction dataset, we also obtain their clinically determined survival times to serve as ground truth labels for our survival model. Finally, we use the predicted scores along with survival time annotations to fit a parametric Cox regression models for each metric. Each model generates a hazard ratio and a negative log-likelihood indicating the associated risk factor of the covariate and the significance of impact on survival respectively. We then produce a median survival time estimate from the models to compare their performance with respect to the corresponding ground truth survival time and evaluate their effectiveness in survival prognosis estimation.
+Our neural network will generate discrete and continuous predictions that will be used to extract two scores that characterize the disease severity in terms of tumour spread of the given WSI. For all 73 WSIs in our feature extraction dataset, we also obtain their clinically determined survival times to serve as ground truth labels for our survival model. Finally, we use the predicted scores along with survival time annotations to fit a semi-parametric Cox regression models for each metric. Each model generates a hazard ratio and a negative log-likelihood indicating the associated risk factor of the covariate and the significance of impact on survival respectively. We then produce a median survival time estimate from the models to compare their performance with respect to the corresponding ground truth survival time and evaluate their effectiveness in survival prognosis estimation.
 
 \section{Machine Learning - Cancer diagnosis}
 \subsection{Datasets}
@@ -500,24 +499,6 @@ We store all relevant data in their raw format before being used with our machin
 The PCAM training data consists of pre-tiled WSIs with each tile having dimensions \(96 \times 96\)px and a 10x downsampled resolution. As explained in section \ref{tiling-design}, we have to ensure we tile each WSI in the feature extraction dataset using the same dimensions so that our model can make meaningful predictions based on the model weights learned from PCAM tiles. We utilize the OpenSlide package to tile the WSIs without needing to load the entire image into memory. 
 
 We fetch each WSI's \texttt{.svs} file from disk and open it as an \texttt{open\_slide} object as shown in listing \ref{lst:tiling-code}. This allows us to inspect the slide's metadata using \texttt{slide.properties} attribute and choose which level number corresponding to our desired sampling resolution. We then use the \texttt{DeepZoomGenerator} object which takes as parameter the WSI as an \texttt{open\_slide} object, the tiling dimension and an overlap percentage to convert the slide image into a stream of tile references. 
-
-\begin{lstlisting}[language=python, caption={Code excerpt showing how OpenSlide and DeepZoomGenerator are used to obtain tiles of specified dimension and resolution level from an input WSI image and saming them as a .tiff image. We also added a modification to normalize each tile (explained in the next section) before saving. It calls \texttt{macenko\_norm\_HnE()} on each tile's numpy array and saves the normalized image. We also catch any SVD convergence errors thrown by tiles that have large areas of white space. This is the case for external tiles containing debris outside the main body of tissue.}, label= lst:tiling-code]
-    from openslide import open_slide
-    from openslide.deepzoom import DeepZoomGenerator
-    slide = open_slide(wsi_file_path)
-    tiles = DeepZoomGenerator(slide, tile_size=96, overlap=0, limit_bounds=False)
-    level_num = (tiles.level_count)-2
-    cols, rows = tiles.level_tiles[level_num]
-    for row in range(rows):
-            for col in range(cols):
-                temp_tile = np.array(tiles.get_tile(level_num, (col, row)).convert('RGB'))
-                if temp_tile.std() > 15 and temp_tile.mean() < 230 and temp_tile.shape == (96,96,3):
-                    try:
-                        macenko_norm, h_norm, e_norm = macenko_norm_HnE(temp_tile)
-                        tiff.imsave(save_path, macenko_norm)
-                    except np.linalg.LinAlgError as LinAlgError:
-                        tiff.imsave(save_path, temp_tile_RGB_np)
-\end{lstlisting}
 
 We set the desired resolution level - it is the 2nd highest level for TCGA WSIs that exhibit a 10x downsampling to 4.0 objective. We iterate over each tile reference and obtain the individual tile image as a Numpy array at the specified resolution. We must also filter out any tile that is majority blank background in order to reduce our overall processing space and prevent unnecessary computation. We completely tiled a sample WSI to analyze a collection of its tiles. On average undesirable tiles with majority white background had a mean pixel intensity of >230. Whereas, useful tiles with significant tissue content had an average pixel std deviation of >15. Therefore, a mean intensity lower than 230 indicates the presence of darker tissue regions on the tile. Furthermore, a std deviation of greater than 15 indicates greater variance in pixel intensity values, implying that the darker regions are significant enough for the tile to not be majority white space. As shown in the above code, we filtered out all tiles that did not meet the mean and std deviation requirements before saving each tile as a \texttt{.tiff} file.
 \\
@@ -586,39 +567,7 @@ The fully convolved batch of \(4 \times 4 \times 64\) feature maps are each flat
 \subsubsection{Data loading}\hfill\\
 The HDF5 format is usually very memory efficient when dealing with large datsets allowing us to load relevant slices of data into memory. However, we are required to perform pre-processing tasks on individual images and then feed the resulting images through the neural network. It was highly memory inefficient to extract images from the HDF5 dataset, pre-process them and then hold all images in memory for further processing. Therefore, we read raw images from the disk, feed them through the pre-processing described above and write processed images back to disk. Listing \ref{lst:dataset-class}, displays the solution we implemented for continuous and efficient data fetching from disk for model training. We utilize a dedicated dataset component, to fetch processed images from disk and create a stream of image references and their labels which we pass to PyTorch dataloaders to seamlessly extract image batches and feed them to our CNN for training and validation. 
 
-\begin{lstlisting}[ language=python, caption={Custom \texttt{breastCancerDataset} class to fetch all training and validation images and ground truth labels from a given base directory. It creates objects associating each image's path in disk with its corresponding label to make a stream of data that pytorch's dataloaders can readily use to fetch batches of images without needing to initially load all images to memory}, label= lst:dataset-class]
-    class breastCancerDataset(Dataset):
-    def __init__(self, data_dir, transform, data_type='train'):
-        # path to images
-        data_path = os.path.join(data_dir, data_type+"/tiles")
-        # get list of images
-        fnames = os.listdir(data_path)
-        self.full_fnames = [os.path.join(data_path, f) for f in fnames]
-        # labels are in a csv file names train_labels.csv
-        labels_path = os.path.join(data_dir, data_type+"/" + data_type + "_labels.csv")
-        labels_df = pd.read_csv(labels_path)
-        # set data frame index to id
-        labels_df.set_index("id", inplace=True)
-        # obtain labels from data frame
-        self.labels = [labels_df.loc[int(f[:-5])].values[3] for f in fnames]
-        self.transform = transform
-    def __getitem__(self, index):
-        if isinstance(index, slice):
-            start = 0 if index.start == None else index.start
-            stop = -1 if index.stop == None else index.stop
-            step = 1 if index.step == None else index.step
-            images = []
-            for idx in range(start, stop, step):
-                img = Image.open(self.full_fnames[idx])
-                img = self.transform(img)
-                images.append(img)
-            return images, self.labels[start:stop:step]
-        else:
-            # open image, apply transform and return with label
-            image = Image.open(self.full_fnames[index])
-            image = self.transform(image)
-            return image, self.labels[index]
-\end{lstlisting}
+
 
 \subsubsection{Model training and validation}
 As explained previously, we used the PCAM dataset's training data consisting of 100,000 histological tiles to train our model to detect malignant tissue. The training set was balanced with equal distribution between the two predictable classes. The PCAM dataset also provides a dedicated validation set which we limited to 25,000 images to use for model validation during training. 
@@ -839,6 +788,27 @@ It is worth noting that despite having a statistically significant effect on pat
 We calculated a Wald's z-value of 1.76 for the MSS model and 2.25 for the MMI model using equation \ref{eq:wald-test}. This supports our previous results by establishing the MMI covariate as having the stronger effect on patient survival. The MSS model failing to reject the null hypothesis according to the 95\% confidence interval means it has a likelihood of having no effect on the survival risk. However, the computed z-value assigns a non-zero significance to the MSS covariate in being able to effect patient survival. This implies that for the given patient data, the MSS covariate is not likely to take up the null hazard value and is able to model some meaningful, albeit minor, effect on survival times. Our generated models also output the overall statistical significance of each covariate as a p-value (shown in figure \ref{fig:95-CI-interval}). In the context of Cox models, a p<0.05 is considered reasonably significant as it represents a 5\% risk of incorrectly concluding that our model fits the data well. Consequently, the MMI covariate despite having higher uncertainty in its hazard ratio, displayed the more statistically significant (p=0.02) model fit compared to the MSS covariate (p=0.08).
 
 \subsection{How effectively does our model generate overall survival time predictions from WSI-based features?}
+Given the limited amount of data available for survival modeling, we  undertook a 5-fold cross validation approach to measure our model's prediction performance. We split our dataset of 73 WSIs into 5 parts, using 4 parts to fit our Cox model and 1 part for validation at every iteration. We validated our model's performance by first generating a median survival time prediction for each WSI in the validation fold using the model fitted with the training folds. We calculated the RMSE values between predicted survival times and the ground truth corresponding to each validation set. Finally, as shown in table \ref{tab:cross-val-results},  we obtain the average RMSE across all 5 folds to get the overall deviation of our predictions from the ground truth values. We also calculated the associated standard deviation (SD) to understand the distribution of errors in our predictions.   
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c|c|c}
+    \hline
+     Covariate & Mean RMSE (months) & \(+/-\) SD (months)   \\ \hline
+     MMI & 47.0748 & 29.0246 \\
+     MSS & 47.1201 & 29.0011 \\
+    \end{tabular}
+    \caption{Average RMSE and SD values obtained after 5 cross fold validation of our survival model using MMI and MSS covariates. The RMSE (in months) was calculated for each validation fold and finally the mean RMSE across 5 folds was measured along with the standard deviation in the RMSE values.}
+    \label{tab:cross-val-results}
+\end{table}
+This gives us an idea of how far our survival model's predictions are from the ground truth, when using each covariate. We observe a mean RMSE \(\pm\) SD of \(47.0748 \pm 29.0246\) for predictions produced by the MMI model on our WSI dataset.  Whereas, the MSS model yielded an overall error of \(47.1201 \pm 29.0011\) in its predictions. This implies that both our models generate noisy survival time predictions with high average uncertainty. However, the error is also distributed over a large range as seen from the associated standard deviation values. As observed in the boxplot in figure \ref{fig:RMSE_box}, the models can generate predictions that are as precise as upto within 18 months of the ground-truth values. However, we also observe a large outlier of RMSE greater than 90 months which can severely skew any predictions. Both covariates showed similar performance - prediction errors being concentrated in the 35-50 month range with a similar overall distribution. Comparatively, the MMI model displayed marginally lower average errors and a larger SD than the MSS model which imply slightly better prediction accuracy.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.3]{images/RMSE-boxplot.png}
+    \caption{Box plot showing the distribution of RMSE in each covariate's survival time predictions. Both covariates displayed similar average errors with a lower bound of 18 months and an upper outlier of 90 months.}
+    \label{fig:RMSE_box}
+\end{figure}
 
 \subsubsection{How good are the predicted survival times relative to the clinical values of overall patient survival duration?}\hfill \\
 In figure \ref{fig:prediction-calibration} we have plotted the median survival time predictions of our survival models against the clinically determined survival duration of all 73 patients. Figure \ref{fig:mss-predictions} and \ref{fig:mmi-predictions} display the prediction results generated using the MMI and MSS covariates respectively. 
@@ -879,7 +849,7 @@ We were restricted to a dataset of 73 WSIs to use for feature extraction and mod
          100\% & 44.322 & 43.275\\
     \end{tabular}
     \vspace{2cm}
-    \caption{The calculated RMSE results (in months) for both, mean malignant intesnity and malignancy spread score covariates, when the model is fitted with data subsets of the specified size. The fitted model generates median survival time predictions of 100\% of the dataset which is used to compute the RMSE with the ground truth survival duration.}
+    \caption{The calculated RMSE results (in months) for both, mean malignant intesnity and malignancy spread score covariates, when the model is fitted with data subsets of the specified size.}
     \label{tab:datset-size-effect}
 \end{minipage}\hfill
 \hspace{-2cm}
@@ -891,53 +861,16 @@ We were restricted to a dataset of 73 WSIs to use for feature extraction and mod
 \end{minipage}
 \end{table}
 
-As illustrated in figure \ref{fig:data-size-RMSE}, we observe a continuous decrease in the prediction RMSE for both covariates with increasing dataset size. The 25\% data subset  generates a mean error of 61.71 and 59.66 months for each covariate respectively causing a large deviation in our predicted median survival times. Whereas, with 100\% of the dataset, we observe a mean error of 44.32 and 43.28 months respectively. This is a large decrease in prediction RMSE with a small increase in training data. Therefore, despite our model's predictions having large error values, the observed trend indicates that this is partly caused by the lack of available data. Increasing the training dataset size used to fit our survival models is likely to continue improving our model's prediction performance. Furthermore, we notice a large gap in survival data between 150 and 200 months (figure \ref{fig:prediction-calibration}; the available training samples did not contain a true survival duration falling in that range. As a result, our model fails to learn the correlation between our covariates with the missing range of survival times, which will lead to poor generalization when predicting samples that actually belong in that range. Thus, a larger training dataset would be likely to span over a more uniform range of ground-truth values allowing our model to make more accurate predictions over the complete range of survival times. 
+As illustrated in figure \ref{fig:data-size-RMSE}, we observe a continuous decrease in the prediction RMSE for both covariates with increasing dataset size. The 25\% data subset  generates a mean error of 61.71 and 59.66 months for each covariate respectively causing a large deviation in our predicted median survival times. Whereas, with 100\% of the dataset, we observe a mean error of 44.32 and 43.28 months respectively. This is a large decrease in prediction RMSE with a small increase in training data. Therefore, despite our model's predictions having large error values, the observed trend indicates that it could be caused by the lack of available clinical data - increasing the size of the training dataset used to fit our survival models is likely to continue improving our model's prediction performance. Furthermore, we notice a large gap in survival data between 150 and 200 months (figure \ref{fig:prediction-calibration}; the available training samples did not contain a true survival duration falling in that range. As a result, our model fails to learn the correlation between our covariates with the missing range of survival times, which will lead to poor generalization when predicting samples that actually belong in that range. Thus, a larger training dataset would be likely to span over a more uniform range of ground-truth values allowing our model to make more accurate predictions over the complete range of survival times. 
 
-% How good is your solution? How well did you solve the general problem, and what evidence do you have to support that?
+\section{Discussion}
+The primary limitation with the classification system we developed to detect cancer in breast WSIs, is that our model was trained using patches of sentinel lymph node tissue affected by breast cancer. The tissue composition in lymph nodes is very different from that observed in the breast tissue samples we used for feature extraction. Therefore, when given a sample entirely composed of tissue previously unseen in the training data, our model is likely to fail in accurately identifying metastatic cells amidst the healthy tissue in that sample. However, we can argue that the learning obtained from breast metastases in lymph nodes does transfer to an extent when making predictions on breast tissue. This is evident from the segmentation maps generated by our model for the TCGA WSIs where the predictions were able to identify distinct regions of high malignant concentration instead of randomly predicting malignant or benign patches all over the tissue. This is likely because the individual malignant cells that metastasize from breast tissue to the lymph nodes retain the same cellular characteristics such that they can be identified by their visual appearance. These results also support the success of our chosen ConvNet architecture as it was able to produce reasonably good results even with contextually different training data. Our model's performance would greatly improve if we directly trained it on breast tissue samples instead of transferring the knowledge from lymph node samples. We resorted to using PCAM data, due to the limited availability of strongly annotated breast cancer samples for our supervised learning approach. A weakly supervised approach would be more appropriate here as it would not require an infeasibly large tiled dataset to be manually annotated. It would instead utilize slide-level annotations of regions of interest to learn relevant tissue structures. 
 
-% \section{Guidance}
-% \begin{itemize}
-%     \item
-%         Ask specific questions that address the general problem.
-%     \item
-%         Answer them with precise evidence (graphs, numbers, statistical
-%         analysis, qualitative analysis).
-%     \item
-%         Be fair and be scientific.
-%     \item
-%         The key thing is to show that you know how to evaluate your work, not
-%         that your work is the most amazing product ever.
-% \end{itemize}
-
-% \section{Evidence}
-% Make sure you present your evidence well. Use appropriate visualisations, reporting techniques and statistical analysis, as appropriate.
-
-% If you visualise, follow the basic rules, as illustrated in Figure \ref{fig:boxplot}:
-% \begin{itemize}
-% \item Label everything correctly (axis, title, units).
-% \item Caption thoroughly.
-% \item Reference in text.
-% \item \textbf{Include appropriate display of uncertainty (e.g. error bars, Box plot)}
-% \item Minimize clutter.
-% \end{itemize}
-
-% See the file \texttt{guide\_to\_visualising.pdf} for further information and guidance.
-
-% \begin{figure}
-%     \centering
-%     \includegraphics[width=1.0\linewidth]{images/boxplot_finger_distance.pdf}    
-
-%     \caption{Average number of fingers detected by the touch sensor at different heights above the surface, averaged over all gestures. Dashed lines indicate
-%     the true number of fingers present. The Box plots include bootstrapped uncertainty notches for the median. It is clear that the device is biased toward 
-%     undercounting fingers, particularly at higher $z$ distances.
-%     }
-
-%     % use the notation fig:name to cross reference a figure
-%     \label{fig:boxplot} 
-% \end{figure}
+The task of survival modeling proved to be much more complex, producing high error values in the predicted overall survival times of patients owing to several factors.
 
 
-%==================================================================================================================================
+
+
 \chapter{Conclusion}    
 Summarise the whole project for a lazy reader who didn't read the rest (e.g. a prize-awarding committee).
 \section{Guidance}
@@ -955,36 +888,60 @@ Summarise the whole project for a lazy reader who didn't read the rest (e.g. a p
         won't get credit for things you haven't done}.
 \end{itemize}
 
-%==================================================================================================================================
-%
-% 
-%==================================================================================================================================
-%  APPENDICES  
 
 \begin{appendices}
-
 \chapter{Appendices}
+\begin{lstlisting}[language=python, caption={Code excerpt showing how OpenSlide and DeepZoomGenerator are used to obtain tiles of specified dimension and resolution level from an input WSI image and saming them as a .tiff image. We also added a modification to normalize each tile (explained in the next section) before saving. It calls \texttt{macenko\_norm\_HnE()} on each tile's numpy array and saves the normalized image. We also catch any SVD convergence errors thrown by tiles that have large areas of white space. This is the case for external tiles containing debris outside the main body of tissue.}, label= lst:tiling-code]
+    from openslide import open_slide
+    from openslide.deepzoom import DeepZoomGenerator
+    slide = open_slide(wsi_file_path)
+    tiles = DeepZoomGenerator(slide, tile_size=96, overlap=0, limit_bounds=False)
+    level_num = (tiles.level_count)-2
+    cols, rows = tiles.level_tiles[level_num]
+    for row in range(rows):
+            for col in range(cols):
+                temp_tile = np.array(tiles.get_tile(level_num, (col, row)).convert('RGB'))
+                if temp_tile.std() > 15 and temp_tile.mean() < 230 and temp_tile.shape == (96,96,3):
+                    try:
+                        macenko_norm, h_norm, e_norm = macenko_norm_HnE(temp_tile)
+                        tiff.imsave(save_path, macenko_norm)
+                    except np.linalg.LinAlgError as LinAlgError:
+                        tiff.imsave(save_path, temp_tile_RGB_np)
+\end{lstlisting}
 
-Typical inclusions in the appendices are:
-
-\begin{itemize}
-\item
-  Copies of ethics approvals (required if obtained)
-\item
-  Copies of questionnaires etc. used to gather data from subjects.
-\item
-  Extensive tables or figures that are too bulky to fit in the main body of
-  the report, particularly ones that are repetitive and summarised in the body.
-
-\item Outline of the source code (e.g. directory structure), or other architecture documentation like class diagrams.
-
-\item User manuals, and any guides to starting/running the software.
-
-\end{itemize}
-
-\textbf{Don't include your source code in the appendices}. It will be
-submitted separately.
-
+\begin{lstlisting}[ language=python, caption={Custom \texttt{breastCancerDataset} class to fetch all training and validation images and ground truth labels from a given base directory. It creates objects associating each image's path in disk with its corresponding label to make a stream of data that pytorch's dataloaders can readily use to fetch batches of images without needing to initially load all images to memory}, label= lst:dataset-class]
+    class breastCancerDataset(Dataset):
+    def __init__(self, data_dir, transform, data_type='train'):
+        # path to images
+        data_path = os.path.join(data_dir, data_type+"/tiles")
+        # get list of images
+        fnames = os.listdir(data_path)
+        self.full_fnames = [os.path.join(data_path, f) for f in fnames]
+        # labels are in a csv file names train_labels.csv
+        labels_path = os.path.join(data_dir, data_type+"/" + data_type + "_labels.csv")
+        labels_df = pd.read_csv(labels_path)
+        # set data frame index to id
+        labels_df.set_index("id", inplace=True)
+        # obtain labels from data frame
+        self.labels = [labels_df.loc[int(f[:-5])].values[3] for f in fnames]
+        self.transform = transform
+    def __getitem__(self, index):
+        if isinstance(index, slice):
+            start = 0 if index.start == None else index.start
+            stop = -1 if index.stop == None else index.stop
+            step = 1 if index.step == None else index.step
+            images = []
+            for idx in range(start, stop, step):
+                img = Image.open(self.full_fnames[idx])
+                img = self.transform(img)
+                images.append(img)
+            return images, self.labels[start:stop:step]
+        else:
+            # open image, apply transform and return with label
+            image = Image.open(self.full_fnames[index])
+            image = self.transform(image)
+            return image, self.labels[index]
+\end{lstlisting}
 \end{appendices}
 
 %==================================================================================================================================
@@ -993,7 +950,7 @@ submitted separately.
 % The bibliography style is abbrvnat
 % The bibliography always appears last, after the appendices.
 
-\bibliographystyle{apalike}
+\bibliographystyle{agsm}
 
 \bibliography{l4proj}
 

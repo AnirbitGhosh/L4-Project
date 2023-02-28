@@ -165,16 +165,16 @@ def calculate_rmse(train, valid, cox_model):
 train_data =  prob_fold_2.append([prob_fold_3, prob_fold_4, prob_fold_5])
 valid_data1 = prob_fold_1
 
-fold1_rmse = calculate_rmse(train_data, valid_data1, cox_model_intensity)
-print("Fold 1 RMSE SCORE : ", fold1_rmse)
+fold1_rmse_prob = calculate_rmse(train_data, valid_data1, cox_model_intensity)
+print("Fold 1 RMSE SCORE : ", fold1_rmse_prob)
 
 # %%
 #### FOLD 2
 train_data =  prob_fold_1.append([prob_fold_3, prob_fold_4, prob_fold_5])
 valid_data2 = prob_fold_2
 
-fold2_rmse = calculate_rmse(train_data, valid_data2, cox_model_intensity)
-print("Fold 2 RMSE SCORE : ", fold2_rmse)
+fold2_rmse_prob = calculate_rmse(train_data, valid_data2, cox_model_intensity)
+print("Fold 2 RMSE SCORE : ", fold2_rmse_prob)
 
 # %%
 #### FOLD 3
@@ -182,28 +182,28 @@ print("Fold 2 RMSE SCORE : ", fold2_rmse)
 train_data =  prob_fold_1.append([prob_fold_2, prob_fold_4, prob_fold_5])
 valid_data3 = prob_fold_3
 
-fold3_rmse = calculate_rmse(train_data, valid_data3, cox_model_intensity)
-print("Fold 3 RMSE SCORE : ", fold3_rmse)
+fold3_rmse_prob = calculate_rmse(train_data, valid_data3, cox_model_intensity)
+print("Fold 3 RMSE SCORE : ", fold3_rmse_prob)
 
 # %%
 #### FOLD 4
 train_data =  prob_fold_1.append([prob_fold_2, prob_fold_3, prob_fold_5])
 valid_data4 = prob_fold_4
 
-fold4_rmse = calculate_rmse(train_data, valid_data4, cox_model_intensity)
-print("Fold 4 RMSE SCORE : ", fold4_rmse)
+fold4_rmse_prob = calculate_rmse(train_data, valid_data4, cox_model_intensity)
+print("Fold 4 RMSE SCORE : ", fold4_rmse_prob)
 
 # %%
 #### FOLD 5
 train_data =  prob_fold_1.append([prob_fold_2, prob_fold_3, prob_fold_4])
 valid_data5 = prob_fold_5
 
-fold5_rmse = calculate_rmse(train_data, valid_data5, cox_model_intensity)
-print("Fold 5 RMSE SCORE : ", fold5_rmse)
+fold5_rmse_prob = calculate_rmse(train_data, valid_data5, cox_model_intensity)
+print("Fold 5 RMSE SCORE : ", fold5_rmse_prob)
 
 # %%
-intensity_mean_rmse = statistics.mean([fold1_rmse, fold2_rmse, fold3_rmse, fold4_rmse, fold5_rmse])
-intensity_sd_rmse = statistics.stdev([fold1_rmse, fold2_rmse, fold3_rmse, fold4_rmse, fold5_rmse])
+intensity_mean_rmse = statistics.mean([fold1_rmse_prob, fold2_rmse_prob, fold3_rmse_prob, fold4_rmse_prob, fold5_rmse_prob])
+intensity_sd_rmse = statistics.stdev([fold1_rmse_prob, fold2_rmse_prob, fold3_rmse_prob, fold4_rmse_prob, fold5_rmse_prob])
 print("Average RMSE across 5 folds when using intensity score: ", intensity_mean_rmse)
 print("Std Dev across 5 folds when using intensity score: ", intensity_sd_rmse)
 
@@ -215,6 +215,8 @@ bin_fold_2 = data_binary[15:30]
 bin_fold_3 = data_binary[30:45]
 bin_fold_4 = data_binary[45:60]
 bin_fold_5 = data_binary[60:]
+
+print(len(bin_fold_5))
 
 
 #%%
@@ -262,3 +264,20 @@ score_mean_rmse = statistics.mean([fold1_rmse, fold2_rmse, fold3_rmse, fold4_rms
 score_sd_rmse = statistics.stdev([fold1_rmse, fold2_rmse, fold3_rmse, fold4_rmse, fold5_rmse])
 print("Average RMSE across 5 folds when using binary malignancy score: ", score_mean_rmse)
 print("Std Dev across 5 folds when using binary malignancy score: ", score_sd_rmse)
+
+# %%
+prob_x = [fold1_rmse_prob, fold2_rmse_prob, fold3_rmse_prob, fold4_rmse_prob, fold5_rmse_prob]
+bin_x = [fold1_rmse, fold2_rmse, fold3_rmse, fold4_rmse, fold5_rmse]
+data = [prob_x, bin_x]
+x_val = [1, 2]
+x_labels = ["Mean Malignant Intensity", "Malignancy Spread Score"]
+
+fig, ax = plt.subplots(1, 1)
+
+ax.boxplot(data)
+ax.set_xlabel("Covariates")
+ax.set_ylabel("RMSE (months)")
+ax.set_xticklabels(x_labels)
+ax.grid()
+plt.show()
+# %%
