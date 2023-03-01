@@ -144,7 +144,7 @@ The manual preparation of tissue slides by pathologists is a very sensitive proc
 
 \begin{figure}[h]
 \centering
-\includegraphics[scale=0.7]{images/stain-difference-slide.png}
+\includegraphics[scale=0.5]{images/stain-difference-slide.png}
 \caption{Example of two H\&E stained whole slide images of melanomas obtained from different laboratories indicating the drastic difference in color appearance.}
 \label{fig:he-stain-difference}
 \end{figure}
@@ -464,29 +464,6 @@ The PCAM data contains separate datasets for training, validation and testing, e
 
 In an HDF5 file data is organized into groups representing folders. These groups contain other groups or the datasets which resemble files. As seen in listing \ref{lst:pcam-hdf5}, each PCAM dataset contains two main groups labeled 'x' and 'y' under the root. The 'x' group holds the WSI tiles, represented as \(96 \times 96 \times 3\) numpy arrays of 8bit unsigned integers (0 to 255) under groups labled with a unique id for each tile. The 'y' group holds the malignancy annotation of each tile. The annotation is a binary label that is stored under the group with id corresponding to the tile it labels. 
 
-\begin{lstlisting}[language=python, caption={PCAM Data HDF5 schema - Each set has a group labeled 'x' - containing all the tiles as numpy arrays of 8-bit unsigned integers. Each array has a unique id (0, 1, 2...) and shape \(96 \times 96 \times 3\) indicating a \(96 \times 96\)px RGB tile. The second group labeled 'y' contains the annotations for each tile. The annotations are shown as binary labels against each tile id. }, label= lst:pcam-hdf5]
-    # root group
-    /
-        # image data group
-        x/
-            # tile id group
-            0/
-                [96 x 96 x 3 - 8bit unsigned integer numpy array]
-            1/
-            2/
-            ...
-        # annotation group
-        y/
-            # tile id group
-            0/
-                0
-            1/
-                1
-            2/
-            3/
-            ...
-\end{lstlisting}
-
 We iterate over the HDF5 datasets and save the numpy array of each tile as a \texttt{.jpeg} image into a \texttt{/tiles} directory within each of the three dataset directories. We extract 100,000 training tiles and 20,000 validation tiles, both equally balanced between the two classes, for example, the training tiles consist of 49,977 malignant (1) and 50,023 benign (0) tiles. We also extract the corresponding annotations from HDF5 format into a \texttt{.csv} file, indexed by the tile id as described in section \ref{pcam-background}. This allows for more efficient data handling through the CNN using dataloader objects that can readily associate batch of images to their corresponding labels during the training process. 
 
 \subsubsection{Feature extraction data}\hfill\\
@@ -615,25 +592,27 @@ We use the \texttt{CoxPHFitter} class from the Lifelines package to train a semi
 \subsubsection{Survival time prediction}\hfill \\
 We obtain two uni-variable Cox proportional hazard functions, each using one of the two malignancy features as hazard covariate in order to infer their individual impacts as a risk factor on patient survival. Finally, we used each model's \texttt{CoxPHFitter.predict\_median(covariate)} function, with computed value(s) of the corresponding model covariate provided as a parameter. This generated a median survival time prediction for the given score(s), in the same units as the training data, giving us an overall survival prognoses estimate for each patient. 
 
-As shown in figure \ref{fig:KM-plot-result}, we have also generalized the model to show population level survival trends over time for a given covariate by using the \texttt{plot\_partial\_effects\_on\_outcome()} function. It generates Kaplan-Meier plots corresponding to each value provided, showing the covariate's exclusive effect on the survival probability of a cohort possessing that malignancy level, assuming all other factors remain constant. This probability decreases over time for all covariates indicating lower survival at later stages as metastases progresses accounting for no external factors like treatment. Furthermore,  The different covariate levels are plotted as graphs shifted around the baseline owing to the proportional nature of the Cox model as discussed in \ref{cph-background}. 
-
 \begin{figure}[h]
     \centering
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[scale=0.3]{images/binary-km.png}
+        \includegraphics[scale=0.25]{images/binary-km.png}
         \caption{KM Plot of Malignancy Spread Score showing survival probability of patients with a score of 0.1, 0.3, 0.6 and 0.9 compared to the baseline survival. }
         \label{fig:binary-map}
     \end{subfigure}\hfill%
     ~
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[scale=0.32]{images/continuous_km.png}
+        \includegraphics[scale=0.27]{images/continuous_km.png}
         \caption{KM Plot of Mean Malignant Intensity showing survival probability of patients with a score of 0.1, 0.3, 0.6 and 0.9 compared to the baseline survival.}
         \label{fig:continuous-heatmap}
     \end{subfigure}
 
-    \caption{We illustrate the impact of the two covariates - Malignancy Spread Score and Mean Malignant Intensity - on survival probability over time with each curve corresponding to a different covariate level. Higher covariate values progressively shift the graph further below the baseline survival indicating lower overall survival in patients due to higher disease severity. This indicates a  Similarly, lower scores implying relatively less severe malignancy displays a graph above the baseline indicating reduced risk and higher survival probability.}
+    \caption{We illustrate the impact of the two covariates - Malignancy Spread Score and Mean Malignant Intensity - on survival probability over time with each curve corresponding to a different covariate level. Higher covariate values progressively shift the graph further below the baseline survival indicating lower  survival due to higher disease severity. Similarly, lower scores implying relatively less severe malignancy display a graph above the baseline indicating reduced risk and better survival.}
     \label{fig:KM-plot-result}
 \end{figure}
+
+As shown in figure \ref{fig:KM-plot-result}, we have also generalized the model to show population level survival trends over time for a given covariate by using the \texttt{plot\_partial\_effects\_on\_outcome()} function. It generates Kaplan-Meier plots corresponding to each value provided, showing the covariate's exclusive effect on the survival probability of a cohort possessing that malignancy level, assuming all other factors remain constant. This probability decreases over time for all covariates indicating lower survival at later stages as metastases progresses accounting for no external factors like treatment. Furthermore,  The different covariate levels are plotted as graphs shifted around the baseline owing to the proportional nature of the Cox model as discussed in \ref{cph-background}. 
+
+
 
 
 
@@ -801,7 +780,8 @@ Given the limited amount of data available for survival modeling, we  undertook 
     \caption{Average RMSE and SD values obtained after 5 cross fold validation of our survival model using MMI and MSS covariates. The RMSE (in months) was calculated for each validation fold and finally the mean RMSE across 5 folds was measured along with the standard deviation in the RMSE values.}
     \label{tab:cross-val-results}
 \end{table}
-This gives us an idea of how far our survival model's predictions are from the ground truth, when using each covariate. We observe a mean RMSE \(\pm\) SD of \(47.0748 \pm 29.0246\) for predictions produced by the MMI model on our WSI dataset.  Whereas, the MSS model yielded an overall error of \(47.1201 \pm 29.0011\) in its predictions. This implies that both our models generate noisy survival time predictions with high average uncertainty. However, the error is also distributed over a large range as seen from the associated standard deviation values. As observed in the boxplot in figure \ref{fig:RMSE_box}, the models can generate predictions that are as precise as upto within 18 months of the ground-truth values. However, we also observe a large outlier of RMSE greater than 90 months which can severely skew any predictions. Both covariates showed similar performance - prediction errors being concentrated in the 35-50 month range with a similar overall distribution. Comparatively, the MMI model displayed marginally lower average errors and a larger SD than the MSS model which imply slightly better prediction accuracy.
+
+This gives us an idea of how far our survival model's predictions are from the ground truth, when using each covariate. We observe a mean RMSE \(\pm\) SD of \(47.0748 \pm 29.0246\) for predictions produced by the MMI model on our WSI dataset.  Whereas, the MSS model yielded an overall error of \(47.1201 \pm 29.0011\) in its predictions. This implies that both our models generate noisy survival time predictions with high average uncertainty. However, the error is also distributed over a large range as seen from the associated standard deviation values. As observed in the boxplot in figure \ref{fig:RMSE_box}, the models can generate predictions that are as precise as upto within 18 months of the ground-truth values. However, we also observe a large outlier of RMSE greater than 90 months which can severely skew any predictions. Both covariates showed similar performance - prediction errors being concentrated in the 35-50 month range with a similar overall distribution. Comparatively, the MMI model displayed marginally lower average errors than the MSS model which implied slightly better prediction accuracy. This is likely because the probability predictions more accurately quantified the actual extent of cancer compared to binary predictions. The binary model thresholds predictions at 0.5 likelihood, causing low confidence predictions (close to 0.5) to get sharply classified as malignant or benign. Using the probability value as malignant intensity accounts for such low confidence predictions, weighing them as less intense and giving us a more precise quantification of malignancy.
 
 \begin{figure}[h]
     \centering
@@ -812,6 +792,9 @@ This gives us an idea of how far our survival model's predictions are from the g
 
 \subsubsection{How good are the predicted survival times relative to the clinical values of overall patient survival duration?}\hfill \\
 In figure \ref{fig:prediction-calibration} we have plotted the median survival time predictions of our survival models against the clinically determined survival duration of all 73 patients. Figure \ref{fig:mss-predictions} and \ref{fig:mmi-predictions} display the prediction results generated using the MMI and MSS covariates respectively. 
+
+We observe that there is no definite linear correlation between the the predicted and true values as we would expect if predictions were aligned with their corresponding ground-truth. For both models, the predicted times are between 30 and 80 months and don't scale very well for samples with higher ground-truth survival times. Similarly, samples with low survival times of <30 months are not predicted accurately. We used the total survival duration to fit our models which is the time between diagnosis and point of death. This makes our data left-censored as it does not account for the length of time a patient might have been afflicted by cancer before the diagnosis. A late diagnosis would result in lower survival time due to disease progression and possibly the lack of treatments options at later stages. This effectively raises the baseline hazard of the patient and since our models do not account for these effects, the proportional hazard obtained by the covariate is likely to be underestimated leading to overestimated survival time predictions. Similarly, our models do not account for the reduction in hazard caused by treatment received post-diagnosis that has the effect of extending the survival period of patients, making our training data right-censored. This results in an underestimation when basing our model predictions on the physical manifestation of the tumour alone without considering the effects of external factors. 
+
 \begin{figure}[h]
     \centering
     \begin{subfigure}[b]{0.4\textwidth}
@@ -828,8 +811,6 @@ In figure \ref{fig:prediction-calibration} we have plotted the median survival t
     \caption{Plots showing prediction performance of our models against ground-truth survival times}
     \label{fig:prediction-calibration}
 \end{figure}
-
-We observe that there is no definite linear correlation between the the predicted and true values as we would expect if predictions were aligned with their corresponding ground-truth. For both models, the predicted times are between 30 and 80 months and don't scale very well for samples with higher ground-truth survival times. Similarly, samples with low survival times of <30 months are not predicted accurately. We used the total survival duration to fit our models which is the time between diagnosis and point of death. This makes our data left-censored as it does not account for the length of time a patient might have been afflicted by cancer before the diagnosis. A late diagnosis would result in lower survival time due to disease progression and possibly the lack of treatments options at later stages. This effectively raises the baseline hazard of the patient and since our models do not account for these effects, the proportional hazard obtained by the covariate is likely to be underestimated leading to overestimated survival time predictions. Similarly, our models do not account for the reduction in hazard caused by treatment received post-diagnosis that has the effect of extending the survival period of patients, making our training data right-censored. This results in an underestimation when basing our model predictions on the physical manifestation of the tumour alone without considering the effects of external factors. 
 
 We do observe that our model predictions display a reasonable trend in relative survival time across samples. As we move further to the right, in figure \ref{fig:prediction-calibration}, with an increase in true survival time, our predicted values also show an upward trend. This implies that our model is not predicting random times and the covariates are able to capture the relative differences in metastases severity in terms of tumour spread, assigning higher survival times to less severe and low survival times to more severe cases. The predicted time, however, does not reflect real-life survival values because the computed hazard with one covariate is very different from an individual's true hazard which is affected by several factors. For example, age is a very revealing factor when it comes to patient survival as an older patient is likely to have a shorter overall survival time from the point of diagnosis compared to a patient who was diagnosed at a younger age. Similarly, smoking status, underlying medical conditions, immune system health and several quality of life factors directly influence the malignancy hazard. As we are taking a univariable approach, computing the baseline hazard with a single covariate introduces noise from all the unknown factors into our model. This makes the hazard function less generalizable to multiple patients since each has their own unique set of external circumstances that influence overall survival besides the physical manifestation of cancer. This translates into the proportional hazard calculated for each covariate level having high uncertainties, making our predictions highly erroneous. 
 
@@ -866,8 +847,7 @@ As illustrated in figure \ref{fig:data-size-RMSE}, we observe a continuous decre
 \section{Discussion}
 The primary limitation with the classification system we developed to detect cancer in breast WSIs, is that our model was trained using patches of sentinel lymph node tissue affected by breast cancer. The tissue composition in lymph nodes is very different from that observed in the breast tissue samples we used for feature extraction. Therefore, when given a sample entirely composed of tissue previously unseen in the training data, our model is likely to fail in accurately identifying metastatic cells amidst the healthy tissue in that sample. However, we can argue that the learning obtained from breast metastases in lymph nodes does transfer to an extent when making predictions on breast tissue. This is evident from the segmentation maps generated by our model for the TCGA WSIs where the predictions were able to identify distinct regions of high malignant concentration instead of randomly predicting malignant or benign patches all over the tissue. This is likely because the individual malignant cells that metastasize from breast tissue to the lymph nodes retain the same cellular characteristics such that they can be identified by their visual appearance. These results also support the success of our chosen ConvNet architecture as it was able to produce reasonably good results even with contextually different training data. Our model's performance would greatly improve if we directly trained it on breast tissue samples instead of transferring the knowledge from lymph node samples. We resorted to using PCAM data, due to the limited availability of strongly annotated breast cancer samples for our supervised learning approach. A weakly supervised approach would be more appropriate here as it would not require an infeasibly large tiled dataset to be manually annotated. It would instead utilize slide-level annotations of regions of interest to learn relevant tissue structures. 
 
-The task of survival modeling proved to be much more complex, producing high error values in the predicted overall survival times of patients owing to several factors.
-
+The task of survival modeling proved to be much more complex, exhibiting high inaccuracies in the predicted overall survival times which was caused by several factors. The primary limitation was that our chosen covariates only acccounted for the risk posed by how widespread the tumour is in a given tissue sample. In reality, patient survival is influenced by several factors beyond just the physical extent of malignancy. These are likely to include age, smoking status, underlying medical conditions, cancer subtype, immune system response and treatment undergone by the patient. Choosing a univariable Cox model disregarded the influence of all factors besides the associated covariate when calculating the disease hazard of each patient. Consequently, the resulting model linearly scaled an incomplete baseline hazard for each patient which is unlikely to precisely characterize their individual survival risk as everyone has a unique combination of external factors affecting their prognosis. As explained previously, the performance of our regression model was also affected by the limited volume of clinical data available and the data being left and right censored. However, we observed that our predictions reflected the correct intra-sample survival trends, such that samples with high survival durations were predicted a better prognosis than samples having a lower survival duration. This implied that the cancer severity quantified by our image based covariates had a limited, albeit meaningful, influence on estimating the associated disease hazard allowing it to make predictions in the appropriate directions. This further substantiated the validity of the overall concept of using histopathological features to automate diagnosis and prognosis estimation. Our predictions could be improved by opting for a multivariable Cox approach where we use non-image based clinical data as additional covariates. This would allow us to estimate a more accurate baseline hazard for each patient by accounting for the influence of external protective and risk factors. 
 
 
 
@@ -891,6 +871,30 @@ Summarise the whole project for a lazy reader who didn't read the rest (e.g. a p
 
 \begin{appendices}
 \chapter{Appendices}
+
+\begin{lstlisting}[language=python, caption={PCAM Data HDF5 schema - Each set has a group labeled 'x' - containing all the tiles as numpy arrays of 8-bit unsigned integers. Each array has a unique id (0, 1, 2...) and shape \(96 \times 96 \times 3\) indicating a \(96 \times 96\)px RGB tile. The second group labeled 'y' contains the annotations for each tile. The annotations are shown as binary labels against each tile id. }, label= lst:pcam-hdf5]
+    # root group
+    /
+        # image data group
+        x/
+            # tile id group
+            0/
+                [96 x 96 x 3 - 8bit unsigned integer numpy array]
+            1/
+            2/
+            ...
+        # annotation group
+        y/
+            # tile id group
+            0/
+                0
+            1/
+                1
+            2/
+            3/
+            ...
+\end{lstlisting}
+
 \begin{lstlisting}[language=python, caption={Code excerpt showing how OpenSlide and DeepZoomGenerator are used to obtain tiles of specified dimension and resolution level from an input WSI image and saming them as a .tiff image. We also added a modification to normalize each tile (explained in the next section) before saving. It calls \texttt{macenko\_norm\_HnE()} on each tile's numpy array and saves the normalized image. We also catch any SVD convergence errors thrown by tiles that have large areas of white space. This is the case for external tiles containing debris outside the main body of tissue.}, label= lst:tiling-code]
     from openslide import open_slide
     from openslide.deepzoom import DeepZoomGenerator
