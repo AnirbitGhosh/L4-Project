@@ -565,18 +565,18 @@ We have undertaken a parameter space exploration task to identify the most optim
 \subsection{Feature extraction and visualization}
 As explained previously we have curated a dataset of 73 breast cancer WSIs from TCGA to extract relevant features characterizing their malignancy severity and build a survival time model around those features. We feed each WSI through our pre-processor and subsequently generate a prediction for each individual tile. All predictions for a single WSI are stored in a \texttt{.csv} file as labels against  grid coordinates of its tiles - binary predictions display a 0 or 1 label and continuous predictions display a probability value of belonging to class 1 (malignant). We have then used the \texttt{Pandas} library to process this structured prediction data and calculate, for each WSI, its Malignancy Spread Score and Mean Malignant Intensity as explained in section \ref{sec:covariates}. 
 
-As shown in figure \ref{fig:visualization-example}, we also implemented a visualization pipeline using \texttt{OpenCV} that allows generated predictions to be displayed as a tumour map indicating the predicted regions of malignancy for visual confirmation and validation. Since WSI resolutions are too massive to view the entire image we displayed the predictions as a mask overlaid on top of a downsampled thumbnail of the slide. We downsampled our image to a resolution where the number of image pixels had a 1:1 ratio with the number of tiles, such that a tile at grid coordinate \((X, Y)\) represents the pixel at that coordinate on the thumbnail. Based on each tile's predicted value, we mapped the corresponding pixel to a colour - discrete colour map for binary predictions and a continuous colour map for continuous predictions. 
+As shown in figure \ref{fig:visualization-example} and further in appendix \ref{apx:results}, we also implemented a visualization pipeline using \texttt{OpenCV} that displays classification rresults as a tumour map indicating predicted regions of malignancy for visual confirmation and validation. Due to large WSI resolutions, we displayed the predictions as a mask overlaid on top of a downsampled thumbnail of the slide. We downsampled our image to a resolution where the number of image pixels had a 1:1 ratio with the number of tiles, such that a tile at grid coordinate \((X, Y)\) represents the pixel at that coordinate on the thumbnail. Based on each tile's predicted value, we mapped the corresponding pixel to a colour. We used a discrete (green - benign, red - malignant) map for binary predictions and a reversed continuous map for probability predictions (higher malignant intensity maps to darker colours). 
 
 \begin{figure}[h]
     \centering
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[scale=0.37]{images/TCGA-BH-A1FE-noback.png}
+        \includegraphics[scale=0.3]{images/TCGA-BH-A1FE-noback.png}
         \caption{Binary prediction map - red areas represent potential malignancy and green areas represent healthy tissue}
         \label{fig:binary-map}
     \end{subfigure}\hfill%
     ~~
     \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[scale=0.3]{images/TCGA-BH-A1FE-continuous.png}
+        \includegraphics[scale=0.23]{images/TCGA-BH-A1FE-continuous.png}
         \caption{Continuous prediction heatmap - Darker areas represent regions of strong malignant intensity while lighter regions show lower malignant intensity/healthy tissue}
         \label{fig:continuous-heatmap}
     \end{subfigure}
@@ -586,13 +586,13 @@ As shown in figure \ref{fig:visualization-example}, we also implemented a visual
 \end{figure}
 
 \subsection{Regression model fitting}
- As described in section \ref{survival-analysis-methods}, we use the Lifelines Python package to develop our survival time estimation models. We first calculated the scores as illustrated in the previous section from the two types of feature predictions for each WSI in the feature extraction dataset. The calculated scores for each WSI was paired with the ground truth value of actual survival duration of the patient as retrieved from the associated clinical data available on CBioPortal \footnote{https://www.cbioportal.org/study/clinicalData?id=brca\_tcga\_pub2015\%2Cbrca\_tcga\%2Cbrca\_tcga\_pub\%2Cbrca\_tcga\_pan\_can\_atlas\_2018}.
+ As mentioned in section \ref{survival-analysis-methods}, we use the Lifelines Python package to develop our survival models. We first calculated the covariate scores, for each WSI in the feature extraction dataset. The calculated scores for each WSI were paired with the ground truth survival duration of the patient as retrieved from the associated clinical data available on CBioPortal \footnote{https://www.cbioportal.org/study/clinicalData?id=brca\_tcga\_pub2015\%2Cbrca\_tcga\%2Cbrca\_tcga\_pub\%2Cbrca\_tcga\_pan\_can\_atlas\_2018}.
 \\
  \subsubsection{Cox Proportional Hazards Model}\hfill\\
 We use the \texttt{CoxPHFitter} class from the Lifelines package to train a semi-parametric survival model using a dataset containing malignancy scores, survival duration and survival status of each patient. The Cox model uses the survival time of each patient as the duration parameter, the survival status as the event parameter and any other columns provided are used as covariates influencing survival hazard. Based on the input parameters, the Cox model develops a baseline hazard function. This is inferred as a change in population-level hazard over time given the occurrence of an event, i.e. the death of a subject in our case, at different points in time. Any individual patient's corresponding Log-hazard is then considered to be a linear function of their corresponding covariate value and this baseline generated by the Cox model as shown in equation \ref{eq:hazard model}. 
 \\
 \subsubsection{Survival time prediction}\hfill \\
-We obtain two univariate Cox proportional hazard functions, each using one of the two malignancy features as hazard covariate in order to infer their individual impacts as a risk factor on patient survival. Finally, we used each model's \texttt{CoxPHFitter.predict\_median(covariate)} function, with computed value(s) of the corresponding model covariate provided as a parameter. This generated a median survival time prediction for the given score(s), in the same units as the training data, giving us an overall survival prognoses estimate for each patient. 
+We obtain two univariate Cox proportional hazard functions, each using one of the two malignancy features as hazard covariate in order to infer their individual impacts as a risk factor on patient survival. Finally, we used each model's \texttt{CoxPHFitter.predict\_median(covariate)} function, with computed value(s) of the corresponding covariate provided as a parameter. This generated a median survival time prediction for the given score(s), in the same units as the training data, giving us an overall survival prognoses estimate for each patient. 
 
 \begin{figure}[h]
     \centering
@@ -608,7 +608,7 @@ We obtain two univariate Cox proportional hazard functions, each using one of th
         \label{fig:continuous-heatmap}
     \end{subfigure}
 
-    \caption{We illustrate the impact of the two covariates - Malignancy Spread Score and Mean Malignant Intensity - on survival probability over time with each curve corresponding to a different covariate level. Higher covariate values progressively shift the graph further below the baseline survival indicating lower  survival due to higher disease severity. Similarly, lower scores implying relatively less severe malignancy display a graph above the baseline indicating reduced risk and better survival.}
+    \caption{Effect of the two covariates - MSS and MMI - on survival probability over time with each curve corresponding to a different covariate level. Higher covariate values shift the graph further below the baseline survival indicating lower survival. Similarly, lower scores implying relatively less severe malignancy display a graph above the baseline indicating reduced risk and better survival.}
     \label{fig:KM-plot-result}
 \end{figure}
 
@@ -847,11 +847,11 @@ We were restricted to a dataset of 73 WSIs to use for feature extraction and mod
 As illustrated in figure \ref{fig:data-size-RMSE}, we observe a continuous decrease in the prediction RMSE for both covariates with increasing dataset size. The difference between 25\% and 100\% data is only additional samples, which produces a large decrease in prediction RMSE with a relatively small increase in training data. Therefore, despite our model's predictions having large error values, the observed trend indicates that it could be caused by the lack of available clinical data - increasing the size of the training dataset used to fit our survival models is likely to continue improving our model's prediction performance. Furthermore, we notice a large gap in survival data between 150 and 200 months (figure \ref{fig:prediction-calibration}; the available training samples did not contain a true survival duration falling in that range. As a result, our model fails to learn the correlation between our covariates with the missing range of survival times, which will lead to poor generalization when predicting samples that actually belong in that range. Thus, a larger training dataset would be likely to span over a more uniform range of ground-truth values allowing our model to make more accurate predictions over the complete range of survival times. 
 
 \section{Discussion}
-The primary limitation with the classification system we developed, is that our model was trained using patches of breast metastatic sentinel lymph node tissue. The tissue composition in lymph nodes is very different from that observed in the breast tissue samples we have used for feature extraction. Therefore, when given a sample entirely composed of tissue previously unseen in the training data, our model is likely to fail in accurately identifying metastatic cells amidst the healthy tissue. However, we can argue that the learning obtained from breast metastases in lymph nodes does transfer to an extent when making predictions on breast tissue. This is evident from the segmentation maps generated by our model for the TCGA WSIs where the predictions were able to identify distinct regions of high malignant concentration instead of randomly predicting malignant patches all over the tissue. This is likely because the individual malignant cells that metastasize from breast tissue to the lymph nodes retain the same cellular characteristics such that they can be identified by their visual appearance. These results also support the success of our chosen ConvNet architecture as it was able to produce reasonably good results even with contextually different training data. Our model's performance would greatly improve if we directly trained it on breast tissue samples instead of transferring the knowledge from lymph node samples. We resorted to using PCAM data, due to the limited availability of strongly annotated breast cancer samples for our supervised learning approach. A weakly supervised approach would be more appropriate here as it would not require an infeasibly large tiled dataset to be manually annotated. It would instead utilize slide-level annotations of regions of interest to learn relevant tissue structures. 
+The primary limitation with our classification system is that the model was trained using patches of breast metastatic lymph node tissue. The tissue composition in lymph nodes is very different from that observed in the breast tissue samples we have used for feature extraction. Therefore, when given a sample entirely composed of tissue previously unseen in the training data, our model is likely to fail in accurately identifying metastatic cells amidst the healthy tissue. However, we can argue that the learning obtained from breast metastases in lymph nodes does transfer to an extent when making predictions on breast tissue. This is evident from the segmentation maps generated by our model for the TCGA WSIs where the predictions were able to identify distinct regions of high malignant concentration instead of randomly predicting malignant patches all over the tissue. This is likely because the individual malignant cells that metastasize from breast tissue to the lymph nodes retain the same cellular characteristics such that they can be identified by their visual appearance. These results also support the success of our chosen ConvNet architecture as it was able to produce reasonably good results even with contextually different training data. Our model's performance would greatly improve if we directly trained it on breast tissue samples instead of transferring the knowledge from lymph node samples. We resorted to using PCAM data, due to the limited availability of strongly annotated breast cancer samples for our supervised learning approach. A weakly supervised approach would be more appropriate here as it would not require an infeasibly large tiled dataset to be manually annotated. It would instead utilize slide-level annotations of regions of interest to learn relevant tissue structures. 
 
-The task of survival modeling proved to be much more complex, exhibiting high inaccuracies in the predicted overall survival times which was caused by several factors. The primary limitation was that our chosen covariates only acccounted for the risk posed by how widespread the tumour is in a given sample. In reality, patient survival is influenced by several factors beyond just the physical extent of malignancy. These are likely to include age, smoking status, underlying medical conditions, cancer subtype, immune system response and treatment undergone by the patient. Choosing a univariable Cox model disregarded the influence of all factors besides the associated covariate when calculating the disease hazard of each patient. Consequently, the resulting model linearly scaled an incomplete baseline hazard for each patient which is unlikely to precisely characterize their individual survival risk as everyone has a unique combination of external factors affecting their prognosis. However, we observed that our predictions reflected the correct intra-sample survival trends, such that samples with high survival durations were predicted a better prognosis than samples having a lower survival. This implied that the cancer severity quantified by our image covariates had a limited, albeit meaningful, influence on estimating the associated disease hazard allowing it to make predictions in the appropriate directions. Our predictions could be improved by opting for a multivariable Cox approach where we use non-image based clinical data as additional covariates. This would allow us to estimate a more accurate baseline hazard for each patient by accounting for the influence of external protective and risk factors. 
+The task of survival modeling proved to be much more complex, exhibiting high inaccuracies in the predicted overall survival times which was caused by several factors. The primary limitation was that our chosen covariates only accounted for the risk posed by the tumour spread in a given sample. In reality, patient survival is influenced by several factors beyond just the physical extent of malignancy. These are likely to include age, smoking status, underlying medical conditions, cancer subtype, immune system response and treatment undergone by the patient. Choosing a univariate Cox model disregarded the influence of these factors besides the associated covariate when calculating the disease hazard of each patient. Consequently, the resulting model linearly scaled an incomplete baseline hazard for each patient which is unlikely to precisely characterize their individual survival risk as everyone has a unique combination of external factors affecting their prognosis. However, we observed that our predictions reflected the correct intra-sample survival trends, such that samples with high survival durations were predicted a better prognosis than samples having a lower survival. This implied that the cancer severity quantified from the malignancy predictions by our covariates had a limited, albeit meaningful, influence on estimating the associated disease hazard allowing it to make predictions in the appropriate directions. Our predictions could be improved by opting for a multivariable Cox approach where we use non-image based clinical data as additional covariates. This would allow us to estimate a more accurate baseline hazard for each patient by accounting for the influence of external protective and risk factors. 
 
-Overall, the correlation between histopathological image-based features and patient survival was not strong enough to predict survival times precisely. Even if we had more data, due to the influence of multiple external variables, survival times cannot be viably generalized using biopsy slide images alone. However, we did infer that the extent of malignancy observed in WSIs does have some effect on patient survival as it characterized the general survival expectation correctly. Thus, our original goal to minimize the delay in prognosis estimation by eliminating complex data collection tests can still be achieved by supplementing the biopsy image-based features with basic clinical information that do not require complex procedures to obtain. 
+Overall, the correlation between histopathological image-based features and patient survival was not strong enough to predict survival times precisely. Even if we had more data, due to the influence of external variables, survival times cannot be viably generalized using biopsy images alone. However, we did infer that the extent of malignancy observed in WSIs does display some bearing on patient survival as it characterized the general survival expectation correctly. Thus, our original goal to minimize the delay in prognosis estimation by eliminating complex data collection tests can still be achieved by supplementing the biopsy image-based features with basic clinical information that do not require complex procedures to obtain. 
 
 
 
@@ -874,25 +874,138 @@ A potential improvement to explore would be to use multivariable Cox models to i
 
 Another major augmentation to improve survival time predictions would be to use a different survival model instead of the Cox proportional hazards model. Though the most popular approach in demonstrating the effect of varying covariates on relative disease hazard over all points in time, the major drawback associated with Cox models is that the proportional hazard assumption does not hold over time in real life. This is particularly the case when dealing with covariates whose effect becomes more diminished (or pronounced) over time and does not scale linearly with a fixed baseline such as patients developing natural resistance against some form of treatment causing its protective effect to weaken over time. As proposed by \cite{klein2014handbook}, the Aalen additive hazards regression would be more suitable in modeling realistic survival times as it is a parametric model that allows the integration of time-varying covariates. 
 
-% Summarise the whole project for a lazy reader who didn't read the rest (e.g. a prize-awarding committee).
-% \section{Guidance}
-% \begin{itemize}
-%     \item
-%         Summarise briefly and fairly.
-%     \item
-%         You should be addressing the general problem you introduced in the
-%         Introduction.        
-%     \item
-%         Include summary of concrete results (``the new compiler ran 2x
-%         faster'')
-%     \item
-%         Indicate what future work could be done, but remember: \textbf{you
-%         won't get credit for things you haven't done}.
-% \end{itemize}
 
 
 \begin{appendices}
-\chapter{Appendix}
+\chapter{Appendix - Cancer detection results and associated survival duration} \label{apx:results}
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[scale=1]{images/appendix_b/TCGA-AC-A23H-mss.png}
+        \caption{Binary tumour map - red areas imply malignant and green implies benign tissue}
+    \end{subfigure}\hfill%
+    ~~
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[scale=0.5]{images/appendix_b/TCGA-AC-A23H-mmi.png}
+        \caption{Tumour probability heatmap - darker regions imply a stronger malignant signal}
+    \end{subfigure}
+
+    \caption{Predictions generated by our cancer detection model on breast tissue sample of patient TCGA-AC-A23H. \textbf{Recorded survival duration: 6.47 months.}}
+    \label{fig:TCGA-AC-A23H}
+\end{figure}
+
+
+
+\begin{figure}[hbt!]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[scale=0.7]{images/appendix_b/TCGA-GM-A2DA-mss.png}
+        \caption{Binary tumour map - red areas imply malignant and green implies benign tissue}
+    \end{subfigure}\hfill%
+    ~~
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[scale=0.55]{images/appendix_b/TCGA-GM-A2DA-mmi.png}
+        \caption{Tumour probability heatmap - darker regions imply a stronger malignant signal}
+    \end{subfigure}
+
+    \caption{Predictions generated by our cancer detection model on breast tissue sample of patient TCGA-GM-A2DA. \textbf{Recorded survival duration: 216.59 months.}}
+    \label{fig:TCGA-GM-A2DA}
+\end{figure}
+
+\begin{figure}[hbt!]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[scale=0.4]{images/appendix_b/TCGA-BH-A1EV-mss.png}
+        \vspace{0.5cm}
+        \caption{Binary tumour map - red areas imply malignant and green implies benign tissue}
+    \end{subfigure}\hfill%
+    ~~
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[scale=0.6]{images/appendix_b/TCGA-BH-A1EV-mmi.png}
+        \caption{Tumour probability heatmap - darker regions imply a stronger malignant signal}
+    \end{subfigure}
+    \vspace{1cm}
+    \caption{Predictions generated by our cancer detection model on breast tissue sample of patient TCGA-BH-A1EV. \textbf{Recorded survival duration: 11.99 months.}}
+    \label{fig:TCGA-BH-A1EV}
+\end{figure}
+
+\begin{figure}[hbt!]
+    \centering
+    \hspace{-1cm}
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[scale=0.5]{images/appendix_b/TCGA-B6-A0RQ-mss.png}
+        \vspace{0.5cm}
+        \caption{Binary tumour map - red areas imply malignant and green implies benign tissue}
+    \end{subfigure}\hfill%
+    ~~
+    \begin{subfigure}[b]{0.4\textwidth}
+        \hspace{-1cm}
+        \includegraphics[scale=0.75]{images/appendix_b/TCGA-B6-A0RQ-mmi.png}
+        \caption{Tumour probability heatmap - darker regions imply a stronger malignant signal}
+    \end{subfigure}
+    \vspace{1cm}
+    \caption{Predictions generated by our cancer detection model on breast tissue sample of patient TCGA-B6-A0RQ. \textbf{Recorded survival duration: 140.18 months.}}
+    \label{fig:TCGA-B6-A0RQ}
+\end{figure}
+
+
+\begin{figure}[hbt!]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[scale=0.7]{images/appendix_b/TCGA-AR-A1AR-mss.png}
+        \vspace{0.5cm}
+        \caption{Binary tumour map - red areas imply malignant and green implies benign tissue}
+    \end{subfigure}\hfill%
+    ~~
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[scale=0.6]{images/appendix_b/TCGA-AR-A1AR-mmi.png}
+        \caption{Tumour probability heatmap - darker regions imply a stronger malignant signal}
+    \end{subfigure}
+
+    \caption{Predictions generated by our cancer detection model on breast tissue sample of patient TCGA-AR-A1AR. \textbf{Recorded survival duration: 17.21 months.}}
+    \label{fig:TCGA-AR-A1AR}
+\end{figure}
+
+\begin{figure}[hbt!]
+    \centering
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[scale=0.4]{images/appendix_b/TCGA-B6-A0IP-mss.png}
+        \vspace{0.5cm}
+        \caption{Binary tumour map - red areas imply malignant and green implies benign tissue}
+    \end{subfigure}\hfill%
+    ~~
+    \begin{subfigure}[b]{0.4\textwidth}
+        \includegraphics[scale=0.6]{images/appendix_b/TCGA-B6-A0IP-01Z-mmi.png}
+        \caption{Tumour probability heatmap - darker regions imply a stronger malignant signal}
+    \end{subfigure}
+
+    \caption{Predictions generated by our cancer detection model on breast tissue sample of patient TCGA-B6-A0IP. \textbf{Recorded survival duration: 128.98 months.}}
+    \label{fig:TCGA-B6-A0IP}
+\end{figure}
+
+
+
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|c|}
+    \hline
+        Figure & Sample ID & True survival duration (months)  \\ \hline
+        \ref{fig:TCGA-AC-A23H} & TCGA-AC-A23H & 6.47 \\ \hline
+        \ref{fig:TCGA-GM-A2DA} & TCGA-GM-A2DA & 216.59 \\ \hline
+        \ref{fig:TCGA-BH-A1EV} & TCGA-BH-A1EV & 11.99 \\ \hline
+        \ref{fig:TCGA-B6-A0RQ} & TCGA-B6-A0RQ & 140.18 \\ \hline
+        \ref{fig:TCGA-AR-A1AR} & TCGA-AR-A1AR & 17.21 \\ \hline
+        \ref{fig:TCGA-B6-A0IP} & TCGA-B6-A0IP & 128.98 \\ \hline
+    
+    \end{tabular}
+    \caption{Clinical data of overall survival duration for each patient}
+    \label{tab:TCGA-BH-A1EV-data}
+\end{table}
+
+
+\chapter{Appendix - Code snippets}
 
 \begin{lstlisting}[language=python, caption={PCAM Data HDF5 schema - Each set has a group labeled 'x' - containing all the tiles as numpy arrays of 8-bit unsigned integers. Each array has a unique id (0, 1, 2...) and shape \(96 \times 96 \times 3\) indicating a \(96 \times 96\)px RGB tile. The second group labeled 'y' contains the annotations for each tile. The annotations are shown as binary labels against each tile id. }, label= lst:pcam-hdf5]
     # root group
@@ -968,7 +1081,13 @@ Another major augmentation to improve survival time predictions would be to use 
             image = self.transform(image)
             return image, self.labels[index]
 \end{lstlisting}
+
+
+
+
+
 \end{appendices}
+
 
 %==================================================================================================================================
 %   BIBLIOGRAPHY   
