@@ -1,0 +1,2 @@
+Minutes:
+Supervisor meeting - discuss plan for evaluation. Agree that metrics calculated from survival evaluation look really good. Include 3 evaluations for prediction performance (RMSE+SD of 5fold val, prediction calibration and data increase effect). Add Evaluation for cox model using model statistics like Wald test, Log-rank test, regression coeff and hazard ratio + Conf Intervals. Plan to complete eval by next week

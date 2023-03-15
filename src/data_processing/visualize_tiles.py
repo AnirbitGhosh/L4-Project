@@ -99,10 +99,6 @@ def save_heat_map(img_arr, image, output_dir):
     plt.axis('off')
     plt.savefig(fname, format="png", dpi=200)  
 
-#%%
-# img = process_image("TCGA-B6-A0RH-01A.svs", "D:/PCAM DATA/WSI/Whole Slide Images")
-# img = rotate(img, 90)
-# plt.imshow(img)
 
 #%%
 if __name__ == "__main__":

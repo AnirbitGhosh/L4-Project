@@ -1,0 +1,9 @@
+minutes: 
+Discuss dissertation structure - agree to follow template and fit our requirements to the given layout
+  - Refer to dissertation #5 from 2019 hall of fame - Deep learning sample
+  - Agree to finish Intro and background by next week
+  - Intro can have aim, general problem and motivation
+  - background will contain relevant literature used for the project, use all mendeley resources gathered
+  - Briefly talk about survival time prediction results, median times are quite off compared to CBioPortal clinical data
+  - agree that it is not essential to get the exact same prediction as we are not using any clinical data, there is no "wrong" prediction as long as Cox model shows significantly reasonable variations with different levels of the chosen covariate (mean intensity)
+  - Can be explained in evaluation of viability of the whole project as there were lack of data, lack of clinical annotations etc which might all be affecting predictions. 

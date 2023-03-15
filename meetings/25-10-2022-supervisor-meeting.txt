@@ -1,0 +1,22 @@
+Progress made and points to discuss: 
+- Had less time as an essay is due, with a group presentation and other coursework
+- Created custom CNN with 2 FC layers to take as input 96x96 tiles
+- Trained the Network with 1000 PCAM images 
+- used an ADAM optimizer, with a NLLLoss function to achieve a 78% accuracy with PCAM validation data
+- Saved the state_dict of the trained model to use for inference
+- loaded the saved state_dict into a model, transformed images with the required transforms and converted into [3,96,96] tensors to use as input
+- Pass TCGA WSI tiles (96x96px) as input to the Network
+- obtain a list of binary outputs, 1 - MALIGNANT or 0 - BENIGN
+- Plot a subset of the images with a color map based on their predicted labels
+
+Minutes:
+- Discussed transfer learning of Resnet18
+- Show the internal structure of Resnet18
+- Discuss image size concern of training a Resnet18 model with anything besides 224x224 images
+- Potential application of PCAM data to other breast cancer
+- Look at CBioPortal to understand the clinical data available
+- Discuss what KM plot is
+- CBioPortal data has overall survival time for patients in months
+- Use survival times of patients that are deceased as labels along with other clinical data columns as features to create a model to predict survival time
+- Way to include the image analysis results into survival analysis
+- Task for next week is to train transfer learning and visualize results of neural net predictions on whole slide image

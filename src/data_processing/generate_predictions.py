@@ -82,13 +82,6 @@ def get_class_predictions(model, tile_dir, image_dir, output_dir):
         csv_name = dirname + "-predictions.csv"
         df.to_csv(os.path.join(output_dir, csv_name))     
 
-#%%
-# model = read_model("D:/PCAM DATA/trained_models/weights_01_100k.pt")
-# transform  = validation_transfomer()
-# img = Image.open("D:/PCAM DATA/WSI/downsampled_tiles/TCGA-B6-A0RH-01A/29_40.tif")
-# input_img = transform(img)
-# output = model(input_img)
-# print(np.exp(output.data[0].numpy())[1])
 
 #%%
 def get_probability_predictions(model, tile_dir, image_dir, output_dir):
@@ -131,7 +124,7 @@ if __name__ == "__main__" :
     net_path = args.net
     tile_dir = args.tiles
     out_dir = args.output
-    # image_dir = "D:/PCAM DATA/WSI/Whole Slide Images"
+    
     image_dir = args.whole
     print("Locating directories... DONE!")
     

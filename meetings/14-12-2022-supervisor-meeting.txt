@@ -1,0 +1,26 @@
+Minutes:
+- Analyse each WSI heatmap to evaluate probability predictions over previous implementation of binary predictions: Much better results,
+with clear regions of high darkness indicating realistic tumour predictions. 
+- Slide containing clinical annotation (pen marks circling tumour region) seems to adhere to the generated predictions as the dark regions are enclosed within
+the pen marked circle and all tissue outside the marked region is predicted as non-malignant. 
+- Some tissues show unexpected predictions on the heatmap - slides with clearly distinct regions of different tissue types, the area predicted as non-malignant
+is smoother and more consistent whereas area predicted as malignant is more noisy and irregular. Inspected original WSI of these slides to see that there are 
+very different tissue types in these regions. The malignant region seems to be the breast tissue with a lot of debris and intersparsed fatty tissue whereas the negative
+regions are continuous regions of muscle/non-breast tissue causing smoother and more consistent non-malignant prediction in those areas. 
+- Analyse heatmaps of CAM17 data with annotations to verify validity. Predictions seem consistent with annotations with dark tiles in the regions expected to be malignant, 
+and also more regions that are not annotated - could be due to the fact that CAM17 data did not fully annotate all cancer regions in a given slide and only identified a single region
+that matched its definition of "positive" malignancy which is a 32x32px region with at least one cancer positive cell in it. 
+- Discuss survival modelling : Features to be extracted can be malignancy score thresholded at a higher probability instead of 0.5 like the binary model did.
+Thresholding at a higher probability like 0.7 will only consider the tiles most likely to be malignant in counting the number of malignant tiles as a percentage of
+total tiles. This will give a more representative malignancy score for a given tissue sample. Using 0.5 threshold like the binary model, overpredicted malignancy 
+which could have skewed survival models by assigning inflated malignancy scores to patients. This is a tile level feature giving a much more fine grained feature to 
+exactly quantify the precise malignant regions in a tissue
+- Another feature that can be used is the mean intensity of the heatmaps generated. The heatmaps use a continuous colour map mapping probability values between 0 and 1 to a colour.
+Values closer to 0 being lighter and higher probability (closer to 1) being darker. This feature is a tissue level feature quantifying the overall malignancy of the sample. 
+A higher mean intensity of the tissue (across all tiles) will indicate a much darker heatmap, indicating an overall more malignant sample with more regions of high malignancy likelihoods. 
+Whereas a lower mean intensity indicates a lighter heatmap with more regions of low malignancy likelihoods which represents an overall less malignant tissue sample.
+- Use two features for survival modelling - Malignancy score and Mean intensity and generate KM plots to see which is more reasonable. 
+- Discuss status report - End of sem status report to be emailed to supervisor. Reach agreement that coding part of the project can be considered done and can start working on 
+dissertation writing. While writing dissertation background and scientific analysis, certain concepts might come to light that can be implemented to the existing code to improve 
+prediction model or feature extraction for survival. Set target of first draft by end of january. 
+- Agree to send results of survival model using new features and probability prediction model by end of the week and conclude working for the upcoming week until christmas. 

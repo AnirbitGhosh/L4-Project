@@ -1,0 +1,25 @@
+Minutes: 
+- Discussed results of predictions generated - seems good, with enough variance in positive and negative tiles to be considered valid 
+However, no annotated data to verify. Look into potential cam17 data to use our network to predict and see if it matches ground truth tumor predictions
+- Discussed TanH vs ReLU 
+- Setup environment and openslide and run tiling script of 20 WSI from TCGA.
+- Run Prediction on those 20 WSI tiles and save results in CSV and visualized prediction masks
+- The results are of good resolution due to the size of the images and number of tiles. However, there seem to some issues with some slides being almost entirely positive
+with negatives around the edges or scattered sparsely in the interior
+- difficult to really conclusively say if this is accurate predictions over the WSI without some manual annotation done by a pathologist ... 
+some predictions do seem to have "regions of tumour" predicted and also "regions of normal tissue" ... 
+although the normal tissue is mostly where there are "edges" or "broken up tissue with background showing" ... 
+difficult to really conclusively say whether this model is doing good regional WSI predictions or  not without annotated WSI unfortunately ... 
+but I guess if the model is predictive of OS then it would suggest it is being reasonably accurate in terms of tile predictions for TCGA 
+(i.e. it is generalizating from Camelyon tiles onto TCGA tiles) ... I guess a good check might be to use Camelyon 16/17 WSI with clear regions of 
+normal tissue / tumour tissue ... like the annotated WSI shown on the web site of Camelyon 17 site
+- This would give a strong idea that it is doing regional predictions of WSI (and level of FP, FN predictions within these regions) ... would just build 
+confidence in terms of the model (although cross-validated accuracies on PCam already should indicate how accurate the model is).
+- be interesting to see if these tile numbers / proportions are predictive for OS or some other slide-level WSI diagnostic / prognositic
+- I certainly think it would be ok to take this model further. (I think if it was predicting all tiles as +ve or all tiles -ve ... a bit like Binghao's predictions for external datasets ... 
+then this would be an issue ... but it does seem quite 'balanced' in predicting a good number of tiles +ve and a good number -ve on the TCGA WSI dataset.)
+- Look into BRCA data to find annotated WSI samples - https://zenodo.org/record/5320076#.Y4olBTPP0UE - Contains some annotated slides from TCGA BRCA
+- Annotations of this are pathologist approved. So can used to validate model visually comparing results. However, annotations in the BRCA.zip file are in a csv format of
+x and y coordinates which are used to annotate slides in qupath. 
+- Look into ways of using QUPath and visualize these annotations. 
+- Same issue with CAM17 data, annotations are in a hard to access format requiring a lot of coding or specialized software to actually be able to see the annotated slides

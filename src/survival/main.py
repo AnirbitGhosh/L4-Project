@@ -7,92 +7,105 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+import argparse
 
-#%%
-survival_df = pd.read_csv("D:/PCAM DATA/Survival/survival_data.csv")
-survival_df.head()
+def dir_path(string):
+    if os.path.isdir(string):
+        return string
+    else:
+        raise NotADirectoryError(string)
 
-# %%
-score = {}
-pred_path = "D:/PCAM DATA/WSI/final_predictions/"
-for prediction in os.listdir(pred_path):
-    if prediction.endswith(".csv"):
-        df = pd.read_csv(os.path.join(pred_path, prediction), index_col="Unnamed: 0")
-        counts = df['predictions'].value_counts()
-        malignant_score = counts[1]/len(df)
-        score[prediction[:12]] = malignant_score
+parser = argparse.ArgumentParser()
+parser.add_argument('-p', '--prediction', type=dir_path, help='Pass directory path containing prediction data with -p flag', default="D:/PCAM DATA/Prediction_data/probability_predictions_all")
+parser.add_argument('-s', '--survival',  help="Pass survival data file path with -s flag", default="D:/PCAM DATA/Survival/survival_data.csv")
 
-# %%
-print(score)
+if __name__ == "__main__":
+    args = parser.parse_args()
+    #%%
+    survival_df = pd.read_csv(args.survival)
+    survival_df.head()
 
-# %%
-for id in score.keys():
-    idx = survival_df.index[survival_df['Patient ID'] == id][0]
-    survival_df.loc[idx, "Malignancy Score"] = score[id]
+    # %%
+    score = {}
+    pred_path = args.prediction
+    for prediction in os.listdir(pred_path):
+        if prediction.endswith(".csv"):
+            df = pd.read_csv(os.path.join(pred_path, prediction), index_col="Unnamed: 0")
+            counts = df['predictions'].value_counts()
+            malignant_score = counts[1]/len(df)
+            score[prediction[:12]] = malignant_score
 
-survival_df["Malignancy Score"] = survival_df["Malignancy Score"].replace(np.nan, 0)
+    # %%
+    print(score)
 
-# %%
-# label fixing
-survival_df["OS_STATUS"] = np.where(survival_df["OS_STATUS"] == "1:DECEASED", 1, 0)
-counts = survival_df["OS_STATUS"].value_counts()
-print(counts)
+    # %%
+    for id in score.keys():
+        idx = survival_df.index[survival_df['Patient ID'] == id][0]
+        survival_df.loc[idx, "Malignancy Score"] = score[id]
 
-# %%
-survival_df.head()
+    survival_df["Malignancy Score"] = survival_df["Malignancy Score"].replace(np.nan, 0)
 
-# %%
-# Drop empty rows
-survival_df.dropna(axis=0, how='any', inplace=True)
-survival_df.isnull().sum()
+    # %%
+    # label fixing
+    survival_df["OS_STATUS"] = np.where(survival_df["OS_STATUS"] == "1:DECEASED", 1, 0)
+    counts = survival_df["OS_STATUS"].value_counts()
+    print(counts)
 
-counts = survival_df["OS_STATUS"].value_counts()
-print(counts)
+    # %%
+    survival_df.head()
 
-# %%
-survival_df = survival_df[survival_df["Malignancy Score"] != 0.0]
-survival_df.head()
+    # %%
+    # Drop empty rows
+    survival_df.dropna(axis=0, how='any', inplace=True)
+    survival_df.isnull().sum()
 
-########################################################
-########################################################
+    counts = survival_df["OS_STATUS"].value_counts()
+    print(counts)
 
-# %%
-#KM plot
-T = survival_df["OS_MONTHS"]
-E = survival_df["OS_STATUS"]
-kmf = KaplanMeierFitter()
-kmf.fit(durations= T, event_observed = E)
-kmf.plot_survival_function()
-plt.title("Survival Plot")
+    # %%
+    survival_df = survival_df[survival_df["Malignancy Score"] != 0.0]
+    survival_df.head()
 
-# %%
-median_ = kmf.median_survival_time_
-median_confidence_interval = median_survival_times(kmf.confidence_interval_)
+    ########################################################
+    ########################################################
 
-print(median_)
-print(median_confidence_interval)
+    # %%
+    #KM plot
+    T = survival_df["OS_MONTHS"]
+    E = survival_df["OS_STATUS"]
+    kmf = KaplanMeierFitter()
+    kmf.fit(durations= T, event_observed = E)
+    kmf.plot_survival_function()
+    plt.title("Survival Plot")
 
-# %%
-## Cox model
-data = survival_df[['OS_MONTHS', 'OS_STATUS', 'Malignancy Score']]
-data.head()
+    # %%
+    median_ = kmf.median_survival_time_
+    median_confidence_interval = median_survival_times(kmf.confidence_interval_)
 
-# %%
-cph = CoxPHFitter()
-cph.fit(data, duration_col='OS_MONTHS', event_col='OS_STATUS')
-cph.print_summary()
+    print(median_)
+    print(median_confidence_interval)
 
-# %%
-plt.subplots(figsize=(10, 6))
-cph.plot()
+    # %%
+    ## Cox model
+    data = survival_df[['OS_MONTHS', 'OS_STATUS', 'Malignancy Score']]
+    data.head()
 
-# %%
-cph.plot_partial_effects_on_outcome(covariates='Malignancy Score', values=[
-    0.1, 0.5, 0.75, 0.9
-    ], cmap='coolwarm')
+    # %%
+    cph = CoxPHFitter()
+    cph.fit(data, duration_col='OS_MONTHS', event_col='OS_STATUS')
+    cph.print_summary()
 
-# %%
-results = proportional_hazard_test(cph, data, time_transform='rank')
-results.print_summary(decimals=3, model="untransformed variables")
+    # %%
+    plt.subplots(figsize=(10, 6))
+    cph.plot()
+
+    # %%
+    cph.plot_partial_effects_on_outcome(covariates='Malignancy Score', values=[
+        0.1, 0.5, 0.75, 0.9
+        ], cmap='coolwarm')
+
+    # %%
+    results = proportional_hazard_test(cph, data, time_transform='rank')
+    results.print_summary(decimals=3, model="untransformed variables")
 
 # %%

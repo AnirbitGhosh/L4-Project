@@ -1,0 +1,12 @@
+Minutes
+- Show problems with Resnet training time, agree to train with less data and see how predictions look like on smaller dataset
+- Explain KM plot and Cox models. 
+- Study : https://medium.com/the-researchers-guide/survival-analysis-in-python-km-estimate-cox-ph-and-aft-model-5533843c5d5d, paper on python 
+survival analysis. 
+- Check out Lifelines library that gives ready-to-use KaplanmeierFitter and CoxPHFitter
+- Discuss clinical data usage in developing survival model - Clinical data should be secondary as main goal is to quantify slide images to survival prediciton
+- Agree to try initial survival model using only image features, an initial feature could be percentage of positive tiles as a score to quantify severity
+- Come up with other ideas for image features
+- Check validity of using percentage of positive tiles as a quantifier. Download WSI for two different patients, using the KM plot data from CBioPortal to 
+represent two extreme ends of the survival spectrum and see if the current model generates a good score that would be expected. 
+- Low survival time -> higher score (more positive tiles, more severe tumour) vs High survival time -> lower score

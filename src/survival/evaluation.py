@@ -9,275 +9,289 @@ import numpy as np
 import sklearn.metrics as sk
 import math
 import statistics
+import argparse
 
-#%%
-pred_dir = "D:/PCAM DATA/Prediction_data/full_perdiction_set"
-pred_dir_prob = "D:/PCAM DATA/Prediction_data/probability_predictions_all"
-data_path ="D:/PCAM DATA/Survival/survival_data.csv"
+def dir_path(string):
+    if os.path.isdir(string):
+        return string
+    else:
+        raise NotADirectoryError(string)
 
-data_binary = read_data(data_path, pred_dir)
-data_prob = read_data_prob(data_path, pred_dir_prob)
+parser = argparse.ArgumentParser()
+parser.add_argument('-p', '--prob', type=dir_path, help='Pass directory path containing probability prediction data with -p flag', default="D:/PCAM DATA/Prediction_data/probability_predictions_all")
+parser.add_argument('-b', '--binary', type=dir_path, help="Pass directiory with binary prediction data with -b flag", default="D:/PCAM DATA/Prediction_data/full_perdiction_set")
+parser.add_argument('-s', '--survival',  help="Pass survival data file path with -s flag", default="D:/PCAM DATA/Survival/survival_data.csv")
 
-# %%
-data_binary =  data_binary[data_binary["Malignancy Score"] != 0.0]
-print(data_binary.head())
+if __name__ == "__main__":
+    args = parser.parse_args()
+    #%%
+    pred_dir = args.binary
+    pred_dir_prob = args.prob
+    data_path =args.survival
 
-data_prob = data_prob[data_prob["Mean Intensity"] != -1]
-print(data_prob.head())
+    data_binary = read_data(data_path, pred_dir)
+    data_prob = read_data_prob(data_path, pred_dir_prob)
 
-# %%
-#### Checking trend between predicted and actual survival ######
-cox_binary_data, cox_binary = cox_model(data_binary)
-cox_intensity_data, cox_intensity = cox_model_intensity(data_prob)
+    # %%
+    data_binary =  data_binary[data_binary["Malignancy Score"] != 0.0]
+    print(data_binary.head())
 
-# %%
-data_binary['median_prediction'] = cox_binary.predict_median(cox_binary_data)
-print(data_binary.head())
-data_prob['median_prediction'] = cox_intensity.predict_median(cox_intensity_data)
-print(data_prob.head())
+    data_prob = data_prob[data_prob["Mean Intensity"] != -1]
+    print(data_prob.head())
 
-# %%
-prob_x = data_prob["OS_MONTHS"]
-prob_y = data_prob["median_prediction"]
-prob_a, prob_b = np.polyfit(prob_x, prob_y, 1)
+    # %%
+    #### Checking trend between predicted and actual survival ######
+    cox_binary_data, cox_binary = cox_model(data_binary)
+    cox_intensity_data, cox_intensity = cox_model_intensity(data_prob)
 
-plt.scatter(prob_x, prob_y, label="Survival time")
-plt.plot(prob_x, prob_a*prob_x+prob_b, 'r', label="Linear best fit")
-plt.xlabel("Actual survival duration (months)")
-plt.ylabel("Predicted median survival time (months)")
-plt.yticks(np.linspace(0, 200, 5))
-plt.title("Predicted vs actual survival time - MMI covariate")
-plt.legend()
-plt.savefig("../../dissertation/images/pva-mmi.png", format='png')
+    # %%
+    data_binary['median_prediction'] = cox_binary.predict_median(cox_binary_data)
+    print(data_binary.head())
+    data_prob['median_prediction'] = cox_intensity.predict_median(cox_intensity_data)
+    print(data_prob.head())
 
-# %%
-bin_x = data_binary["OS_MONTHS"]
-bin_y = data_binary["median_prediction"]
-bin_a, bin_b = np.polyfit(bin_x, bin_y, 1)
+    # %%
+    prob_x = data_prob["OS_MONTHS"]
+    prob_y = data_prob["median_prediction"]
+    prob_a, prob_b = np.polyfit(prob_x, prob_y, 1)
 
-plt.scatter(bin_x, bin_y, label="Survival time")
-plt.plot(bin_x, bin_a*bin_x+bin_b, 'r', label="Linear best fit")
-plt.xlabel("Actual survival duration (months)")
-plt.ylabel("Predicted median survival time (months)")
-plt.yticks(np.linspace(0, 200, 5))
-plt.title("Predicted vs actual survival time - MSS covariate")
-plt.legend()
-plt.savefig("../../dissertation/images/pva-mss.png", format='png')
+    plt.scatter(prob_x, prob_y, label="Survival time")
+    plt.plot(prob_x, prob_a*prob_x+prob_b, 'r', label="Linear best fit")
+    plt.xlabel("Actual survival duration (months)")
+    plt.ylabel("Predicted median survival time (months)")
+    plt.yticks(np.linspace(0, 200, 5))
+    plt.title("Predicted vs actual survival time - MMI covariate")
+    plt.legend()
+    plt.savefig("../../dissertation/images/pva-mmi.png", format='png')
 
-#%%
-######## Dataset size effect ######
-def calculate_rmse(train, valid, cox_model):
-    cox_fold_data, cox_fold = cox_model(train) 
-    predictions = cox_fold.predict_median(valid)
+    # %%
+    bin_x = data_binary["OS_MONTHS"]
+    bin_y = data_binary["median_prediction"]
+    bin_a, bin_b = np.polyfit(bin_x, bin_y, 1)
 
-    actual = valid["OS_MONTHS"]
-    rmse = math.sqrt(sk.mean_squared_error(actual, predictions))
-    return rmse
+    plt.scatter(bin_x, bin_y, label="Survival time")
+    plt.plot(bin_x, bin_a*bin_x+bin_b, 'r', label="Linear best fit")
+    plt.xlabel("Actual survival duration (months)")
+    plt.ylabel("Predicted median survival time (months)")
+    plt.yticks(np.linspace(0, 200, 5))
+    plt.title("Predicted vs actual survival time - MSS covariate")
+    plt.legend()
+    plt.savefig("../../dissertation/images/pva-mss.png", format='png')
 
-train_data_binary = data_binary
-train_data_prob = data_prob
+    #%%
+    ######## Dataset size effect ######
+    def calculate_rmse(train, valid, cox_model):
+        cox_fold_data, cox_fold = cox_model(train) 
+        predictions = cox_fold.predict_median(valid)
 
-#%%
-#### BINARY DATA
-### 25% dataset
-len_25 = len(train_data_binary) // 4
-train_data_25 = train_data_binary[:len_25]
-binary_25_rmse = calculate_rmse(train_data_25, data_binary, cox_model)
-print("RMSE 25% binary training data: ", binary_25_rmse)
+        actual = valid["OS_MONTHS"]
+        rmse = math.sqrt(sk.mean_squared_error(actual, predictions))
+        return rmse
 
-### 50% dataset
-len_50 = len(train_data_binary) // 2
-train_data_50 = train_data_binary[:len_50]
-binary_50_rmse = calculate_rmse(train_data_50, data_binary, cox_model)
-print("RMSE 50% binary training data: ", binary_50_rmse)
+    train_data_binary = data_binary
+    train_data_prob = data_prob
 
-### 75%
-len_75 = (len(train_data_binary) // 4)*3
-train_data_75 = train_data_binary[:len_75]
-binary_75_rmse = calculate_rmse(train_data_75, data_binary, cox_model)
-print("RMSE 75% binary training data: ", binary_75_rmse)
+    #%%
+    #### BINARY DATA
+    ### 25% dataset
+    len_25 = len(train_data_binary) // 4
+    train_data_25 = train_data_binary[:len_25]
+    binary_25_rmse = calculate_rmse(train_data_25, data_binary, cox_model)
+    print("RMSE 25% binary training data: ", binary_25_rmse)
 
-### 100%
-train_data_100 = train_data_binary
-binary_100_rmse = calculate_rmse(train_data_100, data_binary, cox_model)
-print("RMSE 100% binary training data: ", binary_100_rmse)
+    ### 50% dataset
+    len_50 = len(train_data_binary) // 2
+    train_data_50 = train_data_binary[:len_50]
+    binary_50_rmse = calculate_rmse(train_data_50, data_binary, cox_model)
+    print("RMSE 50% binary training data: ", binary_50_rmse)
 
+    ### 75%
+    len_75 = (len(train_data_binary) // 4)*3
+    train_data_75 = train_data_binary[:len_75]
+    binary_75_rmse = calculate_rmse(train_data_75, data_binary, cox_model)
+    print("RMSE 75% binary training data: ", binary_75_rmse)
 
-#%%
-#### PROB DATA
-### 25% dataset
-len_25 = len(train_data_prob) // 4
-train_data_25 = train_data_prob[:len_25]
-prob_25_rmse = calculate_rmse(train_data_25, data_prob, cox_model)
-print("RMSE 25% prob training data: ", prob_25_rmse)
-
-### 50% dataset
-len_50 = len(train_data_prob) // 2
-train_data_50 = train_data_prob[:len_50]
-prob_50_rmse = calculate_rmse(train_data_50, data_prob, cox_model)
-print("RMSE 50% prob training data: ", prob_50_rmse)
-
-### 75%
-len_75 = (len(train_data_prob) // 4)*3
-train_data_75 = train_data_prob[:len_75]
-prob_75_rmse = calculate_rmse(train_data_75, data_prob, cox_model)
-print("RMSE 75% prob training data: ", prob_75_rmse)
-
-### 100%
-train_data_100 = train_data_prob
-prob_100_rmse = calculate_rmse(train_data_100, data_prob, cox_model)
-print("RMSE 100% prob training data: ", prob_100_rmse)
-
-#%%
-x = [25, 50, 75, 100]
-y1 = [prob_25_rmse, prob_50_rmse, prob_75_rmse, prob_100_rmse]
-y2 = [binary_25_rmse, binary_50_rmse, binary_75_rmse, binary_100_rmse]
-
-plt.figure()
-plt.plot(x, y1, label="Mean malignant intensity")
-plt.plot(x, y2, label="Malignancy spread score")
-plt.xticks(x)
-plt.xlabel("Training data size as % of total dataset")
-plt.ylabel("RMSE (months)")
-plt.title("RMSE vs training data size")
-plt.legend()
-
-# %%
-###### 5 fold cross validation ########
-#### Probability Data
-prob_fold_1 = data_prob[:15]
-prob_fold_2 = data_prob[15:30]
-prob_fold_3 = data_prob[30:45]
-prob_fold_4 = data_prob[45:60]
-prob_fold_5 = data_prob[60:]
-
-def calculate_rmse(train, valid, cox_model):
-    cox_fold_data, cox_fold = cox_model(train) 
-    predictions = cox_fold.predict_median(valid)
-
-    actual = valid["OS_MONTHS"]
-    rmse = math.sqrt(sk.mean_squared_error(actual, predictions))
-    
-    return rmse
-
-#%%
-#### FOLD 1
-train_data =  prob_fold_2.append([prob_fold_3, prob_fold_4, prob_fold_5])
-valid_data1 = prob_fold_1
-
-fold1_rmse_prob = calculate_rmse(train_data, valid_data1, cox_model_intensity)
-print("Fold 1 RMSE SCORE : ", fold1_rmse_prob)
-
-# %%
-#### FOLD 2
-train_data =  prob_fold_1.append([prob_fold_3, prob_fold_4, prob_fold_5])
-valid_data2 = prob_fold_2
-
-fold2_rmse_prob = calculate_rmse(train_data, valid_data2, cox_model_intensity)
-print("Fold 2 RMSE SCORE : ", fold2_rmse_prob)
-
-# %%
-#### FOLD 3
-    
-train_data =  prob_fold_1.append([prob_fold_2, prob_fold_4, prob_fold_5])
-valid_data3 = prob_fold_3
-
-fold3_rmse_prob = calculate_rmse(train_data, valid_data3, cox_model_intensity)
-print("Fold 3 RMSE SCORE : ", fold3_rmse_prob)
-
-# %%
-#### FOLD 4
-train_data =  prob_fold_1.append([prob_fold_2, prob_fold_3, prob_fold_5])
-valid_data4 = prob_fold_4
-
-fold4_rmse_prob = calculate_rmse(train_data, valid_data4, cox_model_intensity)
-print("Fold 4 RMSE SCORE : ", fold4_rmse_prob)
-
-# %%
-#### FOLD 5
-train_data =  prob_fold_1.append([prob_fold_2, prob_fold_3, prob_fold_4])
-valid_data5 = prob_fold_5
-
-fold5_rmse_prob = calculate_rmse(train_data, valid_data5, cox_model_intensity)
-print("Fold 5 RMSE SCORE : ", fold5_rmse_prob)
-
-# %%
-intensity_mean_rmse = statistics.mean([fold1_rmse_prob, fold2_rmse_prob, fold3_rmse_prob, fold4_rmse_prob, fold5_rmse_prob])
-intensity_sd_rmse = statistics.stdev([fold1_rmse_prob, fold2_rmse_prob, fold3_rmse_prob, fold4_rmse_prob, fold5_rmse_prob])
-print("Average RMSE across 5 folds when using intensity score: ", intensity_mean_rmse)
-print("Std Dev across 5 folds when using intensity score: ", intensity_sd_rmse)
-
-# %%
-###### 5 fold cross validation ########
-#### Binary Data
-bin_fold_1 = data_binary[:15]
-bin_fold_2 = data_binary[15:30]
-bin_fold_3 = data_binary[30:45]
-bin_fold_4 = data_binary[45:60]
-bin_fold_5 = data_binary[60:]
-
-print(len(bin_fold_5))
+    ### 100%
+    train_data_100 = train_data_binary
+    binary_100_rmse = calculate_rmse(train_data_100, data_binary, cox_model)
+    print("RMSE 100% binary training data: ", binary_100_rmse)
 
 
-#%%
-#### FOLD 1
-train_data =  bin_fold_2.append([bin_fold_3, bin_fold_4, bin_fold_5])
-valid_data1 = bin_fold_1
+    #%%
+    #### PROB DATA
+    ### 25% dataset
+    len_25 = len(train_data_prob) // 4
+    train_data_25 = train_data_prob[:len_25]
+    prob_25_rmse = calculate_rmse(train_data_25, data_prob, cox_model)
+    print("RMSE 25% prob training data: ", prob_25_rmse)
 
-fold1_rmse = calculate_rmse(train_data, valid_data1, cox_model)
-print("Fold 1 (binary) RMSE SCORE : ", fold1_rmse)
+    ### 50% dataset
+    len_50 = len(train_data_prob) // 2
+    train_data_50 = train_data_prob[:len_50]
+    prob_50_rmse = calculate_rmse(train_data_50, data_prob, cox_model)
+    print("RMSE 50% prob training data: ", prob_50_rmse)
 
-# %%
-#### FOLD 2
-train_data =  bin_fold_1.append([bin_fold_3, bin_fold_4, bin_fold_5])
-valid_data2 = bin_fold_2
+    ### 75%
+    len_75 = (len(train_data_prob) // 4)*3
+    train_data_75 = train_data_prob[:len_75]
+    prob_75_rmse = calculate_rmse(train_data_75, data_prob, cox_model)
+    print("RMSE 75% prob training data: ", prob_75_rmse)
 
-fold2_rmse = calculate_rmse(train_data, valid_data2, cox_model)
-print("Fold 2 (binary) RMSE SCORE : ", fold2_rmse)
+    ### 100%
+    train_data_100 = train_data_prob
+    prob_100_rmse = calculate_rmse(train_data_100, data_prob, cox_model)
+    print("RMSE 100% prob training data: ", prob_100_rmse)
 
-# %%
-#### FOLD 3
-train_data =  bin_fold_1.append([bin_fold_2, bin_fold_4, bin_fold_5])
-valid_data3 = bin_fold_3
+    #%%
+    x = [25, 50, 75, 100]
+    y1 = [prob_25_rmse, prob_50_rmse, prob_75_rmse, prob_100_rmse]
+    y2 = [binary_25_rmse, binary_50_rmse, binary_75_rmse, binary_100_rmse]
 
-fold3_rmse = calculate_rmse(train_data, valid_data3, cox_model)
-print("Fold 3 (binary) RMSE SCORE : ", fold3_rmse)
+    plt.figure()
+    plt.plot(x, y1, label="Mean malignant intensity")
+    plt.plot(x, y2, label="Malignancy spread score")
+    plt.xticks(x)
+    plt.xlabel("Training data size as % of total dataset")
+    plt.ylabel("RMSE (months)")
+    plt.title("RMSE vs training data size")
+    plt.legend()
 
-# %%
-#### FOLD 4
-train_data =  bin_fold_1.append([bin_fold_2, bin_fold_3, bin_fold_5])
-valid_data4 = bin_fold_4
+    # %%
+    ###### 5 fold cross validation ########
+    #### Probability Data
+    prob_fold_1 = data_prob[:15]
+    prob_fold_2 = data_prob[15:30]
+    prob_fold_3 = data_prob[30:45]
+    prob_fold_4 = data_prob[45:60]
+    prob_fold_5 = data_prob[60:]
 
-fold4_rmse = calculate_rmse(train_data, valid_data4, cox_model)
-print("Fold 4 (binary) RMSE SCORE : ", fold4_rmse)
+    def calculate_rmse(train, valid, cox_model):
+        cox_fold_data, cox_fold = cox_model(train) 
+        predictions = cox_fold.predict_median(valid)
 
-# %%
-#### FOLD 5
-train_data =  bin_fold_1.append([bin_fold_2, bin_fold_3, bin_fold_4])
-valid_data5 = bin_fold_5
+        actual = valid["OS_MONTHS"]
+        rmse = math.sqrt(sk.mean_squared_error(actual, predictions))
+        
+        return rmse
 
-fold5_rmse = calculate_rmse(train_data, valid_data5, cox_model)
-print("Fold 5 (binary) RMSE SCORE : ", fold5_rmse)
+    #%%
+    #### FOLD 1
+    train_data =  prob_fold_2.append([prob_fold_3, prob_fold_4, prob_fold_5])
+    valid_data1 = prob_fold_1
 
-# %%
-score_mean_rmse = statistics.mean([fold1_rmse, fold2_rmse, fold3_rmse, fold4_rmse, fold5_rmse])
-score_sd_rmse = statistics.stdev([fold1_rmse, fold2_rmse, fold3_rmse, fold4_rmse, fold5_rmse])
-print("Average RMSE across 5 folds when using binary malignancy score: ", score_mean_rmse)
-print("Std Dev across 5 folds when using binary malignancy score: ", score_sd_rmse)
+    fold1_rmse_prob = calculate_rmse(train_data, valid_data1, cox_model_intensity)
+    print("Fold 1 RMSE SCORE : ", fold1_rmse_prob)
 
-# %%
-prob_x = [fold1_rmse_prob, fold2_rmse_prob, fold3_rmse_prob, fold4_rmse_prob, fold5_rmse_prob]
-bin_x = [fold1_rmse, fold2_rmse, fold3_rmse, fold4_rmse, fold5_rmse]
-data = [prob_x, bin_x]
-x_val = [1, 2]
-x_labels = ["Mean Malignant Intensity", "Malignancy Spread Score"]
+    # %%
+    #### FOLD 2
+    train_data =  prob_fold_1.append([prob_fold_3, prob_fold_4, prob_fold_5])
+    valid_data2 = prob_fold_2
 
-fig, ax = plt.subplots(1, 1)
+    fold2_rmse_prob = calculate_rmse(train_data, valid_data2, cox_model_intensity)
+    print("Fold 2 RMSE SCORE : ", fold2_rmse_prob)
 
-ax.boxplot(data)
-ax.set_xlabel("Covariates")
-ax.set_ylabel("RMSE (months)")
-ax.set_xticklabels(x_labels)
-ax.grid()
-plt.show()
+    # %%
+    #### FOLD 3
+        
+    train_data =  prob_fold_1.append([prob_fold_2, prob_fold_4, prob_fold_5])
+    valid_data3 = prob_fold_3
+
+    fold3_rmse_prob = calculate_rmse(train_data, valid_data3, cox_model_intensity)
+    print("Fold 3 RMSE SCORE : ", fold3_rmse_prob)
+
+    # %%
+    #### FOLD 4
+    train_data =  prob_fold_1.append([prob_fold_2, prob_fold_3, prob_fold_5])
+    valid_data4 = prob_fold_4
+
+    fold4_rmse_prob = calculate_rmse(train_data, valid_data4, cox_model_intensity)
+    print("Fold 4 RMSE SCORE : ", fold4_rmse_prob)
+
+    # %%
+    #### FOLD 5
+    train_data =  prob_fold_1.append([prob_fold_2, prob_fold_3, prob_fold_4])
+    valid_data5 = prob_fold_5
+
+    fold5_rmse_prob = calculate_rmse(train_data, valid_data5, cox_model_intensity)
+    print("Fold 5 RMSE SCORE : ", fold5_rmse_prob)
+
+    # %%
+    intensity_mean_rmse = statistics.mean([fold1_rmse_prob, fold2_rmse_prob, fold3_rmse_prob, fold4_rmse_prob, fold5_rmse_prob])
+    intensity_sd_rmse = statistics.stdev([fold1_rmse_prob, fold2_rmse_prob, fold3_rmse_prob, fold4_rmse_prob, fold5_rmse_prob])
+    print("Average RMSE across 5 folds when using intensity score: ", intensity_mean_rmse)
+    print("Std Dev across 5 folds when using intensity score: ", intensity_sd_rmse)
+
+    # %%
+    ###### 5 fold cross validation ########
+    #### Binary Data
+    bin_fold_1 = data_binary[:15]
+    bin_fold_2 = data_binary[15:30]
+    bin_fold_3 = data_binary[30:45]
+    bin_fold_4 = data_binary[45:60]
+    bin_fold_5 = data_binary[60:]
+
+    print(len(bin_fold_5))
+
+
+    #%%
+    #### FOLD 1
+    train_data =  bin_fold_2.append([bin_fold_3, bin_fold_4, bin_fold_5])
+    valid_data1 = bin_fold_1
+
+    fold1_rmse = calculate_rmse(train_data, valid_data1, cox_model)
+    print("Fold 1 (binary) RMSE SCORE : ", fold1_rmse)
+
+    # %%
+    #### FOLD 2
+    train_data =  bin_fold_1.append([bin_fold_3, bin_fold_4, bin_fold_5])
+    valid_data2 = bin_fold_2
+
+    fold2_rmse = calculate_rmse(train_data, valid_data2, cox_model)
+    print("Fold 2 (binary) RMSE SCORE : ", fold2_rmse)
+
+    # %%
+    #### FOLD 3
+    train_data =  bin_fold_1.append([bin_fold_2, bin_fold_4, bin_fold_5])
+    valid_data3 = bin_fold_3
+
+    fold3_rmse = calculate_rmse(train_data, valid_data3, cox_model)
+    print("Fold 3 (binary) RMSE SCORE : ", fold3_rmse)
+
+    # %%
+    #### FOLD 4
+    train_data =  bin_fold_1.append([bin_fold_2, bin_fold_3, bin_fold_5])
+    valid_data4 = bin_fold_4
+
+    fold4_rmse = calculate_rmse(train_data, valid_data4, cox_model)
+    print("Fold 4 (binary) RMSE SCORE : ", fold4_rmse)
+
+    # %%
+    #### FOLD 5
+    train_data =  bin_fold_1.append([bin_fold_2, bin_fold_3, bin_fold_4])
+    valid_data5 = bin_fold_5
+
+    fold5_rmse = calculate_rmse(train_data, valid_data5, cox_model)
+    print("Fold 5 (binary) RMSE SCORE : ", fold5_rmse)
+
+    # %%
+    score_mean_rmse = statistics.mean([fold1_rmse, fold2_rmse, fold3_rmse, fold4_rmse, fold5_rmse])
+    score_sd_rmse = statistics.stdev([fold1_rmse, fold2_rmse, fold3_rmse, fold4_rmse, fold5_rmse])
+    print("Average RMSE across 5 folds when using binary malignancy score: ", score_mean_rmse)
+    print("Std Dev across 5 folds when using binary malignancy score: ", score_sd_rmse)
+
+    # %%
+    prob_x = [fold1_rmse_prob, fold2_rmse_prob, fold3_rmse_prob, fold4_rmse_prob, fold5_rmse_prob]
+    bin_x = [fold1_rmse, fold2_rmse, fold3_rmse, fold4_rmse, fold5_rmse]
+    data = [prob_x, bin_x]
+    x_val = [1, 2]
+    x_labels = ["Mean Malignant Intensity", "Malignancy Spread Score"]
+
+    fig, ax = plt.subplots(1, 1)
+
+    ax.boxplot(data)
+    ax.set_xlabel("Covariates")
+    ax.set_ylabel("RMSE (months)")
+    ax.set_xticklabels(x_labels)
+    ax.grid()
+    plt.show()
 # %%

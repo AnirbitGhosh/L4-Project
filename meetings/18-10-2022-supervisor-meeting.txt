@@ -1,0 +1,13 @@
+Progress made and points to discuss:
+
+- Extracted full PCAM dataset for training, validation and testing of tumour segmentation task
+- Stored dataset in external HDD
+- Extracted images from HDF5 format into data folder hierarchy
+- Created custom PyTorch dataset class to hold an image + its label from metadata.csv files provided with PCAM
+- Use created dataset to embed training images and visualize inline using VSCode interactive mode
+- Watch several Deep Learning videos on Camelyon Challenge and Cancer detection from slide images, mostly using Keras and TensorFlow. Not much
+PyTorch resources online. 
+- Choose to work locally on local GPU, instead of Google Collab as storing data locally is more robust.
+- Normalization doesn't work as eignevectors dont converge on PCAM data images
+- Are PCAM images pre-normalized? can be used directly in training? 
+- May have to normalize TCGA tiles before feeding to CNN for label prediction? 

@@ -1,0 +1,31 @@
+Progress made and points to discuss:
+- Created a Resnet18 model
+- BLOCKER: Couldnt train the network as it was infeasibly slow on my machine, using the small subset of  of 10k images
+- Trained my own network with 10k images to hopefully improve predictions. Got improved validation accuracy of 76% and saved those model weights
+- Created a prediction pipeline to take the trained network weights and ouput a binary prediction for - malignant(1) or beingn(0) - on given tiles
+- Save the predicted outputs as a csv and then use it to segment tiles into colours
+- BLOCKER: Couldnt find a way to merge tiles back into whole slide image. Using PyVips is recommended but package doesnt work on windows and is not maintained
+Tried numpy method of merging all tiles into a single numpy array and displaying the image, failed to find the right shape as the array would become too big to fit in memory
+Tried to locate each tile on the whole slide image and then highlight that particular 96x96 region by a color based on prediction, failed because whole slide image
+cannot be processed or displayed in full resolution. Always have to downsample and downsampling changes resolution where tiles no longer fit their original coordinates
+- Created a few utility scripts to help sort images into folders based on their predicitions.
+- Tiled an entire whole slide image into all tiles, giving 37k tiles after discarding background
+- How to train resnet18? if it is too computationally expensive on Mine 
+- How to combine tiles back into whole image to display/svisualize predicitons to get an idea of validity
+
+Minutes: 
+- Resnet has millions of parameters and thats why it is slow, try train with a smaller subset and if it works we can train on uni computer with full dataset
+- Refer to Bin Hao's thesis code and try to find ideas of how to merge openSlide tiles into whole image
+- Examine CBioPortal to find KM data to help get ideas on how to develop a regression model for survival times
+- Match TCGA WSI ID to the ones available on CBioPortal so we can have clinical data for each image
+- Sample size is very small for clinical data, a neural net wont work as there are too many features and too little data
+- Develop a cox model for survival time instead of a neural network for generating predicitons. Cox model can be implemented in python, have dedicated libraries like scikit-survival
+- UNderstand how Neural networks output predictions as probabilities. Understand how sigmoid, softmax work 
+- How probability outputs are used to make heatmaps for continuous data. Our model does not need heatmaps as it is binary output with 2 classes only
+- Find a way to change image at pixel level to reflect the predictions of our neural network instead of merging tiles into a whole image. 
+- Read paper on survival time analysis to understand how cox models and KM plots are useful
+- IDEA: Initially use number/precentage of malignant tiles rpedicted in a biopsy slide as a quantifier of cancer severity and use it as a feature along with clinical data for survival time model
+- SOLUTION DEVELOPED: Scale whole image down to the tile dimensions - eg. if we extract 96x96 tiles from a WSI, we split the image into (length/96, width/96) columns and rows. Then we can scale down the whole slide image by a factor of 96 
+to represent our image preview where each pixel represents a tile. Thus we can change pixel colours based on tile predictions. 
+- Task for next week to finalize whether to use transfer learning or my own model, own model has a lot of noise and not very accurate. Transfer learning hopefully better, so train it and get some prototype predictions to test
+- Generate visualizations for both models and have it ready for next meeting

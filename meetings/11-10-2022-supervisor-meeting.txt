@@ -1,0 +1,34 @@
+Porgress made and points to discuss:
+- Annotated and read CRC paper - ask questions from annotations
+- Setup a Github repo for code base and other artifacts
+- Prepared a Whole Slide image tiling pipeline using OpenSlide and DeepZoomGenerator
+- Created a pixel analysis component to identify and remove blank/partial tiles
+- Enhanced tiling pipeline to incorporate pixel analysis data
+- Confirmed tile size from Kevin, 244x244px
+- (FROM CRC PAPER) Ask about pre-trained networks to be used for tissue decomposition
+- With tiling ready, how to proceed with these tiles? Should they be used to train a network or should they be fed to a pretrained network for tissue segmentation
+- Tiles are not annotated, infeasibly large tile set to annotate manually - supervised learning doubtful, maybe weakly supervised possible
+- WSI and tile storage - a 50MB WSI breaks into 5000 usefull tiles of 244x244 px, takes about 1GB to store tiles. A 2000% increase in size compared to WSI. 
+- Can University network drive be used to store? OTher solutions?
+- If 1 WSI gives 5000 tiles, can we reduce it to 20-30 WSI? that will be over 100k tiles. Larger WSI (of size 1-2gb each) produce 20,000-40,000 tiles each. Impossibly large
+
+
+
+Minutes:
+
+- Normalization: 
+Machenko: haev RGB channels, H&E has its fixed RGB hues, after staining we end up with concentration of alpha eosin (140,20,20) + concentraition of hemo (40,40,100),
+final stain colours are linear combinations of the two dyes. Applying princpal component analysis : we dont get dyes out uniquely but a vector on the plane
+For example: if a slide is more pink (higher eosin) it adjusts for differences in dye and dye intensities and background area.
+
+NOTES: USE MACHENKO RECOMMENDED
+Source: "Best practices in digital pathology" - journal
+
+
+
+tile based classifier
+survival time - associated with cancerous tissue only not other elements on the tissue slide
+do a binary cancer +ve and cancer -ve classification and produce heatmap of WSI from individual classified tiles
+**** Sometimes WBCs indicate cancer
+
+look into camelyon dataset for annotated cancer slides. 

@@ -14,10 +14,11 @@ def dir_path(string):
         return string
     else:
         raise NotADirectoryError(string)
-    
+
 parser = argparse.ArgumentParser()
-parser.add_argument('-p', '--pred', type=dir_path, help='Pass directory containing csv files of tumour predictions', default="D:/PCAM DATA/Survival/tumour_predictions")
-parser.add_argument ('-d', '--data', help='Pass path to survival data csv', default="D:/PCAM DATA/Survival/survival_data.csv")
+parser.add_argument('-p', '--prob', type=dir_path, help='Pass directory path containing probability prediction data with -p flag', default="D:/PCAM DATA/Prediction_data/probability_predictions_all")
+parser.add_argument('-b', '--binary', type=dir_path, help="Pass directiory with binary prediction data with -b flag", default="D:/PCAM DATA/Prediction_data/full_perdiction_set")
+parser.add_argument('-s', '--survival',  help="Pass survival data file path with -s flag", default="D:/PCAM DATA/Survival/survival_data.csv")
 
 def read_data(survival_path, tumour_path):
     # Read Survival clinical data 
@@ -84,11 +85,6 @@ def read_data_prob(survival_path, tumour_path):
     
     return data 
 
-
-#%%
-data = pd.read_csv("D:/PCAM DATA/Survival/survival_data.csv")
-data.head()
-
 #%%
 def KM_plot(data):
     T = data["OS_MONTHS"]
@@ -127,9 +123,11 @@ def cox_model_intensity(data):
 
 #%%
 if __name__ == "__main__":
-    pred_dir = "D:/PCAM DATA/Prediction_data/full_perdiction_set"
-    pred_dir_prob = "D:/PCAM DATA/Prediction_data/probability_predictions_all"
-    data_path ="D:/PCAM DATA/Survival/survival_data.csv"
+    args = parser.parse_args()
+    
+    pred_dir = args.binary
+    pred_dir_prob = args.prob
+    data_path = args.survival
 
     data = read_data(data_path, pred_dir)
     data_prob = read_data_prob(data_path, pred_dir_prob)

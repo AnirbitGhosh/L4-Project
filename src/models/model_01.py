@@ -27,6 +27,7 @@ def dir_path(string):
     
 parser = argparse.ArgumentParser()
 parser.add_argument('-p', '--path', type=dir_path, help='Pass base directory path name with -p or --path flags')
+parser.add_argument('-o', '--output', type=dir_path, help='Pass path to save trained model as, include filename with -o flag', default="D:/PCAM DATA/trained_models/weights_01_100k_normalized.pt")
 
 def build_datasets(dir):
     train_transform = train_transformer()
@@ -57,6 +58,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print("Parsing arguments...")
     base_dir = args.path
+    output_dir = args.output
     
     print("Building datasets....")
     train, validation = build_datasets(base_dir)
@@ -89,7 +91,7 @@ if __name__ == "__main__":
         "sanity_check": True,
         "lr_scheduler": lr_scheduler,
         "save_weights": False,
-        "path2weights": "D:/PCAM DATA/trained_models/weights_01_100k_normalized.pt",
+        "path2weights": output_dir,
     }
     print(params_train)
     

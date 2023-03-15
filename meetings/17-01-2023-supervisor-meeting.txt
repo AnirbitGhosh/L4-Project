@@ -1,0 +1,2 @@
+Minutes:
+Discuss analysis, design and implementation section of dissertation. Discuss survival results, agree results are significant for mean intensity with p=0.21. Discuss box plots to understand the spread of significant effect for each covariate. 

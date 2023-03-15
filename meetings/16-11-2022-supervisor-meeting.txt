@@ -1,0 +1,20 @@
+minutes:
+- Show scores from Resnet model, discuss poorer performance
+- Due to lack of data, lower training epochs and also image size incompatible. Better to stick to my own network, better for dissertation too
+- Agree to train own network with full data set next and fine tune for better accuracy 
+- Discuss clinical data again, as percentage values did not resemble a good represetation of tumor severity in correlation to survival time data
+- Cox model is a very strong model, should still be able to produce reasonable results with only one feature if I just use tumour severity and no other features
+- Investigate other features to extract - TIL (tumour infiltrating lymphocyte count), NTL (nucleus, tumour, lymphocyte data), tumour area and physical dimensions
+- Then add clinical data if image features are not enough
+- Use lifeline package for CH model and KM plots. 
+- Discuss results from predicted tiles on high and low survival time WSI images, should be better with more training on network. But good to go ahead and use for 
+survival models: "These look good ... the only worry I would have is that it may also be predicting always malignant for normal tissue (although the green around the 
+edges suggest that it can predict non-malignant and I presume it also does this for the the PCam tiles that are normal ... although TCGA seems to be of a different 
+nature than PCam). It would be nice to have a "TCGA negative control WSI" which you would hope it would colour mostly green ... but possibly all the samples in TCGA 
+are positive cancers ... I'm not sure if there are any negative controls (although often in resections the surgeon does take a border of negative tissue around the
+positive tumour to ensure they have all the tumour tissue)".
+- Set up supervisor computer to help run slide tiling and model prediction pipeline. Agree to train on my own pc as GPU is good enough for training but IO actions
+are slow
+- Upload requirements.txt for anaconda to setup environment with all dependencies. Run into compatibility issues between windows pacakges vs Linux support
+- Upload anaconda environment.yml files to get OS independent dependencies list. 
+- supervisor computer setup successfully

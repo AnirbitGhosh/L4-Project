@@ -1,0 +1,52 @@
+are there correctly labelled data for segments of WSI? 
+A: camelyon - go from low res to high res image  to generate bespoke data - breast lymph node biopsy
+
+Where is the data to use to train?
+A: TCGA 
+
+Survival of colorectal cancer paper : read for segmentation
+
+
+NOTE: cancer cells - larger cell nuclei - boundary of tumours immune cell invasion - recognize abnormal tissue and attack tumor boundary - 
+immune signal can be a measure of survival time
+
+where is the 100k data from?
+A: number of german hospitals - independent sample - retrieved from NCT Heidelberg Germany (archived samples). WSI were from TCGA database.
+
+IS TCGA Data annotated for parts of tissue?
+A: No annotated with clinical data - survival time, cancer grade etc
+
+NOTE: Potentially could use other cancer's WSI data as msucle, adipose, lymphocytes etc are common tissues across all samples. Determining their
+weights in predicting survival time is necessary as they dont effect it
+
+TCGA data is all cancerous tumour sections - look into data size of WSI - image size
+
+Logistics of working on GPU:
+locally or network based - 
+
+NOTE: Having to Tile WSI TCGA data is a big challenge resource wise - 
+
+TCGA Clinical Data - download text file - 
+
+
+dissertation - doesnt have to work - work within capabilities of our resources - cannot process 100k data of course - write something 
+substantial even if it doesnt work
+
+camelyon16 data can be used - 600gb of data downloading not possible - github tiled camelyon might be available - https://github.com/basveeling/pcam
+Patch Camelyon data can be used - split into train test splits - 96x96 tiles - 50/50 balance between positive and negative samples
+
+take data from 100k dataset camelyon dataset and apply into TCGA dataset for breast cancer - possible 
+
+is it possible to tile wsi ourselves?
+A: yes OpenSlide 
+
+https://academic.oup.com/bioinformatics/article/38/14/3629/6604265?rss=1#366188933 - similar project
+
+tcga -repo - filter by file size and use smaller files and try out tiling, segmentation using openslide
+
+reason nn might perform worse - its random and chaotic - can be made deterministic 
+
+TASK FOR NEXT WEEK:
+- Read CRC histopathology paper 
+- Try to download some Whole Slide data from TCGA, and investigate their average size + storage Logistics
+- Investigate Whole Slide image tiling with OpenSlide

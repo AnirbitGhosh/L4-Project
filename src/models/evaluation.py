@@ -23,6 +23,18 @@ import numpy as np
 import pandas as pd
 from sklearn import metrics
 import seaborn as sns
+import argparse
+
+#%%
+def dir_path(string):
+    if os.path.isdir(string):
+        return string
+    else:
+        raise NotADirectoryError(string)
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-m', '--model', help='Pass path to model to evaluate with -m flag')
+parser.add_argument('-t', '--test', type=dir_path, help="Pass test directory path with -d flag")
 
 #%%
 def read_model(weights):
@@ -93,75 +105,44 @@ def calc_precision(df):
     return (tp)/(tp + fp)
 
 #%%
-model = read_model("D:/PCAM DATA/trained_models/weights_01_100k.pt")
-test_image_dir = "D:/PCAM DATA/test/tiles"
-test_ground_truth = "D:/PCAM DATA/test/test_labels.csv"
+if __name__ == "__main__":
+    args = parser.parse_args()
+    
+    model = read_model(args.model)
+    test_image_dir = os.path.join(args.base, "tiles")
+    test_ground_truth = os.path.join(args.test, "test_labels.csv")
 
-test_results = generate_predictions(model, test_image_dir)
+    test_results = generate_predictions(model, test_image_dir)
 
-# %%
-label_df = pd.read_csv(test_ground_truth)
-label_df = label_df[['id', 'tumor_patch']].astype(int)
+    # %%
+    label_df = pd.read_csv(test_ground_truth)
+    label_df = label_df[['id', 'tumor_patch']].astype(int)
 
-label_df = label_df.head(20000)
-label_df['prediction'] = np.array(test_results)
-label_df.head()
+    label_df = label_df.head(20000)
+    label_df['prediction'] = np.array(test_results)
+    label_df.head()
 
-# %%
-accuracy = calc_accuracy(label_df)
-print(f"accuracy : {accuracy}")
+    # %%
+    accuracy = calc_accuracy(label_df)
+    print(f"accuracy : {accuracy}")
 
-recall = calc_recall(label_df)
-print(f"recall : {recall}")
+    recall = calc_recall(label_df)
+    print(f"recall : {recall}")
 
-precision = calc_precision(label_df)
-print(f"precision : {precision}")
+    precision = calc_precision(label_df)
+    print(f"precision : {precision}")
 
-# %%
-confusion_matrix = metrics.confusion_matrix(label_df['tumor_patch'], label_df['prediction'])
-cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix = confusion_matrix, display_labels = ["Benign", "Malignant"])
-cm_display.plot(cmap="Blues")
-plt.show()
+    # %%
+    confusion_matrix = metrics.confusion_matrix(label_df['tumor_patch'], label_df['prediction'])
+    cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix = confusion_matrix, display_labels = ["Benign", "Malignant"])
+    cm_display.plot(cmap="Blues")
+    plt.show()
 
-# %%
-ax = plt.subplot()
-sns.heatmap(confusion_matrix, annot=True, fmt='g', cmap=sns.color_palette("rocket_r", as_cmap=True))
-ax.xaxis.set_ticklabels(['Benign', 'Malignant'])
-ax.yaxis.set_ticklabels(['Benign', 'Malignant'])
-ax.set_xlabel('Predicted labels')
-ax.set_ylabel('True labels')
-ax.set_title('Confusion Matrix')
-
-
-#%%
-params_model = {
-    "input_shape" : (3, 96, 96),
-    "initial_filters" : 8,
-    "num_fc1" : 100,
-    "dropout_rate" : 0.25,
-    "num_classes" : 2,
-    "activation_func" : 'tanh',
-}
-
-eval_model = create_model(Net, params_model)
-
-loss_func = nn.NLLLoss(reduction="sum")
-opt = optim.Adam(eval_model.parameters(), lr=3e-4)
-lr_scheduler = ReduceLROnPlateau(opt, mode="min", factor=0.5, patience=20, verbose=1)
-
-train_dl, val_dl = build_datasets("D:/PCAM DATA")
-
-params_train={
-    "num_epochs": 100,
-    "optimizer": opt,
-    "loss_func": loss_func,
-    "train_dl": train_dl,
-    "val_dl": val_dl,
-    "sanity_check": True,
-    "lr_scheduler": lr_scheduler,
-    "save_weights": True,
-    "path2weights": "D:/PCAM DATA/trained_models/final_model_100k.pt",
-}
-
-cnn_model, loss_hist, metric_hist = train_val(eval_model, params_train)
-# %%
+    # %%
+    ax = plt.subplot()
+    sns.heatmap(confusion_matrix, annot=True, fmt='g', cmap=sns.color_palette("rocket_r", as_cmap=True))
+    ax.xaxis.set_ticklabels(['Benign', 'Malignant'])
+    ax.yaxis.set_ticklabels(['Benign', 'Malignant'])
+    ax.set_xlabel('Predicted labels')
+    ax.set_ylabel('True labels')
+    ax.set_title('Confusion Matrix')

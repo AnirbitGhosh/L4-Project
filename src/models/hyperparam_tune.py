@@ -26,8 +26,19 @@ import os
 import numpy as np
 from PIL import Image
 from matplotlib import pyplot as plt
+import argparse
 
 torch.manual_seed(0)
+
+def dir_path(string):
+    if os.path.isdir(string):
+        return string
+    else:
+        raise NotADirectoryError(string)
+    
+parser = argparse.ArgumentParser()
+parser.add_argument('-d', '--base', type=dir_path, help='Pass base directory path with -d flag', default="D:/PCAM DATA")
+
 class TuningDataset(Dataset):
     def __init__(self, data_dir, transform, data_type='train'):
         
@@ -106,7 +117,7 @@ def load_test_data(dir):
     
     return test_dl
 
-def train_cifar(config, checkpoint_dir=None, data_dir=None):
+def train_cifar(config, base_dir, checkpoint_dir=None, data_dir=None):
     model_params = {
         "input_shape" : (3, 96, 96),
         "initial_filters" : 8,
@@ -134,7 +145,7 @@ def train_cifar(config, checkpoint_dir=None, data_dir=None):
         net.load_state_dict(model_state)
         optimizer.load_state_dict(optimizer_state)
     
-    train_dl, val_dl = build_dataset_tune("D:/PCAM DATA", config['train_batch'], config['val_batch'])
+    train_dl, val_dl = build_dataset_tune(base_dir, config['train_batch'], config['val_batch'])
     
     train_params = {
         "num_epochs": 100,
@@ -200,8 +211,8 @@ def train_cifar(config, checkpoint_dir=None, data_dir=None):
         tune.report(loss=(val_loss / val_steps), accuracy=correct/total)
     print("Finished training")
 
-def test_accuracy(net, device="cpu"):
-    tests_dl = load_test_data("D:/PCAM DATA")
+def test_accuracy(net, base_dir, device="cpu"):
+    tests_dl = load_test_data(base_dir)
     correct = 0
     total = 0
     with torch.no_grad():
@@ -216,8 +227,7 @@ def test_accuracy(net, device="cpu"):
     return correct / total
 
  
-def main(num_samples=10, max_num_epochs=100):
-    data_dir = "D:/PCAM DATA/tuning"
+def main(base_dir, num_samples=10, max_num_epochs=100):
     config = {
         "activation_func": tune.choice(['tanh', 'relu', 'leaky relu']),
         "dropout_rate": tune.uniform(0, 1),
@@ -236,12 +246,12 @@ def main(num_samples=10, max_num_epochs=100):
         metric_columns=["loss", "accuracy", "training_iteration"]
     )
     result = tune.run(
-        partial(train_cifar, data_dir=data_dir),
+        partial(train_cifar, base_dir),
         config=config,
         num_samples=num_samples,
         scheduler=scheduler,
         progress_reporter=reporter,
-        local_dir="D:/PCAM DATA/tuning",
+        local_dir=os.path.join(base_dir, "tuning"),
         resources_per_trial={"gpu": 1, "cpu": 5}),
     
     best_trial = result[0].get_best_trial("loss", "min", "last")
@@ -276,4 +286,6 @@ def main(num_samples=10, max_num_epochs=100):
     
 #%%
 if __name__ == "__main__":
-    main(num_samples=20, max_num_epochs=50)
+    args = parser.parse_args()
+    
+    main(args.base, num_samples=20, max_num_epochs=50)
