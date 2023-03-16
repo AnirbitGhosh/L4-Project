@@ -387,3 +387,26 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 ## 19 Feb 2023
 - *7 hours* : Complete first part of survival evaluation - Disseration section 6.2.2 how effective were our chosen image-based features as survival model covariates? 
 - *2 hours* : plot CI graphs, caclulate metric scores for Cox model evaluation results
+## 20 Feb 2023 - 23 Feb 2023
+- *10 hours* : Complete evaluation and discussion sections
+- Supervisor Meeting (22-02-2023):
+  - Discuss cross validation evaluation of survival results
+  - Discuss dataset size effect on survival results
+  - Discuss RMSE + SD evaluation on survival results
+  - Agree to finish evaluation and submit for first feedback
+
+## Week 20
+## 24 Feb 2023 - 2 March 2023:
+- *10 hours* : Complete conclusion, future work. Make changes based on feedback received on first part of dissertation upto evaluation.
+- Supervisor meeting (01-03-2023): Discuss feedback from the first half of the dissertation. Agree most changes are minor and looks very good. Change citation format to harvard. Add footnotes to some references. Agree to create an appendix to show result visualizations. Agree to move all code snippets to appendix to keep under 40 pages. Discuss validity of survival results and agree a conclusion of WSIs being inviable in predicting survival times is appropriate. Try find some literature to support it. 
+
+## Week 21
+## 3 March 2023 - 9 March 2023:
+- *7 hours*: Complete appendix with images and results, finish conclusion with a citation of a work that had exact same conclusion as us (Wetsttein et al. 2019). Work on remaining feedback and finalize dissertation. 
+- Supervisor meeting (08-03-2023): Discuss getting feedback on evaluation and conclusion next week. Agree appendix is appropriate and conclusion with the cited work is good. Discuss cleaning up the code base and getting ready for submission. 
+
+## Week 22
+## 10 March 2023 - 16 March 2023:
+- *5 hours* - Clean up code base and make all python scripts executable with command line arguments rather than being notebooks. Add README and Manual files. Create submission style directory with proper organization. 
+- *5 hours* - Receive complete feedback from supervisor, and work on making final fixes to dissertation. 
+- Supervisor meeting (15-03-2023): Discuss final feedback and agree to finish dissertation and code base completion by this weekend for submission. Discuss video presentation and agree basic summary of the project with emphasis on results is appropriate for research based projects. 

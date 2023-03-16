@@ -1,0 +1,5 @@
+Minutes:
+- Discuss cross validation evaluation of survival results
+  - Discuss dataset size effect on survival results
+  - Discuss RMSE + SD evaluation on survival results
+  - Agree to finish evaluation and submit for first feedback

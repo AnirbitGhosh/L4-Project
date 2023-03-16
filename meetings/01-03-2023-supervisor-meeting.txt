@@ -1,0 +1,2 @@
+minutes:
+Discuss feedback from the first half of the dissertation. Agree most changes are minor and looks very good. Change citation format to harvard. Add footnotes to some references. Agree to create an appendix to show result visualizations. Agree to move all code snippets to appendix to keep under 40 pages. Discuss validity of survival results and agree a conclusion of WSIs being inviable in predicting survival times is appropriate. Try find some literature to support it. 

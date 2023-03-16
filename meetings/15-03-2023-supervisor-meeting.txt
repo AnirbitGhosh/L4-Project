@@ -1,0 +1,3 @@
+Minutes:
+Receive complete feedback from supervisor, and work on making final fixes to dissertation. 
+- Supervisor meeting (15-03-2023): Discuss final feedback and agree to finish dissertation and code base completion by this weekend for submission. Discuss video presentation and agree basic summary of the project with emphasis on results is appropriate for research based projects. 
