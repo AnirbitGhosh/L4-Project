@@ -11,6 +11,7 @@ import math
 import statistics
 import argparse
 
+#%%
 def dir_path(string):
     if os.path.isdir(string):
         return string
@@ -25,9 +26,14 @@ parser.add_argument('-s', '--survival',  help="Pass survival data file path with
 if __name__ == "__main__":
     args = parser.parse_args()
     #%%
-    pred_dir = args.binary
-    pred_dir_prob = args.prob
-    data_path =args.survival
+    # pred_dir = args.binary
+    # pred_dir_prob = args.prob
+    # data_path =args.survival
+    
+    pred_dir = "D:/PCAM DATA/Prediction_data/full_perdiction_set"
+    pred_dir_prob = "D:/PCAM DATA/Prediction_data/probability_predictions_all"
+    data_path = "D:/PCAM DATA/Survival/survival_data.csv"
+    
 
     data_binary = read_data(data_path, pred_dir)
     data_prob = read_data_prob(data_path, pred_dir_prob)
@@ -87,33 +93,37 @@ if __name__ == "__main__":
         actual = valid["OS_MONTHS"]
         rmse = math.sqrt(sk.mean_squared_error(actual, predictions))
         return rmse
-
-    train_data_binary = data_binary
-    train_data_prob = data_prob
-
+    
+    train_data_binary =  data_binary[data_binary["Malignancy Score"] != 0.0].sample(frac=0.9)
+    valid_data_binary = data_binary[data_binary["Malignancy Score"] != 0.0].drop(train_data_binary.index)
+    
+    #%%
+    train_data_prob = data_prob[data_prob["Mean Intensity"] != -1].sample(frac=0.9)
+    valid_data_prob = data_prob[data_prob["Mean Intensity"] != -1].drop(train_data_prob.index)
+    
     #%%
     #### BINARY DATA
     ### 25% dataset
     len_25 = len(train_data_binary) // 4
     train_data_25 = train_data_binary[:len_25]
-    binary_25_rmse = calculate_rmse(train_data_25, data_binary, cox_model)
+    binary_25_rmse = calculate_rmse(train_data_25, valid_data_binary, cox_model)
     print("RMSE 25% binary training data: ", binary_25_rmse)
 
     ### 50% dataset
     len_50 = len(train_data_binary) // 2
     train_data_50 = train_data_binary[:len_50]
-    binary_50_rmse = calculate_rmse(train_data_50, data_binary, cox_model)
+    binary_50_rmse = calculate_rmse(train_data_50, valid_data_binary, cox_model)
     print("RMSE 50% binary training data: ", binary_50_rmse)
 
     ### 75%
     len_75 = (len(train_data_binary) // 4)*3
     train_data_75 = train_data_binary[:len_75]
-    binary_75_rmse = calculate_rmse(train_data_75, data_binary, cox_model)
+    binary_75_rmse = calculate_rmse(train_data_75, valid_data_binary, cox_model)
     print("RMSE 75% binary training data: ", binary_75_rmse)
 
     ### 100%
     train_data_100 = train_data_binary
-    binary_100_rmse = calculate_rmse(train_data_100, data_binary, cox_model)
+    binary_100_rmse = calculate_rmse(train_data_100, valid_data_binary, cox_model)
     print("RMSE 100% binary training data: ", binary_100_rmse)
 
 
@@ -122,24 +132,24 @@ if __name__ == "__main__":
     ### 25% dataset
     len_25 = len(train_data_prob) // 4
     train_data_25 = train_data_prob[:len_25]
-    prob_25_rmse = calculate_rmse(train_data_25, data_prob, cox_model)
+    prob_25_rmse = calculate_rmse(train_data_25, valid_data_prob, cox_model)
     print("RMSE 25% prob training data: ", prob_25_rmse)
 
     ### 50% dataset
     len_50 = len(train_data_prob) // 2
     train_data_50 = train_data_prob[:len_50]
-    prob_50_rmse = calculate_rmse(train_data_50, data_prob, cox_model)
+    prob_50_rmse = calculate_rmse(train_data_50, valid_data_prob, cox_model)
     print("RMSE 50% prob training data: ", prob_50_rmse)
 
     ### 75%
     len_75 = (len(train_data_prob) // 4)*3
     train_data_75 = train_data_prob[:len_75]
-    prob_75_rmse = calculate_rmse(train_data_75, data_prob, cox_model)
+    prob_75_rmse = calculate_rmse(train_data_75, valid_data_prob, cox_model)
     print("RMSE 75% prob training data: ", prob_75_rmse)
 
     ### 100%
     train_data_100 = train_data_prob
-    prob_100_rmse = calculate_rmse(train_data_100, data_prob, cox_model)
+    prob_100_rmse = calculate_rmse(train_data_100, valid_data_prob, cox_model)
     print("RMSE 100% prob training data: ", prob_100_rmse)
 
     #%%
