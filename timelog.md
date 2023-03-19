@@ -6,7 +6,7 @@
 * Kevin Bryson
 
 
-## Week 1
+## Week 1 - 14.5 hours
 
 ### 28 Sept 2022
 
@@ -39,7 +39,7 @@
 
 * *2.5 hour* : Supervisor Meeting - noted minutes
 
-## Week 2 
+## Week 2 - 14 hours
 
 ## 06 Oct 2022
 
@@ -66,10 +66,10 @@
 * *1 hour* : https://www.youtube.com/c/DigitalSreeni/videos - videos on WSI H&E filtering and normalization
 * *1 hour* : Perform pixel level analysis to detect blank, partial and goot WSI tiles
 * *1 hour* : Modify existing tiling pipeline to accept command line arguments and include pixel data to filter useless tiles
-* * 2 hours* : Supervisor meeting - noted minutes
+* *2 hours* : Supervisor meeting - noted minutes
 
 
-## Week 3
+## Week 3 - 11.5 hours
 
 ## 14 Oct 2022
 
@@ -90,7 +90,7 @@
 * *0.5 hour* : Load training data into custom data model, visualize random images in grids and highlight malignant areas in tumour annotated images
 * *2 hours* : Supervisor Meeting (noted in minutes)
 
-## Week 4 
+## Week 4 - 13 hours
 
 ## 21 Oct 2022
 * *1 hour* : Read Pytorch transfer learning documentation - https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html
@@ -109,7 +109,7 @@
 * *2 hours* : Create a Resnet18 model using Pytorch docs, use all intermediate layers and FC layers at first. Split image dataset into malignant and benign directories for pytorch ImageLoaders to work and extract classes automatically inside the network
 * *1 hour* : Try debug why Resnet18 wont train/training is extremely slow : use smaller dataset, which smaller batch number - not change. use less epochs to train, still very slow. 
 
-## Week 5
+## Week 5 - 14 hours
 
 ## 30 Oct 2022
 * *2 hours* : Refine Resnet18 model by freezing layers to increase speed. Train my own model with more data and random transforms to increase robustness - 10k data used and highest validation acc obtained of 76%. Save model weights and use for prediction on TCGA slide
@@ -131,7 +131,7 @@
 * *2 hours* : Create a tile visualizer script to take tile level predictions and map it to apply a pixel level mask on top of whole slide image thumbnail preview image scaled down by a factor of 96. Save the masked image as a png in image directory. 
 * *1 hour* : Create generic prediction generator to produce class outputs for all whole slide image tiles given a model weight .pt file and saves output in -o directory
 
-## Week 6 
+## Week 6 - 10.5 hours
 
 ## 05 Nov 2022
 * *1 hour* : Complete predicition generator to produce binary output given a directory containing whole slide images, network weight (.pt file) and an output directory. It creates a CSV file, containing tile coordinates against predicted class. Generalize it for eaiser portability across computers.
@@ -150,7 +150,7 @@
 ## 09 Nov 2022
 * *2 hours* : Supervisor meeting - noted in minutes
 
-## Week 7
+## Week 7 - 11 hours
 
 ## 12 Nov 2022
 * *2 hours* : Try to train resnet again with less data, turns out to be have many more complications. Current image training data is 96x96 while RESNET requires 244x244. I resized images using tensor transformations to match required dimensions, but artificially increasing dimensions adds to noise. Second complication is that training with less data to try and get quicker computation leads to very low accuracy, almost 70% (<75% for custom network). 
@@ -174,7 +174,7 @@
 
 NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 
-## Week 9
+## Week 9 - 17 hours
 
 ## 28 Nov 2022
 * *1.5 hours* : Extract 100k training and test tiles from PCAM data, creating full final dataset for training network
@@ -195,9 +195,9 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 * *1 hour* : Do reserach on BRCA annotated data. Download QUPATH, try to load annotations onto WSI from https://zenodo.org/record/5320076#.Y4olBTPP0UE, unsure how to load CSV annotations (in x and y coord format) into QUPATH. Check CAM17 database to find annotated WSI -  downloading the WSI showed extremeely slow download seeds, a 1gb image taking 30 mins to download - could not proceed with validating PCAM data.
 * *1 hour* : Read macenko normalization paper (https://www.cs.unc.edu/~mn/sites/default/files/macenko2009.pdf), and look into implementing some form of h&e normalization step to pre-process tiles before being used to train network and predict
 * *2 hours* : Implement Macenko normalization, H and E channel extraction code. Train network with Normalized images
-* * 4 hours* : Run predictions using macenko normalized network on 1. Un-normalized WSI tiles and 2. Normalized WSI tiles - Results seem worse when normalized network is used on normalzied WSI tiles. However, using un-normalized network on normalized tiles produced reasonable predictions. Using normalized network on un-normalized tiles produces biased predictions towards +ve tiles. Consider optimizing network to be able to use normalized WSI with non-normalized network? so far predictions without normalization seem more resonable maybe because PCAM data is already normalized? 
+* *4 hours* : Run predictions using macenko normalized network on 1. Un-normalized WSI tiles and 2. Normalized WSI tiles - Results seem worse when normalized network is used on normalzied WSI tiles. However, using un-normalized network on normalized tiles produced reasonable predictions. Using normalized network on un-normalized tiles produces biased predictions towards +ve tiles. Consider optimizing network to be able to use normalized WSI with non-normalized network? so far predictions without normalization seem more resonable maybe because PCAM data is already normalized? 
 
-## Week 10
+## Week 10 - 35 hours
 
 ## 03 Dec 2022
 - *2 hours* : Found CAMELYON 17 data and annotations. Opened annotated slide on ASAP 2.1. Tumour seems to be a very small region of the whole slide, rest is non-malignant tissue. Test what our network predicts on this CAMELYON 17 slide. 
@@ -234,7 +234,7 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 ## 10 Dec 2022 
 - BREAK
 
-## Week 11
+## Week 11 - 25 hours
 
 ## 11 Dec 2022
 - *3 hours* : Implement probability predicting model instead of binary class prediction. Binary class prediction thresholds at 0.5 so whichever class is higher than 0.5 probability gets outputted as the class. This overpredicts malignant tiles by a lot even where tiles have a low probability of being positive, almost close to 0.5 but slightly higher than negative. Using probability of malignancy as the ouput rather than discrete class predictions allows to plot heatmaps of malignancy showing areas of highest probability of malignancy which is a lot more accurate than approximating whole tiles as 0 or 1. Using probability predictions we can now set our own threshold at 0.7 or higher to pick regions of the tissue with highest probability of being malignant to represent the true tumour region, and use that for malignancy score calculation. This will reduce noise in the calculated score, by not overpredicting malignant tiles and only using the tiles with the highest confidence. 
@@ -260,7 +260,7 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 
 ## BREAK till 01 January 2023
 
-## Week 12
+## Week 12 - 10 hours
 
 ## 01 Jan 2023
 - *1 hour* : Prepare dissertation template in repository
@@ -272,7 +272,7 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 
 ## TRAVELLING BACK TO GLASGOW ON 06 Jan 2023
 
-## Week 13
+## Week 13 - 6 hours
 
 ## 09 Jan 2023
 - *3 hours* : Read exemplar dissertation from hall of fame 2019
@@ -289,7 +289,7 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
   - Can be explained in evaluation of viability of the whole project as there were lack of data, lack of clinical annotations etc which might all be affecting predictions. 
 - *2 hours* : Refine and rewrite abstract of dissertation to make it more concise and to the point
 
-## Week 14
+## Week 14 - 25.5 hours
 ## 14 Jan 2023
 - *2 hours* : Write introduction of dissertation - aim, motivation and general problem description
 
@@ -310,7 +310,7 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 ## 19 jan 2023
 - *4 hours* : Write section 2.2 of background for data availability for deep learning model and start section 2.3 on prognosis prediction background
 
-## Week 15
+## Week 15 - 33 hours
 ## 21 Jan 2023 
 - *8 hours* : Continue prognosis section 2.3 of background including existing survival time analysis methods and Cox proportional hazard model applications
 
@@ -330,7 +330,7 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 ## 26 Jan 2023
 - *3 hours* : Design section 4.1 - general system overview for cancer detection. 
 
-## Week 16
+## Week 16 - 27 hours
 ## 28 Jan 2023
 - *5 hours* : Design section 4.1.1 : tiling and pre-processing, 4.1.2 : tumour prediction - classiciation and segmentation 
 
@@ -349,7 +349,7 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 ## 02 Feb 2023
 - *8 hours* : Implementation section 5.2 - Machine learning - 5.2.1 dataset and 5.2.2 preprocessing complete. 
 
-## Week 17
+## Week 17 - 21.5 hours
 ## 04 Feb 2023
 - *5 hours* : Implementation section 5.2.3 - CNN architecture
 
@@ -363,7 +363,7 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 - *2 hours* : Start implementation section 5.3 - feature extraction and visualization section 5.3.1
 - *1.5 hours* : Supervisor meeting - Show hyperparam tuning, agree its good and is sufficient since it agrees with my original model. Discuss plan for evaluation - Aim to complete classification evaluation by next week. Classification evaluation to contain hyperparam tuning results and calculate metrics (acc, precision, recall) for classified predictions and plot confusion matrix. Regression evaluation plan - 1. Discuss significance of derived scores as covariates with confidence interval plot. 2. For each model, plot predicted median survival against actual survival time to show if any relationship can be derived between the two. 3. Perform 5 fold cross validation to calculate RMSE scores for each model, plot SD and mean RMSE as distribution curves to show how predictions will be distributed.
 
-## Week 18
+## Week 18 - 29 hours
 ## 10 Feb 2023
 - *6 hours* - Implementation section 5.3 - regression and feature extraction - complete feature extraction section 5.3.1 and model fitting section 5.3.2
 
@@ -381,14 +381,14 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 ## 15 Feb 2023
 - *2 hours* : Supervisor meeting - discuss plan for evaluation. Agree that metrics calculated from survival evaluation look really good. Include 3 evaluations for prediction performance (RMSE+SD of 5fold val, prediction calibration and data increase effect). Add Evaluation for cox model using model statistics like Wald test, Log-rank test, regression coeff and hazard ratio + Conf Intervals. Plan to complete eval by next week
 
-## Week 19
+## Week 19 - 25 hours
 ## 18 Feb 2023
-- *6 hours* : Write Evaluation metrics for survival model section 6.2 - Dissertation section 6.2.1 metrics for Cox evaluation and prediction performance evaluation (RMSE + SD) complete
+- *12 hours* : Write Evaluation metrics for survival model section 6.2 - Dissertation section 6.2.1 metrics for Cox evaluation and prediction performance evaluation (RMSE + SD) complete
 ## 19 Feb 2023
-- *7 hours* : Complete first part of survival evaluation - Disseration section 6.2.2 how effective were our chosen image-based features as survival model covariates? 
-- *2 hours* : plot CI graphs, caclulate metric scores for Cox model evaluation results
+- *12 hours* : Complete first part of survival evaluation - Disseration section 6.2.2 how effective were our chosen image-based features as survival model covariates? 
+- *5 hours* : plot CI graphs, caclulate metric scores for Cox model evaluation results
 ## 20 Feb 2023 - 23 Feb 2023
-- *10 hours* : Complete evaluation and discussion sections
+- *15 hours* : Complete evaluation and discussion sections
 - Supervisor Meeting (22-02-2023):
   - Discuss cross validation evaluation of survival results
   - Discuss dataset size effect on survival results
@@ -397,16 +397,18 @@ NO WORK DONE DUE TO MAJOR DEADLINES AND 5 COURSEWORKS TO COMPLETE
 
 ## Week 20
 ## 24 Feb 2023 - 2 March 2023:
-- *10 hours* : Complete conclusion, future work. Make changes based on feedback received on first part of dissertation upto evaluation.
+- *15 hours* : Complete conclusion, future work. Make changes based on feedback received on first part of dissertation upto evaluation.
 - Supervisor meeting (01-03-2023): Discuss feedback from the first half of the dissertation. Agree most changes are minor and looks very good. Change citation format to harvard. Add footnotes to some references. Agree to create an appendix to show result visualizations. Agree to move all code snippets to appendix to keep under 40 pages. Discuss validity of survival results and agree a conclusion of WSIs being inviable in predicting survival times is appropriate. Try find some literature to support it. 
 
 ## Week 21
 ## 3 March 2023 - 9 March 2023:
-- *7 hours*: Complete appendix with images and results, finish conclusion with a citation of a work that had exact same conclusion as us (Wetsttein et al. 2019). Work on remaining feedback and finalize dissertation. 
+- *10 hours*: Complete appendix with images and results, finish conclusion with a citation of a work that had exact same conclusion as us (Wetsttein et al. 2019). Work on remaining feedback and finalize dissertation. 
 - Supervisor meeting (08-03-2023): Discuss getting feedback on evaluation and conclusion next week. Agree appendix is appropriate and conclusion with the cited work is good. Discuss cleaning up the code base and getting ready for submission. 
 
 ## Week 22
 ## 10 March 2023 - 16 March 2023:
-- *5 hours* - Clean up code base and make all python scripts executable with command line arguments rather than being notebooks. Add README and Manual files. Create submission style directory with proper organization. 
+- *10 hours* - Clean up code base and make all python scripts executable with command line arguments rather than being notebooks. Add README and Manual files. Create submission style directory with proper organization. 
 - *5 hours* - Receive complete feedback from supervisor, and work on making final fixes to dissertation. 
 - Supervisor meeting (15-03-2023): Discuss final feedback and agree to finish dissertation and code base completion by this weekend for submission. Discuss video presentation and agree basic summary of the project with emphasis on results is appropriate for research based projects. 
+
+## Total time = 402 hours

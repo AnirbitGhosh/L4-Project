@@ -123,11 +123,14 @@ def cox_model_intensity(data):
 
 #%%
 if __name__ == "__main__":
-    args = parser.parse_args()
+    # args = parser.parse_args()
     
-    pred_dir = args.binary
-    pred_dir_prob = args.prob
-    data_path = args.survival
+    # pred_dir = args.binary
+    # pred_dir_prob = args.prob
+    # data_path = args.survival
+    pred_dir = "D:/PCAM DATA/Prediction_data/full_perdiction_set"
+    pred_dir_prob = "D:/PCAM DATA/Prediction_data/probability_predictions_all"
+    data_path = "D:/PCAM DATA/Survival/survival_data.csv"
 
     data = read_data(data_path, pred_dir)
     data_prob = read_data_prob(data_path, pred_dir_prob)
@@ -174,9 +177,10 @@ if __name__ == "__main__":
 
     #%%
     print(cox_intensity.predict_median(cox_data_intensity))
-    print(cox.predict_median(cox_data))
+    # print(cox.predict_median(cox_data))
 
-    print(cox_data['OS_MONTHS'].head())
+    print(cox_data)
+    
     #%%
     cox_intensity.plot_partial_effects_on_outcome(covariates='Mean Intensity', values=[
         0.39
