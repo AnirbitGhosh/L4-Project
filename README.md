@@ -1,5 +1,8 @@
-# L4 individual project - Anirbit Ghosh 
+# L4 individual project
 # Using Deep Learning to predict overall survival times for breast cancer from H&E stained whole slide images. 
+## By - Anirbit Ghosh, Supervisor - Dr. Kevin Bryson
+
+The source repository can be found on [Github](https://github.com/AnirbitGhosh/L4-Project)
 
 This reposiotry holds the main source code for my individual project. It additionally contains the meeting notes, logs, presentation and dissertation. The data used in the project was too large to be stored here. Instead, we have included the links to the original online sources for the model training data and the TCGA data used for regression (more detail in the folder [README](data/README.md)). This project was supervised by Dr. Kevin Bryson. 
 
