@@ -1,5 +1,7 @@
 # L4-Project - Breast cancer survival analysis using deep learning
 
+Source code repository containing more detailed documentation can be found on [Github](https://github.com/AnirbitGhosh/L4-Project).
+
 ## Code structure
 - `/data_loading` : Contains code to prepare raw data before being processing through preprocessing pipeline and the CNN. `data_transforms.py` contains all relevant transformers for data augmentation. `dataset.py` contains the custom `BreastCancerDataset` class which is used to load images and associated labels into a streamlined object for easier retrieval by torch dataloader. `extract_data.py` is used to extract image arrays from the PCAM dataset's HDF5 file and store the images as `.jpeg` in a given directory. 
 
