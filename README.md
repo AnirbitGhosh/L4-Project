@@ -5,7 +5,7 @@
 This reposiotry holds the main source code for my individual project. It additionally contains the meeting notes, logs, presentation and dissertation. The data used in the project was too large to be stored here. Instead, we have included the links to the original online sources for the model training data and the TCGA data used for regression (more detail in the folder [README](data/README.md)). This project was supervised by Dr. Kevin Bryson. 
 
 ---
-The final disseration (in PDF) can be viewed and downloaded from here: [Dissertation PDF](dissertation/2439281g_L4_project_dissertation.pdf). All LaTeX source files can be found in [dissertation](dissertation) folder. 
+The final disseration (in PDF) can be viewed and downloaded from here: [Dissertation PDF](dissertation/2439281g.pdf). All LaTeX source files can be found in [dissertation](dissertation) folder. 
 
 ---
 
